@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Camins — prototype · Points P-O</title>
+<meta name="description" content="Prototype interactif de Camins : l'application de randonnée narrative de l'Occitanie. Récits géolocalisés, Veillée hebdomadaire, Cabinet — et les garde-fous anti-dépendance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Source+Sans+3:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+:root{
+  --red:#C8201A; --red-d:#A01812;
+  --green:#1E6B1A; --green-d:#155213;
+  --yellow:#F5D800; --gold:#C49A3C; --amber:#B87A00;
+  --paper:#FAFAF7; --paper2:#F2F0EB; --paper3:#E8E4DC; --stone:#D6D0C4;
+  --ink:#1A1814; --ink-70:rgba(26,24,20,.7); --ink-40:rgba(26,24,20,.4); --ink-15:rgba(26,24,20,.15);
+  --white:#fff;
+  --fs:'Playfair Display',Georgia,serif;
+  --fb:'Source Sans 3',system-ui,sans-serif;
+  --fm:'DM Mono',ui-monospace,monospace;
+  --shell-w:392px; --shell-h:812px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:var(--fb);background:var(--ink);color:var(--ink);
+  display:flex;align-items:stretch;justify-content:center;
+}
+
+/* ═══ STAGE (desktop) ═══ */
+#stage{display:flex;gap:48px;align-items:center;justify-content:center;width:100%;max-width:1340px;padding:32px;}
+
+/* ─ colonne gauche : notes de conception ─ */
+#notes{flex:1;max-width:430px;color:rgba(255,255,255,.86);}
+.n-logo{display:flex;align-items:center;gap:12px;margin-bottom:26px;}
+.n-logo svg{flex:none;}
+.n-logo-t{font-family:var(--fs);font-size:24px;font-style:italic;color:#fff;}
+.n-logo-s{font-family:var(--fm);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);display:block;margin-top:2px;}
+.n-title{font-family:var(--fs);font-size:31px;font-style:italic;line-height:1.2;color:#fff;margin-bottom:14px;}
+.n-lede{font-size:14.5px;font-weight:300;line-height:1.72;color:rgba(255,255,255,.62);margin-bottom:26px;}
+.n-panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-left:2px solid var(--yellow);border-radius:3px;padding:18px 20px;margin-bottom:14px;}
+.n-eyebrow{font-family:var(--fm);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--yellow);margin-bottom:9px;}
+.n-h{font-family:var(--fs);font-size:19px;font-style:italic;color:#fff;margin-bottom:8px;line-height:1.25;}
+.n-p{font-size:13.5px;font-weight:300;line-height:1.68;color:rgba(255,255,255,.6);}
+.n-p + .n-p{margin-top:9px;}
+.n-p b{color:rgba(255,255,255,.92);font-weight:500;}
+.n-guard{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);font-size:12.5px;font-weight:300;line-height:1.6;color:rgba(255,255,255,.5);}
+.n-guard strong{color:var(--green);font-weight:600;filter:brightness(1.9);}
+.n-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;}
+.n-link{font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.55);text-decoration:none;border:1px solid rgba(255,255,255,.2);padding:8px 13px;border-radius:2px;transition:.2s;}
+.n-link:hover{color:#fff;border-color:rgba(255,255,255,.6);}
+.n-warn{margin-top:18px;font-size:12px;font-weight:300;line-height:1.6;color:rgba(255,255,255,.38);border-left:2px solid rgba(255,255,255,.2);padding-left:12px;}
+
+/* ═══ PHONE ═══ */
+#phone{
+  flex:none;width:var(--shell-w);height:var(--shell-h);
+  background:var(--paper);border-radius:42px;position:relative;
+  box-shadow:0 0 0 11px #0c0b09, 0 0 0 13px #2a2724, 0 40px 90px rgba(0,0,0,.6);
+  overflow:hidden;display:flex;flex-direction:column;
+}
+#notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:132px;height:26px;background:#0c0b09;border-radius:0 0 16px 16px;z-index:60;}
+#statusbar{
+  flex:none;height:44px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 24px 5px;font-family:var(--fm);font-size:11px;color:var(--ink);z-index:55;position:relative;
+}
+#statusbar .sb-r{display:flex;gap:5px;align-items:center;font-size:10px;}
+
+/* ─ header app ─ */
+#appbar{
+  flex:none;height:52px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;border-bottom:1px solid var(--paper3);background:var(--paper);z-index:50;
+}
+.ab-title{font-family:var(--fs);font-size:19px;font-style:italic;}
+.ab-sub{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-40);}
+.ab-btn{width:32px;height:32px;border:1px solid var(--paper3);background:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:.2s;}
+.ab-btn:hover{border-color:var(--ink-40);}
+.ab-btn.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+/* ─ viewport ─ */
+#view{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+#view::-webkit-scrollbar{display:none;}
+.screen{display:none;padding-bottom:20px;}
+.screen.on{display:block;animation:fade .28s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ─ tabbar ─ */
+#tabbar{
+  flex:none;height:66px;border-top:1px solid var(--paper3);background:rgba(250,250,247,.97);
+  backdrop-filter:blur(12px);display:flex;padding-bottom:6px;z-index:50;
+}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border:none;background:none;font-family:inherit;position:relative;}
+.tab-i{font-size:18px;filter:grayscale(1);opacity:.42;transition:.2s;}
+.tab-l{font-family:var(--fm);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-40);transition:.2s;}
+.tab.on .tab-i{filter:grayscale(0);opacity:1;}
+.tab.on .tab-l{color:var(--ink);}
+.tab-badge{position:absolute;top:8px;right:calc(50% - 20px);min-width:16px;height:16px;padding:0 4px;background:var(--red);color:#fff;border-radius:8px;font-family:var(--fm);font-size:9px;display:flex;align-items:center;justify-content:center;}
+
+/* ═══ COMPOSANTS ═══ */
+.sec{padding:18px 18px 0;}
+.sec-eb{font-family:var(--fm);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.sec-eb::after{content:'';flex:1;height:1px;background:var(--paper3);}
+.sec-t{font-family:var(--fs);font-size:23px;font-style:italic;line-height:1.2;margin-bottom:7px;}
+.sec-d{font-size:13px;font-weight:300;line-height:1.62;color:var(--ink-70);}
+
+#map{height:230px;width:100%;background:var(--paper2);}
+.map-wrap{position:relative;z-index:1;isolation:isolate;}
+.map-hint{position:absolute;bottom:9px;left:9px;z-index:500;background:rgba(26,24,20,.86);color:#fff;font-family:var(--fm);font-size:9px;letter-spacing:.05em;padding:5px 9px;border-radius:2px;}
+.pin{width:26px;height:26px;border-radius:50% 50% 50% 2px;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3);border:1.5px solid #fff;}
+.pin span{transform:rotate(45deg);font-size:11px;}
+.pin.p-f{background:var(--green);} .pin.p-m{background:var(--amber);} .pin.p-d{background:var(--red);}
+.pin.done{background:var(--ink);}
+
+.chips{display:flex;gap:6px;overflow-x:auto;padding:12px 18px;scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{flex:none;font-family:var(--fm);font-size:10px;letter-spacing:.05em;padding:7px 12px;border:1px solid var(--paper3);background:var(--white);border-radius:14px;cursor:pointer;color:var(--ink-70);transition:.2s;white-space:nowrap;}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+.tcard{display:flex;gap:12px;padding:13px 18px;border-bottom:1px solid var(--paper3);cursor:pointer;transition:background .18s;align-items:flex-start;}
+.tcard:hover{background:var(--paper2);}
+.tc-th{flex:none;width:62px;height:62px;border-radius:3px;position:relative;overflow:hidden;}
+.tc-th .tc-dept{position:absolute;bottom:0;left:0;right:0;background:rgba(26,24,20,.75);color:#fff;font-family:var(--fm);font-size:8.5px;text-align:center;padding:2px 0;}
+.tc-b{flex:1;min-width:0;}
+.tc-n{font-family:var(--fs);font-size:16px;font-style:italic;line-height:1.2;margin-bottom:3px;}
+.tc-m{font-family:var(--fm);font-size:9.5px;color:var(--ink-40);letter-spacing:.03em;margin-bottom:5px;}
+.tc-th2{font-size:12px;font-weight:300;color:var(--ink-70);line-height:1.5;}
+.tc-prog{margin-top:7px;display:flex;align-items:center;gap:6px;}
+.tc-bar{flex:1;height:3px;background:var(--paper3);border-radius:2px;overflow:hidden;}
+.tc-bar i{display:block;height:100%;background:var(--green);transition:width .5s;}
+.tc-pn{font-family:var(--fm);font-size:9px;color:var(--ink-40);}
+
+.badge{display:inline-block;font-family:var(--fm);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;border-radius:2px;}
+.b-f{background:rgba(30,107,26,.12);color:var(--green);}
+.b-m{background:rgba(184,122,0,.14);color:var(--amber);}
+.b-d{background:rgba(200,32,26,.11);color:var(--red);}
+.b-ink{background:var(--paper3);color:var(--ink-70);}
+
+/* ─ détail sentier ─ */
+#detail{position:absolute;top:0;left:0;right:0;bottom:66px;background:var(--paper);z-index:70;overflow-y:auto;display:none;scrollbar-width:none;}
+#detail::-webkit-scrollbar{display:none;}
+#detail.on{display:block;animation:slideup .3s cubic-bezier(.2,.8,.3,1);}
+@keyframes slideup{from{transform:translateY(22px);opacity:0}to{transform:none;opacity:1}}
+.d-hero{height:168px;position:relative;display:flex;align-items:flex-end;padding:16px;}
+.d-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(13,12,10,.85),rgba(13,12,10,.1));}
+.d-back{position:absolute;top:14px;left:14px;z-index:3;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.9);border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.d-hero-t{position:relative;z-index:2;color:#fff;}
+.d-dept{font-family:var(--fm);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--yellow);margin-bottom:5px;}
+.d-n{font-family:var(--fs);font-size:26px;font-style:italic;line-height:1.12;}
+.d-meta{display:flex;gap:0;border-bottom:1px solid var(--paper3);}
+.d-mi{flex:1;padding:12px 6px;text-align:center;border-right:1px solid var(--paper3);}
+.d-mi:last-child{border:none;}
+.d-mv{font-family:var(--fs);font-size:17px;font-style:italic;}
+.d-ml{font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-40);margin-top:2px;}
+.d-body{padding:16px 18px;}
+.d-res{font-size:13.5px;font-weight:300;line-height:1.68;color:var(--ink-70);margin-bottom:14px;}
+.d-cyc{background:var(--paper2);border-left:2px solid var(--gold);padding:11px 13px;margin-bottom:16px;}
+.d-cyc-l{font-family:var(--fm);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:3px;}
+.d-cyc-t{font-family:var(--fs);font-size:15px;font-style:italic;}
+
+.stn{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--paper3);align-items:flex-start;}
+.stn:last-child{border:none;}
+.stn-dot{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px dashed var(--stone);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:10px;color:var(--ink-40);background:var(--white);}
+.stn.un .stn-dot{border:1.5px solid var(--green);background:var(--green);color:#fff;}
+.stn.live .stn-dot{border-color:var(--red);color:var(--red);animation:pulse 1.1s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(200,32,26,.5)}50%{box-shadow:0 0 0 7px rgba(200,32,26,0)}}
+.stn-b{flex:1;min-width:0;}
+.stn-km{font-family:var(--fm);font-size:9px;color:var(--ink-40);letter-spacing:.05em;}
+.stn-t{font-family:var(--fs);font-size:15px;font-style:italic;line-height:1.25;margin:2px 0 3px;}
+.stn.lock .stn-t{color:var(--ink-40);}
+.stn-s{font-size:11.5px;font-weight:300;color:var(--ink-40);line-height:1.5;}
+.stn-play{flex:none;align-self:center;font-size:12px;color:var(--green);cursor:pointer;font-family:var(--fm);}
+
+.btn{display:block;width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:2px;font-family:var(--fb);font-size:13px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:.2s;text-align:center;}
+.btn:hover{background:var(--red-d);}
+.btn:disabled{background:var(--stone);cursor:default;}
+.btn-o{background:none;border:1.5px solid var(--ink);color:var(--ink);}
+.btn-o:hover{background:var(--ink);color:#fff;}
+.btn-g{background:var(--green);} .btn-g:hover{background:var(--green-d);}
+.btn-s{padding:10px;font-size:11px;}
+
+/* ─ mode sentier ─ */
+#walk{position:absolute;inset:0;background:#0c0b09;z-index:85;display:none;flex-direction:column;color:#fff;padding:26px 22px;}
+#walk.on{display:flex;animation:fade .3s;}
+.w-eb{font-family:var(--fm);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.35);}
+.w-n{font-family:var(--fs);font-size:24px;font-style:italic;margin:6px 0 26px;}
+.w-screen{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
+.w-km{font-family:var(--fs);font-size:64px;font-style:italic;line-height:1;}
+.w-kml{font-family:var(--fm);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:6px;}
+.w-track{width:100%;height:2px;background:rgba(255,255,255,.14);margin:34px 0 8px;position:relative;}
+.w-track i{position:absolute;left:0;top:0;height:100%;background:var(--yellow);transition:width .35s linear;}
+.w-tick{position:absolute;top:-3px;width:8px;height:8px;border-radius:50%;background:#3a3733;transform:translateX(-50%);transition:.3s;}
+.w-tick.un{background:var(--yellow);box-shadow:0 0 10px rgba(245,216,0,.7);}
+.w-st{font-family:var(--fm);font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.05em;line-height:1.8;}
+.w-gps{margin-top:26px;border:1px solid rgba(255,255,255,.14);border-radius:3px;padding:13px 15px;width:100%;text-align:left;}
+.w-gps-h{font-family:var(--fm);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:9px;}
+.w-cond{display:flex;justify-content:space-between;font-family:var(--fm);font-size:10.5px;color:rgba(255,255,255,.45);padding:3px 0;}
+.w-cond.ok{color:#6FCF6A;}
+.w-foot{font-size:11.5px;font-weight:300;color:rgba(255,255,255,.32);line-height:1.6;text-align:center;margin-top:auto;padding-top:18px;}
+.w-quit{background:none;border:1px solid rgba(255,255,255,.24);color:rgba(255,255,255,.6);font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:11px;border-radius:2px;cursor:pointer;margin-top:12px;width:100%;}
+
+/* ─ lecteur Éclat ─ */
+#eclat{position:absolute;inset:0;background:#100e0c;z-index:95;display:none;flex-direction:column;color:#fff;}
+#eclat.on{display:flex;animation:fade .25s;}
+.e-bars{display:flex;gap:3px;padding:14px 14px 0;}
+.e-bar{flex:1;height:2.5px;background:rgba(255,255,255,.22);border-radius:2px;overflow:hidden;}
+.e-bar i{display:block;height:100%;width:0;background:#fff;}
+.e-head{display:flex;align-items:center;gap:9px;padding:13px 16px;}
+.e-av{width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:12px;font-style:italic;color:#fff;}
+.e-au{font-size:12px;font-weight:500;}
+.e-ro{font-family:var(--fm);font-size:8.5px;color:rgba(255,255,255,.42);letter-spacing:.05em;}
+.e-x{margin-left:auto;background:none;border:none;color:rgba(255,255,255,.6);font-size:17px;cursor:pointer;}
+.e-art{flex:1;position:relative;overflow:hidden;display:flex;align-items:flex-end;}
+.e-art::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(16,14,12,.96) 4%,rgba(16,14,12,.25) 55%,rgba(16,14,12,.5));}
+.e-txt{position:relative;z-index:2;padding:22px 20px;width:100%;}
+.e-kind{font-family:var(--fm);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--yellow);margin-bottom:8px;}
+.e-t{font-family:var(--fs);font-size:25px;font-style:italic;line-height:1.16;margin-bottom:11px;}
+.e-p{font-size:13.5px;font-weight:300;line-height:1.72;color:rgba(255,255,255,.8);}
+.e-src{margin-top:13px;font-family:var(--fm);font-size:9px;color:rgba(255,255,255,.36);line-height:1.6;border-top:1px solid rgba(255,255,255,.14);padding-top:9px;}
+.e-audio{display:flex;align-items:center;gap:11px;padding:12px 18px 18px;}
+.e-wave{flex:1;display:flex;align-items:center;gap:2px;height:22px;}
+.e-wave i{flex:1;background:rgba(255,255,255,.3);border-radius:1px;min-height:2px;}
+.e-time{font-family:var(--fm);font-size:9.5px;color:rgba(255,255,255,.42);}
+.e-toast{position:absolute;left:50%;bottom:88px;transform:translateX(-50%) translateY(10px);opacity:0;background:var(--green);color:#fff;font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;padding:9px 16px;border-radius:2px;transition:.4s;pointer-events:none;white-space:nowrap;}
+.e-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ─ Veillée ─ */
+.v-count{background:var(--ink);color:#fff;padding:22px 18px;text-align:center;}
+.v-eb{font-family:var(--fm);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--yellow);margin-bottom:9px;}
+.v-h{font-family:var(--fs);font-size:24px;font-style:italic;line-height:1.2;margin-bottom:5px;}
+.v-s{font-size:12.5px;font-weight:300;color:rgba(255,255,255,.55);line-height:1.6;}
+.v-clock{font-family:var(--fm);font-size:31px;letter-spacing:.05em;margin:16px 0 4px;color:var(--yellow);}
+.v-cl{font-family:var(--fm);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.35);}
+.v-stage{height:186px;background:linear-gradient(150deg,#1d2a3a,#3d3020 60%,#5a3a20);position:relative;display:flex;align-items:flex-end;padding:12px;}
+.v-live{position:absolute;top:11px;left:11px;background:var(--red);color:#fff;font-family:var(--fm);font-size:9px;letter-spacing:.1em;padding:4px 8px;border-radius:2px;display:flex;align-items:center;gap:5px;}
+.v-live i{width:5px;height:5px;background:#fff;border-radius:50%;animation:blink 1.1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.v-watch{position:absolute;top:11px;right:11px;background:rgba(0,0,0,.5);color:#fff;font-family:var(--fm);font-size:9px;padding:4px 8px;border-radius:2px;}
+.v-host{position:relative;z-index:2;color:#fff;}
+.v-host-n{font-family:var(--fs);font-size:17px;font-style:italic;}
+.v-host-r{font-family:var(--fm);font-size:9px;color:rgba(255,255,255,.6);}
+.v-chat{height:154px;overflow-y:auto;padding:10px 16px;background:var(--paper2);display:flex;flex-direction:column;justify-content:flex-end;gap:6px;}
+.v-msg{font-size:12px;line-height:1.45;animation:fade .3s;}
+.v-msg b{font-weight:600;color:var(--ink);}
+.v-msg span{color:var(--ink-70);font-weight:300;}
+.v-msg.host{background:rgba(245,216,0,.18);border-left:2px solid var(--gold);padding:6px 9px;border-radius:0 2px 2px 0;}
+.v-msg.sys{font-family:var(--fm);font-size:9.5px;color:var(--green);letter-spacing:.03em;}
+.v-input{display:flex;gap:7px;padding:10px 16px;border-top:1px solid var(--paper3);}
+.v-input input{flex:1;border:1px solid var(--paper3);background:var(--white);border-radius:16px;padding:8px 13px;font-family:var(--fb);font-size:12.5px;outline:none;}
+.v-input input:focus{border-color:var(--ink-40);}
+.v-input button{border:none;background:var(--ink);color:#fff;border-radius:16px;padding:0 15px;font-family:var(--fm);font-size:11px;cursor:pointer;}
+.drop{margin:14px 18px;border:1px solid var(--paper3);border-radius:3px;overflow:hidden;background:var(--white);animation:pop .4s cubic-bezier(.2,1.2,.4,1);}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+.drop-h{background:var(--ink);color:#fff;padding:9px 13px;font-family:var(--fm);font-size:9px;letter-spacing:.16em;text-transform:uppercase;display:flex;justify-content:space-between;}
+.drop-h .rem{color:var(--yellow);}
+.drop-b{padding:14px 15px;}
+.drop-n{font-family:var(--fs);font-size:18px;font-style:italic;line-height:1.2;margin-bottom:5px;}
+.drop-d{font-size:12px;font-weight:300;color:var(--ink-70);line-height:1.55;margin-bottom:11px;}
+.drop-f{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.drop-p{font-family:var(--fs);font-size:22px;font-style:italic;color:var(--red);}
+.drop-p small{font-family:var(--fm);font-size:9px;color:var(--ink-40);display:block;font-style:normal;}
+.drop-note{margin-top:11px;padding-top:10px;border-top:1px solid var(--paper3);font-size:11px;font-weight:300;color:var(--ink-40);line-height:1.55;}
+.drop-note b{color:var(--green);font-weight:600;}
+
+/* ─ Cabinet ─ */
+.cab-head{padding:20px 18px 14px;background:var(--ink);color:#fff;}
+.cab-n{font-family:var(--fs);font-size:23px;font-style:italic;}
+.cab-s{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:3px;}
+.cab-stats{display:flex;margin-top:16px;gap:1px;background:rgba(255,255,255,.1);}
+.cab-si{flex:1;background:var(--ink);padding:9px 4px;text-align:center;}
+.cab-sv{font-family:var(--fs);font-size:20px;font-style:italic;color:var(--yellow);}
+.cab-sl{font-family:var(--fm);font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:2px;}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:14px 18px;}
+.gi{aspect-ratio:3/4;border-radius:2px;position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:7px;cursor:pointer;}
+.gi.lock{background:var(--paper2);border:1px dashed var(--stone);align-items:center;justify-content:center;}
+.gi.lock span{font-size:15px;opacity:.24;position:relative;z-index:2;}
+.gi.lock::after{display:none;}
+.gi::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(16,14,12,.9),transparent 62%);}
+.gi-t{position:relative;z-index:2;font-family:var(--fs);font-size:10.5px;font-style:italic;color:#fff;line-height:1.2;}
+.cyc{margin:0 18px 12px;border:1px solid var(--paper3);border-radius:3px;padding:13px 14px;background:var(--white);}
+.cyc-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.cyc-n{font-family:var(--fs);font-size:15px;font-style:italic;}
+.cyc-c{font-family:var(--fm);font-size:9.5px;color:var(--ink-40);}
+.cyc-bar{height:4px;background:var(--paper3);border-radius:2px;overflow:hidden;}
+.cyc-bar i{display:block;height:100%;background:var(--gold);transition:width .6s;}
+.cyc-d{font-size:11.5px;font-weight:300;color:var(--ink-40);line-height:1.5;margin-top:8px;}
+
+/* ─ éthique ─ */
+.eth{margin:0 18px 12px;border:1px solid var(--paper3);border-radius:3px;background:var(--white);overflow:hidden;}
+.eth-h{padding:11px 14px;border-bottom:1px solid var(--paper3);font-family:var(--fm);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-40);}
+.eth-b{padding:14px;}
+.ratio{display:flex;align-items:baseline;gap:9px;margin-bottom:9px;}
+.ratio-v{font-family:var(--fs);font-size:38px;font-style:italic;color:var(--green);line-height:1;}
+.ratio-l{font-size:12px;font-weight:300;color:var(--ink-70);line-height:1.45;}
+.ratio-bar{height:22px;display:flex;border-radius:2px;overflow:hidden;margin:10px 0 7px;}
+.ratio-bar .out{background:var(--green);} .ratio-bar .scr{background:var(--stone);}
+.ratio-bar div{display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:9px;color:#fff;transition:width .6s;}
+.ratio-bar .scr{color:var(--ink-70);}
+.ratio-n{font-size:11.5px;font-weight:300;color:var(--ink-40);line-height:1.55;}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-bottom:1px solid var(--paper3);}
+.row:last-child{border:none;}
+.row-t{font-size:13px;font-weight:500;}
+.row-d{font-size:11.5px;font-weight:300;color:var(--ink-40);line-height:1.5;margin-top:2px;}
+.sw{flex:none;width:42px;height:24px;border-radius:12px;background:var(--stone);position:relative;cursor:pointer;transition:.25s;border:none;}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.25s;}
+.sw.on{background:var(--green);}
+.sw.on::after{transform:translateX(18px);}
+.charte{padding:2px 18px 18px;}
+.ch-i{display:flex;gap:9px;font-size:12px;font-weight:300;line-height:1.6;color:var(--ink-70);padding:7px 0;border-bottom:1px solid var(--paper3);}
+.ch-i:last-child{border:none;}
+.ch-i b{color:var(--ink);font-weight:600;}
+.ch-n{flex:none;font-family:var(--fm);font-size:9px;color:var(--red);padding-top:3px;}
+.end{text-align:center;font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-40);padding:26px 18px 16px;}
+.end::before{content:'';display:block;width:26px;height:1px;background:var(--stone);margin:0 auto 12px;}
+
+.callout{margin:14px 18px;padding:12px 14px;background:var(--paper2);border-left:2px solid var(--red);font-size:12px;font-weight:300;line-height:1.62;color:var(--ink-70);}
+.callout b{color:var(--ink);font-weight:600;}
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width:1080px){
+  body{background:var(--paper);align-items:flex-start;}
+  #stage{flex-direction:column;gap:0;padding:0;max-width:100%;}
+  #notes{display:none;}
+  #phone{width:100%;height:100dvh;border-radius:0;box-shadow:none;max-width:520px;margin:0 auto;}
+  #notch{display:none;}
+  #statusbar{height:34px;}
+}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ══════════ NOTES DE CONCEPTION (desktop) ══════════ -->
+<aside id="notes">
+  <div class="n-logo">
+    <svg width="34" height="38" viewBox="0 0 36 40" fill="none">
+      <path d="M18 2 L34 10 L34 26 C34 33 18 39 18 39 C18 39 2 33 2 26 L2 10 Z" fill="#1E6B1A" stroke="#C8201A" stroke-width="2"/>
+      <path d="M8 20 L12 13 L15 17 L18 11 L21 17 L24 14 L28 20 Z" fill="#F5D800" opacity=".9"/>
+    </svg>
+    <div>
+      <span class="n-logo-t">Camins</span>
+      <span class="n-logo-s">Prototype · Points P-O</span>
+    </div>
+  </div>
+  <h1 class="n-title">La randonnée narrative<br>d'Occitanie</h1>
+  <p class="n-lede">Prototype cliquable. Chaque écran met en scène une mécanique de rétention empruntée à Instagram ou à Whatnot — et le garde-fou qui l'empêche de devenir une machine à dépendance. Le panneau ci-dessous suit ce que vous faites dans le téléphone.</p>
+
+  <div class="n-panel" id="np">
+    <div class="n-eyebrow" id="np-eb">Écran · Sentiers</div>
+    <div class="n-h" id="np-h">La carte, pas le fil</div>
+    <div class="n-p" id="np-p"></div>
+    <div class="n-guard" id="np-g"></div>
+  </div>
+
+  <div class="n-links">
+    <a class="n-link" href="../docs/01-produit-camins.md">Spec produit</a>
+    <a class="n-link" href="../docs/02-retention-ethique.md">Étude rétention</a>
+    <a class="n-link" href="../points-po-accueil.html">Site Points P-O</a>
+  </div>
+  <p class="n-warn">Prototype de démonstration : données de parcours et de communauté simulées, contenus historiques rédigés à titre d'exemple et à re-sourcer en production. La vidéo YouTube de référence n'a pas pu être consultée depuis cet environnement (accès réseau bloqué).</p>
+</aside>
+
+<!-- ══════════ TÉLÉPHONE ══════════ -->
+<div id="phone">
+  <div id="notch"></div>
+  <div id="statusbar">
+    <span id="sb-time">08:12</span>
+    <span class="sb-r"><span id="sb-mode">GPS</span> · <span>78 %</span> ▮</span>
+  </div>
+
+  <div id="appbar">
+    <div>
+      <div class="ab-title">Camins</div>
+      <div class="ab-sub" id="ab-sub">Occitanie · 13 sentiers</div>
+    </div>
+    <button class="ab-btn" id="btn-reset" title="Réinitialiser la démo">↺</button>
+  </div>
+
+  <div id="view">
+
+    <!-- ─────── ÉCRAN 1 · SENTIERS ─────── -->
+    <section class="screen on" id="s-sentiers">
+      <div class="map-wrap">
+        <div id="map"></div>
+        <div class="map-hint">13 départements · 13 récits</div>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div id="tlist"></div>
+      <div class="end">C'est tout. 13 sentiers, pas de fil infini.</div>
+    </section>
+
+    <!-- ─────── ÉCRAN 2 · ÉCLATS ─────── -->
+    <section class="screen" id="s-eclats">
+      <div class="sec">
+        <div class="sec-eb">Éclats</div>
+        <h2 class="sec-t">Ce qui vous attend<br><em>dehors</em></h2>
+        <p class="sec-d">Un Éclat est un fragment d'histoire attaché à un point GPS. Il ne se déverrouille pas ici : il se déverrouille sur place, à pied. Cet écran ne sert qu'à savoir ce qu'il y a à aller chercher.</p>
+      </div>
+      <div class="callout"><b>Emprunt Instagram — le format Stories.</b> Vertical, 60 à 120 secondes, audio dominant, tap pour avancer. <b>Refus :</b> l'éphémère. Un Éclat obtenu est gardé à vie et exportable.</div>
+      <div id="teaselist"></div>
+      <div class="callout" style="border-color:var(--green)"><b>La règle d'or.</b> 80 m du point · 45 s sur place · moins de 8 km/h de moyenne. Trois conditions, une conséquence : la récompense variable est branchée sur les jambes, pas sur le pouce.</div>
+      <div class="end">Fin de la liste</div>
+    </section>
+
+    <!-- ─────── ÉCRAN 3 · VEILLÉE ─────── -->
+    <section class="screen" id="s-veillee">
+      <div id="v-pre">
+        <div class="v-count">
+          <div class="v-eb">Rendez-vous hebdomadaire</div>
+          <div class="v-h">La Veillée</div>
+          <div class="v-s">Jeudi · 21h00 · 40 minutes<br>Un récit, des archives, quelques places.</div>
+          <div class="v-clock" id="v-clock">00:00:12</div>
+          <div class="v-cl">avant l'ouverture</div>
+        </div>
+        <div class="sec" style="padding-top:16px">
+          <div class="sec-eb">Cette semaine</div>
+          <h2 class="sec-t">« Le champ des cramats »<br><em>ce que les fouilles de 1964 n'ont pas trouvé</em></h2>
+          <p class="sec-d">Avec Joan Puig, ethnologue, et une boîte d'archives des Archives départementales de l'Ariège ouverte en direct.</p>
+        </div>
+        <div class="callout"><b>Emprunt Whatnot — le show à heure fixe.</b> Un rendez-vous crée une attente bornée ; un live permanent crée une compulsion. Une Veillée par semaine, 40 minutes, jamais plus. <b>Rediffusion disponible dès le lendemain, sans limite</b> — le direct crée le rendez-vous, pas la peur de rater.</div>
+        <div class="sec" style="padding-bottom:18px"><button class="btn" id="btn-enter">Entrer dans la Veillée</button></div>
+        <div class="end">Prochaine Veillée : jeudi prochain</div>
+      </div>
+
+      <div id="v-live" style="display:none">
+        <div class="v-stage">
+          <div class="v-live"><i></i>EN DIRECT</div>
+          <div class="v-watch" id="v-watch">312 marcheurs</div>
+          <div class="v-host">
+            <div class="v-host-n">Joan Puig</div>
+            <div class="v-host-r">Ethnologue · guide · Ariège</div>
+          </div>
+        </div>
+        <div class="v-chat" id="v-chat"></div>
+        <div class="v-input">
+          <input id="v-in" placeholder="Poser une question à Joan…" maxlength="90">
+          <button id="v-send">Envoyer</button>
+        </div>
+        <div id="v-drops"></div>
+        <div class="callout" id="v-note"><b>Emprunt Whatnot — les petits détails d'attention.</b> L'hôte vous nomme, la file d'attente est réelle, le tirage est public, le son ponctue. C'est l'attention individuelle qui fidélise, pas le catalogue.</div>
+        <div class="sec" style="padding-bottom:18px"><button class="btn btn-o" id="btn-leave">Quitter la Veillée</button></div>
+        <div class="end">Le live s'arrête à 21h40. Toujours.</div>
+      </div>
+    </section>
+
+    <!-- ─────── ÉCRAN 4 · CABINET ─────── -->
+    <section class="screen" id="s-cabinet">
+      <div class="cab-head">
+        <div class="cab-n">Votre Cabinet</div>
+        <div class="cab-s">Compagnonnage · <span id="cab-rank">Passant</span></div>
+        <div class="cab-stats">
+          <div class="cab-si"><div class="cab-sv" id="st-ec">0</div><div class="cab-sl">Éclats</div></div>
+          <div class="cab-si"><div class="cab-sv" id="st-re">0</div><div class="cab-sl">Récits</div></div>
+          <div class="cab-si"><div class="cab-sv" id="st-km">0</div><div class="cab-sl">km dehors</div></div>
+          <div class="cab-si"><div class="cab-sv" id="st-ct">0</div><div class="cab-sl">Témoins</div></div>
+        </div>
+      </div>
+
+      <div class="sec"><div class="sec-eb">Collection</div></div>
+      <div class="grid" id="cab-grid"></div>
+
+      <div class="sec"><div class="sec-eb">Cycles en cours</div></div>
+      <div id="cab-cycles"></div>
+      <div class="callout"><b>Emprunt Instagram — l'archive personnelle.</b> Ce que l'on a construit retient plus que ce que l'on consomme. <b>Refus :</b> le classement. Rien ici n'est comparé à qui que ce soit, rien n'est public, tout est exportable en PDF.</div>
+
+      <div class="sec"><div class="sec-eb">Sentier d'abord</div></div>
+      <div class="eth">
+        <div class="eth-h">Ratio Camins — la métrique nord</div>
+        <div class="eth-b">
+          <div class="ratio">
+            <div class="ratio-v" id="ratio-v">—</div>
+            <div class="ratio-l">heures dehors<br>par heure d'écran</div>
+          </div>
+          <div class="ratio-bar"><div class="out" id="rb-out" style="width:50%">dehors</div><div class="scr" id="rb-scr" style="width:50%">écran</div></div>
+          <div class="ratio-n" id="ratio-n">Marchez dans le prototype pour voir le ratio bouger. Cible : au-dessus de 8. Un ratio qui baisse déclenche une revue produit, même si l'engagement monte.</div>
+        </div>
+      </div>
+
+      <div class="eth">
+        <div class="eth-h">Réglages — par défaut du côté du sentier</div>
+        <div class="row"><div><div class="row-t">Mode Sentier</div><div class="row-d">Écran noir en randonnée, audio seul. Activé par défaut.</div></div><button class="sw on" data-sw="mode"></button></div>
+        <div class="row"><div><div class="row-t">Notifications</div><div class="row-d"><b id="notif-n">2</b> par semaine maximum, sécurité exceptée. Réglable à 0.</div></div><button class="sw on" data-sw="notif"></button></div>
+        <div class="row"><div><div class="row-t">Son de déverrouillage</div><div class="row-d">Uniquement sur le sentier. Jamais dans les écrans de navigation.</div></div><button class="sw on" data-sw="son"></button></div>
+        <div class="row"><div><div class="row-t">Trace GPS privée</div><div class="row-d">500 premiers mètres floutés. Aucune trace en direct partagée.</div></div><button class="sw on" data-sw="gps"></button></div>
+        <div class="row"><div><div class="row-t">Mode Fauteuil</div><div class="row-d">Déverrouille tous les Éclats sans marcher. Sans justificatif, sans marquage.</div></div><button class="sw" data-sw="fauteuil"></button></div>
+      </div>
+
+      <div class="sec"><div class="sec-eb">Ce que Camins n'aura jamais</div></div>
+      <div class="charte">
+        <div class="ch-i"><span class="ch-n">01</span><span><b>Pas de série quotidienne.</b> Marcher pour ne pas casser une série, c'est marcher fatigué, en retard, par mauvais temps. En montagne, ça tue.</span></div>
+        <div class="ch-i"><span class="ch-n">02</span><span><b>Pas de fil infini.</b> Chaque écran a une fin visible.</span></div>
+        <div class="ch-i"><span class="ch-n">03</span><span><b>Pas de classement, pas de compteur public.</b> Aucune course involontaire.</span></div>
+        <div class="ch-i"><span class="ch-n">04</span><span><b>Rien ne se perd.</b> Aucun contenu limité dans le temps, aucune récompense qui expire.</span></div>
+        <div class="ch-i"><span class="ch-n">05</span><span><b>Pas d'enchère, pas de contenu aléatoire payant.</b> Prix fixe, tirage au sort, 24 h de rétractation.</span></div>
+        <div class="ch-i"><span class="ch-n">06</span><span><b>Pas de publicité, pas de revente de données.</b> Votre temps d'écran n'a aucune valeur pour nous.</span></div>
+        <div class="ch-i"><span class="ch-n">07</span><span><b>La météo ferme des stations</b>, et cette fermeture n'est jamais rattrapable. Le rattrapage crée la pression.</span></div>
+      </div>
+      <div class="end">Charte « Sentier d'abord » · 7 des 10 règles</div>
+    </section>
+
+  </div><!-- /view -->
+
+  <!-- ─────── DÉTAIL SENTIER ─────── -->
+  <div id="detail"></div>
+
+  <!-- ─────── MODE SENTIER ─────── -->
+  <div id="walk">
+    <div class="w-eb" id="w-eb">Mode Sentier · écran verrouillé</div>
+    <div class="w-n" id="w-n"></div>
+    <div class="w-screen">
+      <div class="w-km" id="w-km">0,0</div>
+      <div class="w-kml">kilomètres parcourus</div>
+      <div class="w-track" id="w-track"><i id="w-fill" style="width:0"></i></div>
+      <div class="w-st" id="w-st">En marche…</div>
+      <div class="w-gps">
+        <div class="w-gps-h">Conditions de déverrouillage</div>
+        <div class="w-cond" id="c1"><span>Distance à la station</span><span id="c1v">— m</span></div>
+        <div class="w-cond" id="c2"><span>Temps sur place</span><span id="c2v">0 s / 45 s</span></div>
+        <div class="w-cond" id="c3"><span>Vitesse moyenne 10 min</span><span id="c3v">4,1 km/h</span></div>
+      </div>
+    </div>
+    <div class="w-foot">L'écran reste noir. Le téléphone vibre une fois quand un Éclat s'ouvre, puis se rendort.</div>
+    <button class="w-quit" id="w-quit">Terminer la sortie</button>
+  </div>
+
+  <!-- ─────── LECTEUR ÉCLAT ─────── -->
+  <div id="eclat">
+    <div class="e-bars" id="e-bars"></div>
+    <div class="e-head">
+      <div class="e-av" id="e-av"></div>
+      <div><div class="e-au" id="e-au"></div><div class="e-ro" id="e-ro"></div></div>
+      <button class="e-x" id="e-x">✕</button>
+    </div>
+    <div class="e-art" id="e-art">
+      <div class="e-txt">
+        <div class="e-kind" id="e-kind"></div>
+        <div class="e-t" id="e-t"></div>
+        <div class="e-p" id="e-p"></div>
+        <div class="e-src" id="e-src"></div>
+      </div>
+    </div>
+    <div class="e-audio">
+      <span class="e-time" id="e-t1">0:00</span>
+      <div class="e-wave" id="e-wave"></div>
+      <span class="e-time" id="e-t2">1:40</span>
+    </div>
+    <div class="e-toast" id="e-toast">Ajouté au Cabinet</div>
+  </div>
+
+  <!-- ─────── TABBAR ─────── -->
+  <div id="tabbar">
+    <button class="tab on" data-s="sentiers"><span class="tab-i">🗺</span><span class="tab-l">Sentiers</span></button>
+    <button class="tab" data-s="eclats"><span class="tab-i">✦</span><span class="tab-l">Éclats</span></button>
+    <button class="tab" data-s="veillee"><span class="tab-i">🔥</span><span class="tab-l">Veillée</span></button>
+    <button class="tab" data-s="cabinet"><span class="tab-i">📖</span><span class="tab-l">Cabinet</span></button>
+  </div>
+</div><!-- /phone -->
+</div><!-- /stage -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   DONNÉES — 13 sentiers, un par département d'Occitanie
+   Contenus historiques rédigés à titre d'exemple pour le
+   prototype ; à re-sourcer avant toute publication.
+   ══════════════════════════════════════════════════════════ */
+const CYCLES = {
+  I:   {n:"Le siècle du bûcher",              d:"Croisade albigeoise, 1209–1244"},
+  II:  {n:"La pierre et l'eau",               d:"Abbayes, chemins et canaux"},
+  III: {n:"Le sel, la laine, la transhumance",d:"Économies pastorales"},
+  IV:  {n:"Les langues qui résistent",        d:"Occitan, catalan, camisards"},
+  0:   {n:"Hors cycle",                       d:"Grand large"}
+};
+
+const TRAILS = [
+{id:"montsegur", n:"Montségur, le pog et le champ des cramats", dept:"09", deptn:"Ariège",
+ c:[42.8756,1.8331], diff:"m", km:6.2, dist:"6,2 km", duree:"3h00", deni:"+430 m", cycle:"I",
+ art:["#4a3f34","#8a7355","#c4a882"],
+ auteur:"Joan Puig", role:"Ethnologue · Ariège",
+ res:"Une montée courte et raide vers un lieu qu'on croit connaître. Ce Récit démonte autant de légendes qu'il en raconte — y compris celles que le tourisme a fabriquées.",
+ st:[
+  {km:0.4, t:"Le champ des cramats", k:"Archive · 16 mars 1244",
+   x:"Au pied du pog, un pré en pente. Après dix mois de siège et quinze jours de trêve, plus de deux cents personnes y sont brûlées — le chiffre varie selon les dépositions inquisitoriales. La stèle que vous avez sous les yeux date de 1960. Elle commémore ; elle ne prouve rien. Aucune fouille n'a jamais identifié de couche de cendres à cet endroit précis.",
+   s:"Collection Doat, t. XXII–XXIV, dépositions de 1244 · stèle du Souvenir, 1960"},
+  {km:1.6, t:"La nuit des mercenaires basques", k:"Terrain",
+   x:"Regardez la face est, celle que vous venez de longer. En février 1244, des mercenaires basques la gravissent de nuit et prennent la barbacane. C'est cette prise, et non la faim, qui décide du siège : les assiégés perdent le seul point d'où l'on pouvait harceler les machines.",
+   s:"Guillaume de Puylaurens, Chronica, ch. XLVI"},
+  {km:2.3, t:"Le château que vous voyez n'est pas le leur", k:"Contre-idée",
+   x:"La ruine où vous entrez est postérieure à 1244 : c'est une place royale, rebâtie après la reddition. Le village des assiégés tenait sur les terrasses en contrebas, en encorbellement — on en voit encore les trous de poutres. Vous marchez dans le château des vainqueurs.",
+   s:"Fouilles programmées, 1964–1976, rapport DRAC Midi-Pyrénées"},
+  {km:3.0, t:"Le solstice, et ce qu'il ne prouve pas", k:"Nuance",
+   x:"Chaque 21 juin, le soleil traverse les quatre baies du donjon dans un alignement spectaculaire. Le phénomène est réel. Mais il concerne un bâtiment construit après le bûcher, par ceux qui l'avaient allumé. Le « temple solaire cathare » est une invention du XXᵉ siècle — ce qui ne rend pas le lever de soleil moins beau.",
+   s:"Relevés archéoastronomiques, 1970–1990 · analyse critique J.-L. Biget, 2007"},
+  {km:4.1, t:"Les quatre hommes de la corde", k:"Récit",
+   x:"La nuit précédant la reddition, quatre hommes descendent en rappel la face ouest avec ce que les textes appellent le « trésor ». Imbert de Salas, interrogé plus tard, dit qu'il s'agissait de monnaie et de documents. Sept siècles de littérature en ont fait autre chose. Les documents auraient été plus précieux.",
+   s:"Déposition d'Imbert de Salas, 1244 (Doat XXII, f. 213)"},
+  {km:5.4, t:"Bons òmes, pas cathares", k:"Langue",
+   x:"Ils ne se sont jamais appelés cathares. Le mot vient d'un polémiste rhénan, Eckbert de Schönau, en 1163. Ici on disait bons òmes, bonas femnas — les bons hommes, les bonnes femmes. Le nom qu'on donne aux vaincus est toujours celui des vainqueurs, et les historiens se disputent encore pour savoir si une Église organisée a jamais existé.",
+   s:"Eckbert de Schönau, Sermones contra catharos, 1163 · débat historiographique, 2000–2020"}
+ ]},
+
+{id:"lastours", n:"Les quatre châteaux de Lastours", dept:"11", deptn:"Aude",
+ c:[43.3336,2.3736], diff:"m", km:7.1, dist:"7,1 km", duree:"3h30", deni:"+390 m", cycle:"I",
+ art:["#3d4436","#7d8464","#b9b389"],
+ auteur:"Marc Torrens", role:"Guide montagne & historien",
+ res:"Quatre tours sur une même arête au-dessus de l'Orbiel, et une vallée dont l'histoire ne s'arrête pas au Moyen Âge.",
+ st:[
+  {km:0.8, t:"Quatre châteaux, un seul village", k:"Terrain",
+   x:"Cabaret, Surdespine, Quertinheux : trois tours de la famille de Cabaret, séparées par quelques dizaines de mètres de roche. La quatrième, Tour Régine, est ajoutée après la conquête royale — elle regarde les trois autres. On peut lire la défaite dans un plan de masse.",
+   s:"Inventaire général du patrimoine, région Occitanie"},
+  {km:2.4, t:"1209, l'été où tout bascule", k:"Archive",
+   x:"22 juillet : Béziers est prise et massacrée. 15 août : Carcassonne capitule faute d'eau. En novembre, Raymond-Roger Trencavel meurt dans sa propre tour, à vingt-quatre ans, officiellement de dysenterie. Trois mois auront suffi à faire tomber un vicomté.",
+   s:"Guillaume de Tudèle, Canso de la Crozada, laisses 20–37"},
+  {km:4.6, t:"Pierre-Roger de Cabaret", k:"Récit",
+   x:"Il tient ici quatre ans. Il capture Bouchard de Marly et, plutôt que de le tuer, le garde en hôte pendant seize mois — puis le rend, en échange de sa propre reddition. La guerre du Midi est pleine de ces gestes qui n'entrent dans aucune catégorie moderne.",
+   s:"Pierre des Vaux-de-Cernay, Hystoria albigensis, §227"},
+  {km:6.2, t:"Ce que la montagne a rendu, et repris", k:"Aujourd'hui",
+   x:"Sous vos pieds, du fer, puis de l'or : la mine de Salsigne a été la première d'Europe pour l'or, fermée en 2004. Elle a laissé un des plus lourds héritages d'arsenic du pays. Le vallon est un livre d'histoire ouvert où le dernier chapitre est le plus difficile à raconter.",
+   s:"BRGM, rapports de suivi post-exploitation, vallée de l'Orbiel"}
+ ]},
+
+{id:"larzac", n:"Le Larzac templier · La Couvertoirade", dept:"12", deptn:"Aveyron",
+ c:[43.9128,3.3167], diff:"f", km:9.5, dist:"9,5 km", duree:"3h00", deni:"+180 m", cycle:"III",
+ art:["#6b6455","#a89b7d","#d8cfb4"],
+ auteur:"Sylvie Andrieu", role:"Historienne du pastoralisme",
+ res:"Un plateau qu'on prend pour un désert et qui est un paysage entièrement fabriqué par des moutons, des moines et, une fois, par des paysans qui ont gagné.",
+ st:[
+  {km:0.6, t:"Pourquoi une lavogne est ronde", k:"Objet",
+   x:"Une cuvette d'argile damée, tapissée de pierres, parfaitement circulaire. Cinq cents brebis y boivent en vingt minutes. Ronde, parce qu'aucune bête ne peut être coincée dans un angle par le troupeau. Chaque détail de cet objet est une réponse à un problème vieux de huit siècles.",
+   s:"Enquête ethnographique, Parc naturel régional des Grands Causses"},
+  {km:2.8, t:"Des Templiers aux Hospitaliers", k:"Archive · 1159",
+   x:"Le Larzac est donné aux Templiers au milieu du XIIᵉ siècle : un plateau pauvre en hommes, riche en herbe, idéal pour élever les chevaux et le blé des ordres. En 1312, l'ordre est dissous ; les Hospitaliers héritent, et ce sont eux qui, au XVᵉ, montent les remparts que vous longez.",
+   s:"Cartulaire des Templiers du Larzac · bulle Vox in excelso, 1312"},
+  {km:5.1, t:"La jasse, le lait, la cave", k:"Économie",
+   x:"La bergerie s'appelle ici une jasse. Le lait de brebis descend vers Roquefort ; l'appellation est protégée dès 1925, la première de France. Toute la géométrie du plateau — murets, drailles, points d'eau — est dessinée par un fromage.",
+   s:"Loi du 26 juillet 1925 · archives de la Confédération de Roquefort"},
+  {km:7.3, t:"1971 — Gardarem lo Larzac", k:"Mémoire",
+   x:"En octobre 1971, l'État annonce l'extension du camp militaire : 14 000 hectares. Cent trois paysans signent le serment de ne pas vendre. Dix ans de lutte, des tracteurs à Paris, des dizaines de milliers de personnes ici. En 1981, l'extension est abandonnée. C'est l'un des rares endroits où le paysage a été sauvé par ceux qui y travaillaient.",
+   s:"Archives départementales de l'Aveyron, fonds Larzac 1971–1981"},
+  {km:8.9, t:"Le causse n'est pas un désert", k:"Contre-idée",
+   x:"Cette étendue rase que vous trouvez sauvage est un artefact : six mille ans de pâturage ont ouvert une forêt. Là où le troupeau s'arrête, le buis et le pin reviennent en trente ans. Ici, protéger la nature veut dire maintenir une activité humaine — l'inverse de ce que dit l'intuition.",
+   s:"Études palynologiques des Grands Causses, INRAE"}
+ ]},
+
+{id:"lozere", n:"Le Mont Lozère · chemin de Stevenson", dept:"48", deptn:"Lozère",
+ c:[44.4239,3.7333], diff:"m", km:12.8, dist:"12,8 km", duree:"5h00", deni:"+610 m", cycle:"IV",
+ art:["#3a4450","#6f7a72","#a9ae94"],
+ auteur:"Élise Reynaud", role:"Archiviste · Mende",
+ res:"Un dôme de granit, des bornes plantées pour ne pas mourir dans le brouillard, et la nuit où une guerre de religion a commencé dans un village de trois cents habitants.",
+ st:[
+  {km:1.2, t:"Le Pont-de-Montvert, 24 juillet 1702", k:"Archive",
+   x:"Une cinquantaine d'hommes forcent la maison de l'abbé du Chayla, inspecteur des missions, et le tuent. La guerre des Camisards commence là, dans une rue que vous venez de traverser. Deux ans de guérilla dans ces montagnes contre les troupes royales — et l'un des rares conflits où l'armée de Louis XIV n'a pas gagné nettement.",
+   s:"Abraham Mazel, Mémoires · Archives nationales, TT 260"},
+  {km:3.6, t:"Les assemblées du Désert", k:"Récit",
+   x:"Après 1685, le culte protestant est interdit. On se réunit dans les ravins, à la nuit, avec des guetteurs sur les crêtes. On appelle ça le Désert. Certaines de ces combes portent encore le nom du prêche qui s'y tenait, transmis oralement pendant un siècle sans qu'aucun texte ne l'écrive.",
+   s:"Fonds du Musée du Désert, Mialet · toponymie orale relevée en 1962"},
+  {km:6.8, t:"Les montjoies", k:"Objet",
+   x:"Ces bornes de granit dressées tous les cent mètres n'ont rien de décoratif : au-dessus de 1 500 m, la neige efface le chemin et le brouillard tombe en dix minutes. Les montjoies sont un GPS du XVIIIᵉ siècle, entretenu par les communes parce qu'on y mourait.",
+   s:"Délibérations communales, Mas-Camargues, XVIIIᵉ s."},
+  {km:9.4, t:"Stevenson et Modestine", k:"Récit · 1878",
+   x:"En septembre 1878, un Écossais de 27 ans achète une ânesse soixante-cinq francs et traverse ces montagnes en douze jours. Il n'aime pas beaucoup l'ânesse, s'égare souvent, dort dehors. Le livre qu'il en tire invente à peu près la randonnée moderne : marcher pour marcher, et écrire ce qu'on voit.",
+   s:"R. L. Stevenson, Travels with a Donkey in the Cévennes, 1879"},
+  {km:12.1, t:"La draille", k:"Économie",
+   x:"Ce large couloir d'herbe rase entre deux murets est une draille : la route de transhumance. Jusqu'au chemin de fer, des centaines de milliers de bêtes montaient ici chaque juin depuis la plaine. Un flux annuel, régulier, silencieux — l'infrastructure la plus ancienne de la région, et la seule qui n'ait jamais été goudronnée.",
+   s:"Cartes des drailles, Parc national des Cévennes"}
+ ]},
+
+{id:"canigou", n:"Le Canigó, montagne des Catalans", dept:"66", deptn:"Pyrénées-Orientales",
+ c:[42.5193,2.4569], diff:"d", km:22, dist:"22 km", duree:"2 jours", deni:"+1850 m", cycle:"IV",
+ art:["#2f3a46","#6d5f52","#c9b48d"],
+ auteur:"Marc Torrens", role:"Guide montagne & historien",
+ res:"Une montagne qui n'est pas la plus haute des Pyrénées mais qui les domine toutes dans l'imaginaire, parce qu'elle se lève seule au-dessus de la plaine.",
+ st:[
+  {km:2.1, t:"Saint-Martin-du-Canigou", k:"Archive · 1009",
+   x:"Guifré II, comte de Cerdagne, fonde l'abbaye en 1009 sur un éperon où l'on ne monte que par un sentier. Il s'y retire et creuse lui-même son tombeau dans le roc, encore visible. Bâtir aussi haut n'était pas une prouesse : c'était une déclaration.",
+   s:"Cartulaire de Saint-Martin-du-Canigou · consécration de 1009"},
+  {km:7.4, t:"Le fer de Batère", k:"Économie",
+   x:"On extrait du fer sur ces pentes depuis l'Antiquité. Au XXᵉ siècle, un câble aérien de plusieurs kilomètres descendait le minerai vers la vallée ; on en voit encore les pylônes. La dernière mine ferme en 1987. La montagne sacrée a été, pendant deux mille ans, une montagne industrielle.",
+   s:"Archives départementales des P.-O., fonds des mines de Batère"},
+  {km:13.0, t:"Verdaguer, 1886", k:"Langue",
+   x:"Le poème Canigó de Jacint Verdaguer donne à cette montagne le rôle de berceau de la Catalogne. Écrit en catalan au moment où la langue redevient littéraire, il fait plus pour le statut du Canigó que n'importe quelle altitude. Une montagne devient sacrée quand quelqu'un écrit qu'elle l'est.",
+   s:"J. Verdaguer, Canigó, Barcelone, 1886"},
+  {km:17.6, t:"La flama del Canigó", k:"Rite · vivant",
+   x:"Chaque 23 juin, une flamme allumée au sommet descend par relais et allume les feux de la Sant Joan dans des centaines de villages, des deux côtés de la frontière. Le rite est récent — années 1950-60 — et parfaitement vivant. Une tradition n'a pas besoin d'être ancienne pour être vraie.",
+   s:"Casal de Perpinyà · chronologie de la Flama, depuis 1955"},
+  {km:20.8, t:"La montagne qu'on croyait la plus haute", k:"Contre-idée",
+   x:"Pendant des siècles, on a tenu le Canigó pour le point culminant des Pyrénées. Il ne l'est pas — 2 784 m, loin derrière l'Aneto. Mais il se lève seul de 2 700 m au-dessus d'une plaine, et il se voit, certains matins d'hiver, depuis la région de Marseille. L'erreur est une affaire de point de vue, au sens propre.",
+   s:"Observations de réfraction atmosphérique, IGN · relevés amateurs documentés depuis 1808"}
+ ]},
+
+{id:"gavarnie", n:"Le cirque de Gavarnie", dept:"65", deptn:"Hautes-Pyrénées",
+ c:[42.6969,-0.0086], diff:"f", km:8.6, dist:"8,6 km", duree:"3h00", deni:"+250 m", cycle:"0",
+ art:["#3f4a54","#7f8b90","#cdd3cf"],
+ auteur:"Marc Torrens", role:"Guide montagne & historien",
+ res:"Un mur de 1 500 mètres, une brèche que la légende attribue à une épée, et un cimetière plein de gens dont le métier était de monter.",
+ st:[
+  {km:2.2, t:"La brèche de Roland", k:"Contre-idée",
+   x:"Quarante mètres de large, cent de haut, à 2 804 m. La légende dit que Roland l'a ouverte d'un coup de Durandal en mourant à Roncevaux. La géologie dit une faille exploitée par le gel. Les deux récits ont un point commun : ils expliquent une forme trop régulière pour être crue naturelle.",
+   s:"Chanson de Roland, XIᵉ s. · carte géologique BRGM 1:50 000, feuille Gavarnie"},
+  {km:4.8, t:"Le port de Boucharo", k:"Mémoire",
+   x:"Un col praticable, donc un passage : pèlerins vers l'Aragon, contrebandiers de tabac et de mules, et en 1939 des républicains espagnols dans un sens, puis des évadés dans l'autre entre 1940 et 1944. Les mêmes sentiers, selon le siècle, servent au commerce ou à la survie.",
+   s:"Archives départementales des Hautes-Pyrénées · témoignages de passeurs, coll. 1985"},
+  {km:7.4, t:"Le cimetière des guides", k:"Métier",
+   x:"Les noms sur ces tombes sont ceux d'une profession née au XIXᵉ siècle avec l'alpinisme pyrénéen. Ce sont eux qui ont mené Russell, Schrader et les autres. Ils vendaient exactement ce que nous vendons : la connaissance d'un endroit, et la responsabilité d'y emmener quelqu'un.",
+   s:"Registres paroissiaux de Gavarnie · Bulletin pyrénéen, 1898–1930"}
+ ]},
+
+{id:"stguilhem", n:"Saint-Guilhem-le-Désert · gorges de l'Hérault", dept:"34", deptn:"Hérault",
+ c:[43.7325,3.5464], diff:"f", km:6.8, dist:"6,8 km", duree:"2h30", deni:"+290 m", cycle:"II",
+ art:["#4d4a3a","#93866a","#ddd2b4"],
+ auteur:"Élise Reynaud", role:"Archiviste",
+ res:"Une abbaye au fond d'un cirque calcaire, un pont que le diable n'a pas construit, et un cloître dont la moitié est à New York.",
+ st:[
+  {km:0.5, t:"Guilhem, 804", k:"Archive",
+   x:"Guillaume, comte de Toulouse, compagnon de Charlemagne, fonde ici un monastère en 804 et vient y finir sa vie. Le lieu s'appelait Gellone ; le « désert » du nom actuel désigne l'isolement, pas l'aridité. Un homme de guerre choisissant une combe étroite : c'était la retraite la plus visible qui soit.",
+   s:"Vita sancti Willelmi, XIᵉ s. · cartulaire de Gellone"},
+  {km:2.6, t:"Le pont du Diable", k:"Objet · 1030",
+   x:"L'un des plus anciens ponts médiévaux debout en France, bâti vers 1030 par les moines d'Aniane et de Gellone pour relier deux abbayes rivales. La légende du diable arrive plus tard : elle explique commodément qu'un ouvrage aussi audacieux ait tenu.",
+   s:"Inventaire des monuments historiques, Hérault"},
+  {km:5.2, t:"La moitié du cloître est à New York", k:"Aujourd'hui",
+   x:"Au XIXᵉ siècle, des pans entiers du cloître sont vendus et dispersés. Une grande partie se trouve aujourd'hui aux Cloisters, au nord de Manhattan, remontée dans un musée. On peut voir ce village entier sans quitter les États-Unis — et il y manque toujours quelque chose ici.",
+   s:"The Met Cloisters, collection Gellone · dossier de dispersion, 1906–1925"}
+ ]},
+
+{id:"rocamadour", n:"Rocamadour et le causse de Gramat", dept:"46", deptn:"Lot",
+ c:[44.7994,1.6178], diff:"m", km:11.2, dist:"11,2 km", duree:"4h00", deni:"+420 m", cycle:"II",
+ art:["#5c5142","#a08f6d","#e0d3ae"],
+ auteur:"Sylvie Andrieu", role:"Historienne",
+ res:"Un village accroché à une falaise, un escalier monté à genoux depuis huit siècles, et une opération de communication médiévale d'une efficacité redoutable.",
+ st:[
+  {km:1.0, t:"Deux cent seize marches", k:"Rite · vivant",
+   x:"L'escalier des pèlerins se montait — se monte encore — à genoux, en récitant. Le calcaire est creusé au milieu de chaque marche par le passage. C'est l'une des rares érosions de France qu'on puisse dater par le nombre de gens.",
+   s:"Relevés d'usure, Monuments historiques · registres de pèlerinage, XIIᵉ–XVIIIᵉ s."},
+  {km:3.4, t:"La Vierge noire et la cloche", k:"Objet",
+   x:"Une statue de bois de noyer du XIIᵉ siècle, noircie par le temps et la fumée, pas par intention. Au-dessus, une cloche du IXᵉ siècle que la tradition dit sonner seule quand un marin est sauvé en mer — à cinq cents kilomètres de la côte la plus proche.",
+   s:"Livre des miracles de Notre-Dame de Rocamadour, v. 1172"},
+  {km:8.6, t:"Durandal, ou l'invention d'une destination", k:"Contre-idée",
+   x:"L'épée plantée dans la paroi est présentée comme celle de Roland. Le rattachement à la geste de Roland date du XIIᵉ siècle, au moment précis où le sanctuaire cherche des pèlerins. Ce n'est pas une fraude : c'est la même opération que fait aujourd'hui n'importe quel office de tourisme, avec huit siècles d'avance.",
+   s:"Livre des miracles, v. 1172 · analyse historiographique du corpus rolandien"}
+ ]},
+
+{id:"cordes", n:"Cordes-sur-Ciel et les bastides", dept:"81", deptn:"Tarn",
+ c:[44.0642,1.9539], diff:"f", km:7.4, dist:"7,4 km", duree:"2h30", deni:"+230 m", cycle:"I",
+ art:["#4b4239","#8f7f66","#d3c3a4"],
+ auteur:"Joan Puig", role:"Ethnologue",
+ res:"Une ville neuve du XIIIᵉ siècle, fondée pour reloger des gens que la croisade avait chassés — l'urbanisme comme réparation de guerre.",
+ st:[
+  {km:0.3, t:"1222, une ville fondée en un jour", k:"Archive",
+   x:"Raimon VII, comte de Toulouse, crée Cordes de toutes pièces pour accueillir les habitants de bourgs brûlés pendant la croisade. Franchises, exemptions, plan régulier : on construit une population avant de construire des maisons. C'est la logique des bastides, et elle en produira des centaines dans le Sud-Ouest.",
+   s:"Charte de fondation de Cordes, 1222 · Archives municipales"},
+  {km:2.1, t:"Les maisons des marchands", k:"Objet",
+   x:"Les façades gothiques que vous longez datent du XIVᵉ siècle : draps, cuir, pastel. Une ville née de la guerre devenue riche en soixante-dix ans. Les sculptures qui ornent ces maisons n'ont pas de fonction — c'est exactement ce qu'elles veulent dire.",
+   s:"Inventaire du patrimoine, Cordes-sur-Ciel"},
+  {km:5.0, t:"Le puits de cent mètres", k:"Récit",
+   x:"Au centre de la ville, un puits de cent quatorze mètres creusé dans le grès. La tradition locale y jette trois cents corps d'inquisiteurs en 1233 ; les archives ne le confirment nulle part. La mémoire d'une ville garde parfois plus fidèlement ce qu'elle aurait voulu faire.",
+   s:"Tradition orale locale · absence de mention dans les registres de l'Inquisition"}
+ ]},
+
+{id:"flaran", n:"L'abbaye de Flaran et la via Tolosana", dept:"32", deptn:"Gers",
+ c:[43.9167,0.3667], diff:"f", km:10.4, dist:"10,4 km", duree:"3h00", deni:"+150 m", cycle:"II",
+ art:["#57543f","#9c9370","#e3dcbd"],
+ auteur:"Sylvie Andrieu", role:"Historienne",
+ res:"Des collines, une abbaye cistercienne volontairement nue, et le plus vieil alcool de France distillé à côté.",
+ st:[
+  {km:1.4, t:"Cîteaux en Gascogne, 1151", k:"Archive",
+   x:"Une église sans sculpture, sans couleur, sans vitrail figuré : ce dépouillement est une doctrine, pas une pauvreté. Les cisterciens construisent contre l'ornement clunisien. À Flaran, la lumière est le seul décor autorisé, et elle est calculée.",
+   s:"Statuts de l'ordre de Cîteaux · fondation de Flaran, 1151"},
+  {km:5.2, t:"La via Tolosana", k:"Terrain",
+   x:"Ce chemin est l'un des quatre grands itinéraires vers Compostelle : Arles, Toulouse, le Somport. Les abbayes en jalonnent le tracé tous les vingt à trente kilomètres — une journée de marche. La distance entre deux monastères est une unité de mesure humaine.",
+   s:"Guide du pèlerin de Saint-Jacques, XIIᵉ s. (Codex Calixtinus, livre V)"},
+  {km:9.0, t:"Le vin qu'on brûle", k:"Économie",
+   x:"La première mention de l'eau-de-vie d'Armagnac remonte à 1310, sous la plume d'un cardinal médecin qui lui prête quarante vertus. C'est le plus ancien alcool distillé attesté de France, né ici parce qu'un vin blanc acide se conserve mal et voyage bien une fois brûlé.",
+   s:"Vital du Four, Livre très utile pour conserver la santé, v. 1310"}
+ ]},
+
+{id:"aiguesmortes", n:"Aigues-Mortes et les salins", dept:"30", deptn:"Gard",
+ c:[43.5658,4.1917], diff:"f", km:12.0, dist:"12,0 km", duree:"3h30", deni:"+10 m", cycle:"III",
+ art:["#4e5a5c","#9aa6a0","#e6dfc9"],
+ auteur:"Élise Reynaud", role:"Archiviste",
+ res:"Une ville carrée posée dans un marais par volonté royale, du sel qui a valu de l'or, et un mot gravé dans une tour par une femme qui y a passé trente-huit ans.",
+ st:[
+  {km:0.9, t:"1248, un port fabriqué", k:"Archive",
+   x:"Le royaume de France n'a pas de port en Méditerranée. Louis IX en fait construire un, ex nihilo, dans une lagune : chenal, tour, ville régulière. Il en part pour la croisade avec une flotte louée à Gênes. La ville est un instrument de politique étrangère, pas un lieu de vie.",
+   s:"Comptes royaux de la construction, 1240–1250 · Joinville, Vie de saint Louis"},
+  {km:6.4, t:"Le sel comme monnaie", k:"Économie",
+   x:"Les camelles — ces montagnes blanches à l'horizon — sont du sel récolté par évaporation, comme depuis l'Antiquité. Le sel conserve la viande et le poisson : il est stratégique. La gabelle, l'impôt qui le frappe, restera l'un des plus détestés de France jusqu'en 1790.",
+   s:"Archives des salins du Midi · ordonnances sur la gabelle, XIVᵉ–XVIIIᵉ s."},
+  {km:10.7, t:"REGISTER", k:"Mémoire",
+   x:"Dans la tour de Constance, des femmes protestantes sont emprisonnées après 1685. Marie Durand y passe trente-huit ans. Sur la margelle du puits, un mot est gravé en occitan : REGISTER — résister. Un verbe, huit lettres, trente-huit ans. C'est le texte le plus court et le plus dur de cette région.",
+   s:"Inscription de la tour de Constance · fonds du Musée du Désert"}
+ ]},
+
+{id:"stantonin", n:"Les gorges de l'Aveyron · Saint-Antonin", dept:"82", deptn:"Tarn-et-Garonne",
+ c:[44.1531,1.7539], diff:"m", km:9.8, dist:"9,8 km", duree:"3h30", deni:"+410 m", cycle:"I",
+ art:["#48493c","#8b8a68","#d5cda6"],
+ auteur:"Joan Puig", role:"Ethnologue",
+ res:"Des falaises, une ville de tanneurs, et le plus vieil hôtel de ville civil de France construit soixante ans avant que la croisade ne la prenne.",
+ st:[
+  {km:0.4, t:"La maison romane, 1125", k:"Objet",
+   x:"Une façade civile du XIIᵉ siècle, avec ses galeries et ses chapiteaux sculptés — pas une église, pas un château : une maison consulaire. Elle prouve qu'il existait ici, dès 1125, des bourgeois assez organisés et assez riches pour se doter d'un bâtiment public.",
+   s:"Étude architecturale, Monuments historiques · restauration Viollet-le-Duc, 1845"},
+  {km:3.2, t:"1212", k:"Archive",
+   x:"Simon de Montfort prend la ville pendant la croisade. Les consuls sont emprisonnés, les biens redistribués. Le bâtiment du haut a survécu à l'événement qui a effacé la société qui l'avait bâti — c'est souvent l'inverse.",
+   s:"Pierre des Vaux-de-Cernay, Hystoria albigensis, §§310-315"},
+  {km:7.6, t:"Les greniers à peaux", k:"Économie",
+   x:"Regardez le dernier étage des vieilles maisons : des loggias ouvertes, à claire-voie. Ce sont des séchoirs à peaux. Saint-Antonin a vécu du cuir jusqu'au XIXᵉ siècle ; l'odeur devait être insoutenable, et la ville riche. L'architecture d'une ville dit son métier avant ses monuments.",
+   s:"Inventaire du patrimoine industriel, Tarn-et-Garonne"}
+ ]},
+
+{id:"naurouze", n:"Le seuil de Naurouze et le Lauragais", dept:"31", deptn:"Haute-Garonne",
+ c:[43.3450,1.8250], diff:"f", km:9.0, dist:"9,0 km", duree:"2h45", deni:"+90 m", cycle:"II",
+ art:["#4f5540","#94996e","#dcd8ae"],
+ auteur:"Marc Torrens", role:"Guide & historien",
+ res:"Le point le plus improbable de l'Occitanie : une ligne de partage des eaux à 189 mètres, où un collecteur d'impôts a résolu un problème que Rome avait renoncé à résoudre.",
+ st:[
+  {km:0.7, t:"Le point de partage", k:"Terrain",
+   x:"Vous êtes sur la ligne : une goutte tombée à gauche part vers l'Atlantique, à droite vers la Méditerranée. Le seuil culmine à 189 m. Relier les deux mers par ici est une évidence depuis l'Antiquité — sauf qu'il n'y a pas d'eau au sommet. C'est tout le problème, et il a tenu seize siècles.",
+   s:"Relevés topographiques, Voies navigables de France"},
+  {km:4.2, t:"La rigole de la montagne", k:"Récit · 1667",
+   x:"Pierre-Paul Riquet, fermier de la gabelle, n'apporte pas l'idée du canal : il apporte l'eau. Il capte les ruisseaux de la Montagne Noire et les amène ici par une rigole de plus de cinquante kilomètres, avec un bassin de retenue à Saint-Ferréol. Douze mille personnes y travaillent, femmes comprises, payées et déclarées — une anomalie sociale pour l'époque.",
+   s:"Archives du Canal du Midi · rôles de paye du chantier, 1667–1681"},
+  {km:8.1, t:"Le pays de cocagne", k:"Économie",
+   x:"Ces collines ont été, au XVIᵉ siècle, parmi les plus riches d'Europe grâce au pastel : la feuille broyée en boules — les coques, d'où cocagne — donnait le seul bleu solide connu. L'indigo des Indes a tué la filière en une génération. Le premier krach de mondialisation du Sud-Ouest.",
+   s:"Registres des marchands pasteliers de Toulouse, XVIᵉ s."}
+ ]}
+];
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   ÉTAT
+   ══════════════════════════════════════════════════════════ */
+const S = {
+  screen:"sentiers", trail:null, filter:"all",
+  unlocked:{},          // "trailId:index" -> true
+  km:0,                 // km marchés (démo)
+  outMin:0,             // minutes dehors
+  scrMin:2,             // minutes d'écran
+  temoins:0,
+  fauteuil:false,
+  notifs:2,
+  drawEntered:false
+};
+const key = (t,i) => t + ":" + i;
+const isUn = (t,i) => !!S.unlocked[key(t,i)] || S.fauteuil;
+const trail = id => TRAILS.find(t => t.id === id);
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const grad = a => "linear-gradient(150deg," + a[0] + "," + a[1] + " 55%," + a[2] + ")";
+const DIFFN = {f:"Facile", m:"Intermédiaire", d:"Difficile"};
+
+/* ─ compteur de temps d'écran (le produit se mesure lui-même) ─ */
+setInterval(() => { if (!$("#walk").classList.contains("on")) { S.scrMin += 1/12; renderRatio(); } }, 5000);
+
+/* ══════════════════════════════════════════════════════════
+   NOTES DE CONCEPTION (colonne de gauche)
+   ══════════════════════════════════════════════════════════ */
+const NOTES = {
+  sentiers:{eb:"Écran · Sentiers", h:"Une carte, pas un fil",
+    p:"L'accueil d'Instagram est une file verticale sans fin. L'accueil de Camins est une <b>carte finie</b> : treize sentiers, un par département, et une ligne qui dit « c'est tout ».",
+    g:"<strong>Garde-fou</strong> — aucun écran de l'app ne défile à l'infini. La fin est visible et datée."},
+  detail:{eb:"Écran · Récit", h:"La promesse, pas la récompense",
+    p:"La fiche annonce ce qu'il y a à trouver et ne le donne pas. Sept stations, sept Éclats, tous verrouillés. <b>Le contenu n'est pas consommable assis.</b>",
+    g:"<strong>Garde-fou</strong> — rien n'expire. Un Éclat manqué aujourd'hui sera là dans dix ans."},
+  walk:{eb:"Écran · Mode Sentier", h:"La récompense variable, branchée sur les jambes",
+    p:"C'est ici que la mécanique la plus addictive du marché est autorisée — on ne sait pas ce que cache la prochaine station — mais elle exige <b>80 m, 45 secondes et moins de 8 km/h</b>. La chimie de l'imprévu ne se déclenche jamais au canapé.",
+    g:"<strong>Garde-fou</strong> — l'écran reste noir, le téléphone vibre une fois. Le mode Sentier est l'état par défaut en randonnée."},
+  eclat:{eb:"Écran · Éclat", h:"La grammaire d'Instagram, sans son économie",
+    p:"Format vertical, barres segmentées, tap pour avancer : on emprunte la grammaire. <b>On refuse l'éphémère</b> — l'Éclat entre au Cabinet pour toujours — et on crédite l'auteur en haut de l'écran, comme un article.",
+    g:"<strong>Garde-fou</strong> — pas de compteur de vues, pas de like, pas de partage public."},
+  veillee:{eb:"Écran · Veillée", h:"Whatnot : le rendez-vous et les petites attentions",
+    p:"Un live à heure fixe, 40 minutes, un hôte qui vous nomme, un tirage annoncé, des places réelles en nombre limité. <b>C'est l'attention individuelle qui fidélise</b>, pas la profondeur du catalogue.",
+    g:"<strong>Garde-fou</strong> — pas d'enchère, prix fixe, tirage au sort, 24 h de rétractation, rediffusion permanente."},
+  cabinet:{eb:"Écran · Cabinet", h:"L'investissement, et la métrique qui juge tout",
+    p:"Une collection privée, exportable, sans classement. Et le <b>Ratio Camins</b> : heures dehors divisées par heures d'écran. Un fil infini ferait monter l'engagement et <b>effondrerait</b> ce chiffre.",
+    g:"<strong>Garde-fou</strong> — la métrique nord punit la captation. C'est ce qui rend la charte contraignante plutôt que décorative."}
+};
+function note(k){
+  const n = NOTES[k]; if (!n) return;
+  $("#np-eb").textContent = n.eb; $("#np-h").textContent = n.h;
+  $("#np-p").innerHTML = n.p; $("#np-g").innerHTML = n.g;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CARTE
+   ══════════════════════════════════════════════════════════ */
+let map, pins = {};
+function initMap(){
+  if (typeof L === "undefined"){
+    document.getElementById("map").innerHTML =
+      '<div style="height:100%;display:flex;align-items:center;justify-content:center;text-align:center;'+
+      'font-family:var(--fm);font-size:10px;letter-spacing:.06em;color:var(--ink-40);padding:0 30px;line-height:1.8">'+
+      'CARTE INDISPONIBLE HORS LIGNE<br>La liste des sentiers reste utilisable.</div>';
+    return;
+  }
+  map = L.map("map", {center:[43.75,2.20], zoom:6.6, zoomControl:false, attributionControl:false, scrollWheelZoom:false});
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", {maxZoom:14}).addTo(map);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png", {maxZoom:14, pane:"shadowPane"}).addTo(map);
+  TRAILS.forEach(t => {
+    const m = L.marker(t.c, {icon:icon(t)}).addTo(map);
+    m.on("click", () => openDetail(t.id));
+    pins[t.id] = m;
+  });
+}
+function icon(t){
+  const done = t.st.every((_,i) => isUn(t.id,i));
+  const e = t.diff === "f" ? "🥾" : t.diff === "d" ? "⛰" : "🗺";
+  return L.divIcon({className:"", html:'<div class="pin p-'+t.diff+(done?" done":"")+'"><span>'+(done?"✓":e)+"</span></div>",
+                    iconSize:[26,26], iconAnchor:[13,26]});
+}
+function refreshPins(){ TRAILS.forEach(t => pins[t.id] && pins[t.id].setIcon(icon(t))); }
+
+/* ══════════════════════════════════════════════════════════
+   LISTE DES SENTIERS
+   ══════════════════════════════════════════════════════════ */
+const FILTERS = [["all","Tous"],["f","Facile"],["m","Intermédiaire"],["d","Difficile"],
+                 ["I","Cycle I"],["II","Cycle II"],["III","Cycle III"],["IV","Cycle IV"]];
+function renderChips(){
+  $("#chips").innerHTML = FILTERS.map(([v,l]) =>
+    '<button class="chip'+(S.filter===v?" on":"")+'" data-f="'+v+'">'+l+"</button>").join("");
+  $$("#chips .chip").forEach(c => c.onclick = () => { S.filter = c.dataset.f; renderChips(); renderList(); });
+}
+function match(t){ return S.filter==="all" || t.diff===S.filter || t.cycle===S.filter; }
+function renderList(){
+  const list = TRAILS.filter(match);
+  $("#tlist").innerHTML = list.map(t => {
+    const done = t.st.filter((_,i) => isUn(t.id,i)).length;
+    return '<div class="tcard" data-id="'+t.id+'">'+
+      '<div class="tc-th" style="background:'+grad(t.art)+'"><div class="tc-dept">'+t.dept+"</div></div>"+
+      '<div class="tc-b"><div class="tc-n">'+t.n+"</div>"+
+      '<div class="tc-m">'+t.deptn+" · "+t.dist+" · "+t.duree+" · "+t.deni+"</div>"+
+      '<div class="tc-th2">'+t.res.slice(0,92)+"…</div>"+
+      '<div class="tc-prog"><span class="badge b-'+t.diff+'">'+DIFFN[t.diff]+"</span>"+
+      '<div class="tc-bar"><i style="width:'+(done/t.st.length*100)+'%"></i></div>'+
+      '<span class="tc-pn">'+done+"/"+t.st.length+" ✦</span></div></div></div>";
+  }).join("") || '<div class="end">Aucun sentier pour ce filtre</div>';
+  $$("#tlist .tcard").forEach(c => c.onclick = () => openDetail(c.dataset.id));
+  $("#ab-sub").textContent = "Occitanie · " + list.length + " sentier" + (list.length>1?"s":"");
+}
+
+/* ─ écran Éclats : ce qui attend dehors ─ */
+function renderTeasers(){
+  let h = "";
+  TRAILS.slice(0,6).forEach(t => t.st.slice(0,2).forEach((s,i) => {
+    const un = isUn(t.id,i);
+    h += '<div class="tcard" data-id="'+t.id+'">'+
+      '<div class="tc-th" style="background:'+(un?grad(t.art):"var(--paper2)")+';display:flex;align-items:center;justify-content:center">'+
+      (un?"":'<span style="opacity:.3;font-size:16px">✦</span>')+'<div class="tc-dept">'+t.dept+"</div></div>"+
+      '<div class="tc-b"><div class="tc-m">'+t.n.split("·")[0].trim()+" · km "+s.km.toFixed(1)+"</div>"+
+      '<div class="tc-n" style="'+(un?"":"color:var(--ink-40)")+'">'+(un?s.t:"Éclat verrouillé")+"</div>"+
+      '<div class="tc-th2">'+(un?s.x.slice(0,80)+"…":"Se déverrouille sur place — "+s.k)+"</div></div></div>";
+  }));
+  $("#teaselist").innerHTML = h;
+  $$("#teaselist .tcard").forEach(c => c.onclick = () => openDetail(c.dataset.id));
+}
+
+/* ══════════════════════════════════════════════════════════
+   DÉTAIL SENTIER
+   ══════════════════════════════════════════════════════════ */
+function openDetail(id){
+  const t = trail(id); S.trail = id;
+  const done = t.st.filter((_,i) => isUn(id,i)).length;
+  $("#detail").innerHTML =
+    '<div class="d-hero" style="background:'+grad(t.art)+'">'+
+      '<button class="d-back" id="d-back">←</button>'+
+      '<div class="d-hero-t"><div class="d-dept">'+t.dept+" · "+t.deptn+'</div><div class="d-n">'+t.n+"</div></div></div>"+
+    '<div class="d-meta">'+
+      '<div class="d-mi"><div class="d-mv">'+t.dist.replace(" km","")+'</div><div class="d-ml">km</div></div>'+
+      '<div class="d-mi"><div class="d-mv">'+t.duree+'</div><div class="d-ml">durée</div></div>'+
+      '<div class="d-mi"><div class="d-mv">'+t.deni.replace(" m","")+'</div><div class="d-ml">dénivelé</div></div>'+
+      '<div class="d-mi"><div class="d-mv">'+done+"/"+t.st.length+'</div><div class="d-ml">éclats</div></div></div>'+
+    '<div class="d-body">'+
+      '<div class="d-res">'+t.res+"</div>"+
+      '<div class="d-cyc"><div class="d-cyc-l">Cycle '+(t.cycle==="0"?"—":t.cycle)+'</div><div class="d-cyc-t">'+CYCLES[t.cycle].n+"</div></div>"+
+      '<div class="sec-eb" style="margin-bottom:2px">Le Récit · '+t.st.length+" stations</div>"+
+      t.st.map((s,i) => {
+        const un = isUn(t.id,i);
+        return '<div class="stn '+(un?"un":"lock")+'" data-i="'+i+'">'+
+          '<div class="stn-dot">'+(un?"✦":i+1)+"</div>"+
+          '<div class="stn-b"><div class="stn-km">km '+s.km.toFixed(1)+" · "+s.k+"</div>"+
+          '<div class="stn-t">'+(un?s.t:"Éclat verrouillé")+"</div>"+
+          '<div class="stn-s">'+(un?s.x.slice(0,70)+"…":"80 m · 45 s sur place · à pied")+"</div></div>"+
+          (un?'<div class="stn-play">▶ écouter</div>':"")+"</div>";
+      }).join("")+
+      '<div style="margin-top:18px">'+
+        (done===t.st.length
+          ? '<div class="callout" style="margin:0 0 12px;border-color:var(--green)"><b>Récit terminé.</b> Une carte-témoin rejoint votre Cabinet, et Joan citera votre passage à la prochaine Veillée — si le tirage vous désigne.</div>'
+          : "")+
+        '<button class="btn btn-g" id="d-walk">'+(done?"Reprendre le Récit":"Démarrer le mode Sentier")+"</button>"+
+        '<div style="text-align:center;font-family:var(--fm);font-size:9.5px;color:var(--ink-40);margin-top:9px;line-height:1.6">Simulation de marche · aucun GPS réel n\'est utilisé</div>'+
+      "</div>"+
+      '<div class="callout" style="margin:16px 0 0"><b>Fermeture météo.</b> Au-dessus du seuil d\'alerte Météo-France, les stations sont masquées et le Récit suspendu — sans rattrapage. Le rattrapage crée la pression, et la pression fait monter les gens par mauvais temps.</div>'+
+    "</div>";
+  $("#detail").classList.add("on");
+  $("#d-back").onclick = closeDetail;
+  $("#d-walk").onclick = () => startWalk(id);
+  $$("#detail .stn.un").forEach(el => el.onclick = () => playEclat(id, +el.dataset.i, false));
+  note("detail");
+}
+function closeDetail(){ $("#detail").classList.remove("on"); note(S.screen); }
+
+/* ══════════════════════════════════════════════════════════
+   MODE SENTIER — simulation de marche
+   ══════════════════════════════════════════════════════════ */
+let walkTimer = null, walkKm = 0, walkNext = 0;
+function startWalk(id){
+  const t = trail(id); S.trail = id;
+  walkKm = 0; walkNext = t.st.findIndex((_,i) => !isUn(id,i));
+  if (walkNext < 0) walkNext = 0;
+  $("#w-n").textContent = t.n;
+  $("#w-track").innerHTML = '<i id="w-fill" style="width:0"></i>' + t.st.map((s,i) =>
+    '<span class="w-tick'+(isUn(id,i)?" un":"")+'" id="tk'+i+'" style="left:'+(s.km/t.km*100)+'%"></span>').join("");
+  $("#walk").classList.add("on");
+  $("#sb-mode").textContent = "SENTIER";
+  note("walk");
+  tickWalk();
+}
+function tickWalk(){
+  clearInterval(walkTimer);
+  const t = trail(S.trail);
+  walkTimer = setInterval(() => {
+    walkKm = Math.min(t.km, walkKm + t.km/200);
+    S.km += t.km/200; S.outMin += 0.9;
+    $("#w-km").textContent = walkKm.toFixed(1).replace(".", ",");
+    $("#w-fill").style.width = (walkKm/t.km*100) + "%";
+    const nx = t.st.findIndex((s,i) => !isUn(t.id,i) && s.km > walkKm - 0.001);
+    if (nx >= 0){
+      const d = Math.max(0, (t.st[nx].km - walkKm) * 1000);
+      $("#c1v").textContent = d > 999 ? (d/1000).toFixed(1).replace(".",",")+" km" : Math.round(d)+" m";
+      $("#c1").classList.toggle("ok", d <= 80);
+      $("#w-st").textContent = "Prochaine station à " + (d>999 ? (d/1000).toFixed(1).replace(".",",")+" km" : Math.round(d)+" m");
+      if (d <= 80){ clearInterval(walkTimer); arrive(nx); return; }
+    } else {
+      $("#w-st").textContent = "Récit complet — bonne fin de sortie";
+    }
+    if (walkKm >= t.km){ clearInterval(walkTimer); $("#w-st").textContent = "Sortie terminée"; }
+  }, 90);
+}
+function arrive(i){
+  const t = trail(S.trail);
+  let sec = 0;
+  $("#w-st").textContent = "Vous y êtes. Restez sur place.";
+  const iv = setInterval(() => {
+    sec += 5;
+    $("#c2v").textContent = Math.min(sec,45) + " s / 45 s";
+    $("#c2").classList.toggle("ok", sec >= 45);
+    $("#c3").classList.add("ok");
+    if (sec >= 45){
+      clearInterval(iv);
+      S.unlocked[key(t.id,i)] = true;
+      $("#tk"+i) && $("#tk"+i).classList.add("un");
+      buzz();
+      playEclat(t.id, i, true);
+    }
+  }, 210);
+}
+function buzz(){
+  const p = $("#phone");
+  p.animate([{transform:"translateX(0)"},{transform:"translateX(-2px)"},{transform:"translateX(2px)"},{transform:"translateX(0)"}], {duration:180, iterations:2});
+  if (navigator.vibrate) try{ navigator.vibrate(35); }catch(e){}
+}
+$("#w-quit").onclick = () => {
+  clearInterval(walkTimer);
+  $("#walk").classList.remove("on");
+  $("#sb-mode").textContent = "GPS";
+  refreshPins(); renderList(); renderTeasers(); renderCabinet();
+  if (S.trail) openDetail(S.trail);
+};
+
+/* ══════════════════════════════════════════════════════════
+   LECTEUR ÉCLAT
+   ══════════════════════════════════════════════════════════ */
+let eTimer = null, eResume = false;
+function playEclat(tid, i, resumeWalk){
+  const t = trail(tid), s = t.st[i];
+  eResume = !!resumeWalk;
+  $("#e-bars").innerHTML = t.st.map((_,j) =>
+    '<div class="e-bar"><i id="eb'+j+'" style="width:'+(j<i||isUn(tid,j)&&j<i?"100%":"0")+'"></i></div>').join("");
+  $("#e-av").textContent = t.auteur.split(" ").map(w=>w[0]).join("").slice(0,2);
+  $("#e-av").style.background = t.art[1];
+  $("#e-au").textContent = t.auteur;
+  $("#e-ro").textContent = t.role;
+  $("#e-art").style.background = grad(t.art);
+  $("#e-kind").textContent = s.k;
+  $("#e-t").textContent = s.t;
+  $("#e-p").textContent = s.x;
+  $("#e-src").textContent = "Sources · " + s.s;
+  $("#e-wave").innerHTML = Array.from({length:38}, () =>
+    '<i style="height:'+(14 + Math.random()*70)+'%"></i>').join("");
+  $("#eclat").classList.add("on");
+  note("eclat");
+  let p = 0;
+  const bar = $("#eb"+i);
+  clearInterval(eTimer);
+  eTimer = setInterval(() => {
+    p += 1;
+    if (bar) bar.style.width = p + "%";
+    $("#e-t1").textContent = Math.floor(p/60) + ":" + String(p%60).padStart(2,"0");
+    $$("#e-wave i").forEach((w,k) => w.style.opacity = (k/38*100 < p) ? 1 : .35);
+    if (p >= 100){
+      clearInterval(eTimer);
+      S.unlocked[key(tid,i)] = true;
+      S.outMin += 2;
+      toast();
+    }
+  }, 90);
+}
+function toast(){
+  const el = $("#e-toast");
+  el.classList.add("on");
+  setTimeout(() => { el.classList.remove("on"); closeEclat(); }, 1500);
+}
+function closeEclat(){
+  clearInterval(eTimer);
+  $("#eclat").classList.remove("on");
+  refreshPins(); renderList(); renderTeasers(); renderCabinet();
+  const t = trail(S.trail);
+  if (eResume && t && !t.st.every((_,i)=>isUn(t.id,i))){ note("walk"); tickWalk(); }
+  else if (eResume){
+    S.temoins++;
+    $("#walk").classList.remove("on"); $("#sb-mode").textContent = "GPS";
+    openDetail(S.trail);
+  } else note($("#detail").classList.contains("on") ? "detail" : S.screen);
+}
+$("#e-x").onclick = closeEclat;
+$("#e-art").onclick = closeEclat;
+
+/* ══════════════════════════════════════════════════════════
+   VEILLÉE
+   ══════════════════════════════════════════════════════════ */
+let vTimers = [];
+const SCRIPT = [
+ [600, "host", "Joan", "Bonsoir à tous. Ce soir : ce que les fouilles de 1964 à Montségur n'ont pas trouvé — et pourquoi c'est plus intéressant que ce qu'elles ont trouvé."],
+ [2600, "user", "Mireia", "Bonsoir depuis Prades 👋"],
+ [4200, "user", "Thomas", "La stèle de 1960, elle a été posée par qui exactement ?"],
+ [5600, "host", "Joan", "Bonne question Thomas — j'ouvre la boîte, j'ai la délibération."],
+ [7200, "sys", "", "Joan ouvre une boîte des Archives départementales de l'Ariège en direct."],
+ [9000, "drop", "", ""],
+ [11000, "user", "Anne-Claire", "Je prends une place si le tirage veut bien de moi"],
+ [13000, "name", "", ""],
+ [16000, "user", "Karim", "Terminé le Larzac dimanche, la lavogne c'était le meilleur éclat de l'année"],
+ [18500, "give", "", ""],
+ [21000, "host", "Joan", "On s'arrête à 21h40 comme d'habitude. La rediffusion est en ligne demain matin, sans limite de temps."]
+];
+function enterVeillee(){
+  $("#v-pre").style.display = "none";
+  $("#v-live").style.display = "block";
+  $("#v-chat").innerHTML = "";
+  $("#v-drops").innerHTML = "";
+  vTimers.forEach(clearTimeout); vTimers = [];
+  SCRIPT.forEach(([t, kind, who, txt]) => vTimers.push(setTimeout(() => {
+    if (kind === "drop") return showDrop();
+    if (kind === "name") return hostNames();
+    if (kind === "give") return giveaway();
+    chat(kind, who, txt);
+  }, t)));
+  let n = 312;
+  vTimers.push(setInterval(() => { n += Math.floor(Math.random()*7)-2; $("#v-watch").textContent = n + " marcheurs"; }, 2400));
+  note("veillee");
+}
+function chat(kind, who, txt){
+  const c = $("#v-chat");
+  const d = document.createElement("div");
+  d.className = "v-msg " + (kind === "host" ? "host" : kind === "sys" ? "sys" : "");
+  d.innerHTML = kind === "sys" ? "— " + txt : "<b>" + who + "</b> <span>" + txt + "</span>";
+  c.appendChild(d);
+  while (c.children.length > 7) c.removeChild(c.firstChild);
+}
+function showDrop(){
+  let left = 12;
+  $("#v-drops").innerHTML =
+   '<div class="drop"><div class="drop-h"><span>Drop en direct</span><span class="rem" id="drop-rem">12 places</span></div>'+
+   '<div class="drop-b"><div class="drop-n">Montségur au lever du jour</div>'+
+   '<div class="drop-d">Samedi 14, départ 5h30 avec Joan. Montée de nuit, les six stations du Récit, petit-déjeuner au champ des cramats.</div>'+
+   '<div class="drop-f"><div class="drop-p">72 €<small>par personne · guide inclus</small></div>'+
+   '<button class="btn btn-s" id="drop-btn" style="width:auto;padding:11px 18px">Entrer au tirage</button></div>'+
+   '<div class="drop-note"><b>Pas d\'enchère.</b> Prix fixe, tirage au sort si la demande dépasse les places, 24 h de rétractation. Le compte à rebours ne sert qu\'à fermer le tirage — jamais à faire monter un prix.</div>'+
+   "</div></div>";
+  const iv = setInterval(() => {
+    left--; $("#drop-rem").textContent = left + " place" + (left>1?"s":"");
+    if (left <= 4) clearInterval(iv);
+  }, 2200);
+  vTimers.push(iv);
+  $("#drop-btn").onclick = e => {
+    S.drawEntered = true;
+    e.target.textContent = "Inscrit au tirage";
+    e.target.disabled = true;
+    chat("sys", "", "Vous êtes entré au tirage. Résultat annoncé en direct dans 4 minutes.");
+  };
+}
+function hostNames(){
+  chat("host", "Joan", "Et bravo à celles et ceux qui ont terminé un Récit cette semaine — le tirage m'en donne trois : Karim sur le Larzac, Mireia au Conflent, et vous, si vous avez marché. On ne récompense pas les plus rapides, on tire au sort parmi celles et ceux qui sont sortis.");
+}
+function giveaway(){
+  chat("sys", "", "Tirage : 3 cartes-témoins « Le champ des cramats » offertes.");
+  setTimeout(() => {
+    S.temoins++;
+    chat("sys", "", "Vous en recevez une. Elle est dans votre Cabinet.");
+    renderCabinet(); buzz();
+  }, 1600);
+}
+$("#btn-enter").onclick = enterVeillee;
+$("#btn-leave").onclick = () => {
+  vTimers.forEach(t => { clearTimeout(t); clearInterval(t); }); vTimers = [];
+  $("#v-live").style.display = "none"; $("#v-pre").style.display = "block";
+};
+$("#v-send").onclick = () => {
+  const v = $("#v-in").value.trim(); if (!v) return;
+  chat("user", "Vous", v); $("#v-in").value = "";
+  setTimeout(() => chat("sys", "", "Vous êtes 3ᵉ dans la file des questions · environ 2 min."), 900);
+};
+$("#v-in").addEventListener("keydown", e => { if (e.key === "Enter") $("#v-send").click(); });
+
+/* ─ compte à rebours d'ouverture ─ */
+let vSec = 12;
+setInterval(() => {
+  vSec = vSec > 0 ? vSec - 1 : 0;
+  const h = String(Math.floor(vSec/3600)).padStart(2,"0"),
+        m = String(Math.floor(vSec%3600/60)).padStart(2,"0"),
+        s = String(vSec%60).padStart(2,"0");
+  $("#v-clock").textContent = vSec > 0 ? h+":"+m+":"+s : "EN DIRECT";
+}, 1000);
+
+/* ══════════════════════════════════════════════════════════
+   CABINET
+   ══════════════════════════════════════════════════════════ */
+const RANKS = [[0,"Passant"],[3,"Marcheur"],[8,"Habitué"],[16,"Témoin"],[28,"Passeur"]];
+function renderCabinet(){
+  const all = [];
+  TRAILS.forEach(t => t.st.forEach((s,i) => all.push({t, s, i, un:isUn(t.id,i)})));
+  const un = all.filter(a => a.un);
+  const recits = TRAILS.filter(t => t.st.every((_,i) => isUn(t.id,i))).length;
+  $("#st-ec").textContent = un.length;
+  $("#st-re").textContent = recits;
+  $("#st-km").textContent = Math.round(S.km);
+  $("#st-ct").textContent = S.temoins + recits;
+  $("#cab-rank").textContent = RANKS.filter(r => un.length >= r[0]).pop()[1];
+
+  const show = [...un, ...all.filter(a => !a.un)].slice(0, 18);
+  $("#cab-grid").innerHTML = show.map(a => a.un
+    ? '<div class="gi" style="background:'+grad(a.t.art)+'" data-t="'+a.t.id+'" data-i="'+a.i+'"><div class="gi-t">'+a.s.t+"</div></div>"
+    : '<div class="gi lock"><span>✦</span></div>').join("");
+  $$("#cab-grid .gi[data-t]").forEach(el => el.onclick = () => playEclat(el.dataset.t, +el.dataset.i, false));
+
+  $("#cab-cycles").innerHTML = ["I","II","III","IV"].map(c => {
+    const ts = TRAILS.filter(t => t.cycle === c);
+    const tot = ts.reduce((n,t) => n + t.st.length, 0);
+    const got = ts.reduce((n,t) => n + t.st.filter((_,i) => isUn(t.id,i)).length, 0);
+    return '<div class="cyc"><div class="cyc-h"><div class="cyc-n">Cycle '+c+" · "+CYCLES[c].n+'</div><div class="cyc-c">'+got+"/"+tot+"</div></div>"+
+      '<div class="cyc-bar"><i style="width:'+(tot?got/tot*100:0)+'%"></i></div>'+
+      '<div class="cyc-d">'+CYCLES[c].d+" · "+ts.length+" sentiers"+
+      (got===tot && tot ? " · <b>terminé — votre carnet papier part à l'impression</b>" : " · 3 mois, sans date butoir")+"</div></div>";
+  }).join("");
+  renderRatio();
+}
+function renderRatio(){
+  const out = S.outMin/60, scr = S.scrMin/60;
+  const r = scr > 0 ? out/scr : 0;
+  $("#ratio-v").textContent = out === 0 ? "—" : r.toFixed(1).replace(".",",");
+  const pct = out+scr > 0 ? out/(out+scr)*100 : 8;
+  $("#rb-out").style.width = Math.max(pct,8) + "%";
+  $("#rb-scr").style.width = Math.max(100-pct,8) + "%";
+  $("#ratio-n").textContent = out === 0
+    ? "Marchez dans le prototype pour voir le ratio bouger. Cible : au-dessus de 8. Un ratio qui baisse déclenche une revue produit, même si l'engagement monte."
+    : Math.round(S.outMin)+" min dehors pour "+Math.round(S.scrMin)+" min d'écran. "+
+      (r >= 8 ? "Au-dessus de la cible : l'app fait son travail." : "Sous la cible de 8 : dans la vraie app, ce chiffre déclencherait une revue produit.");
+}
+
+/* ══════════════════════════════════════════════════════════
+   RÉGLAGES / NAVIGATION / RESET
+   ══════════════════════════════════════════════════════════ */
+$$("[data-sw]").forEach(b => b.onclick = () => {
+  b.classList.toggle("on");
+  const on = b.classList.contains("on");
+  if (b.dataset.sw === "fauteuil"){
+    S.fauteuil = on;
+    refreshPins(); renderList(); renderTeasers(); renderCabinet();
+  }
+  if (b.dataset.sw === "notif"){ S.notifs = on ? 2 : 0; $("#notif-n").textContent = S.notifs; }
+});
+
+$$(".tab").forEach(tab => tab.onclick = () => {
+  $$(".tab").forEach(t => t.classList.remove("on"));
+  tab.classList.add("on");
+  S.screen = tab.dataset.s;
+  $$(".screen").forEach(s => s.classList.remove("on"));
+  $("#s-" + S.screen).classList.add("on");
+  $("#view").scrollTop = 0;
+  closeDetail();
+  note(S.screen);
+  if (S.screen === "sentiers" && map) setTimeout(() => map.invalidateSize(), 60);
+  if (S.screen === "cabinet") renderCabinet();
+});
+
+$("#btn-reset").onclick = () => {
+  S.unlocked = {}; S.km = 0; S.outMin = 0; S.scrMin = 2; S.temoins = 0; S.drawEntered = false;
+  clearInterval(walkTimer); clearInterval(eTimer);
+  $("#walk").classList.remove("on"); $("#eclat").classList.remove("on"); closeDetail();
+  $("#sb-mode").textContent = "GPS";
+  refreshPins(); renderList(); renderTeasers(); renderCabinet();
+};
+
+/* ─ horloge ─ */
+setInterval(() => {
+  const d = new Date();
+  $("#sb-time").textContent = String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}, 1000);
+
+/* ─ démarrage ─ */
+try { initMap(); } catch(e){ console.warn("Carte indisponible :", e); }
+renderChips(); renderList(); renderTeasers(); renderCabinet(); note("sentiers");
+setTimeout(() => map && map.invalidateSize(), 300);
+</script>
+</body>
+</html>
