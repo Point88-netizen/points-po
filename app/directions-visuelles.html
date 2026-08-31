@@ -1,0 +1,832 @@
+<title>Neuf directions visuelles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Barlow+Condensed:wght@400;500;600&family=Bodoni+Moda:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Fraunces:wght@400;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;600&family=Instrument+Serif:ital@0;1&family=Karla:wght@400;600&family=Libre+Franklin:wght@200;300;500&family=Oswald:wght@400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Source+Sans+3:wght@300;400;600&family=Spectral:ital,wght@0,300;0,500;1,400&display=swap">
+<style>
+/* ══════════ PAGE ══════════ */
+:root{
+  --paper:#FBFAF7; --paper2:#F2F0EA; --card:#FFF;
+  --line:#E2DED4; --line-soft:#EDEAE2;
+  --tx:#1D1B18; --tx-70:#5A554C; --tx-45:#8A857A;
+  --accent:#8A3324;
+  --band:#17150F;
+  --fb:'Source Sans 3',system-ui,sans-serif;
+  --fm:'DM Mono',ui-monospace,monospace;
+  --fs:'Playfair Display',Georgia,serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#141311; --paper2:#1C1A17; --card:#1A1815;
+    --line:#332F29; --line-soft:#252220;
+    --tx:#EFEBE2; --tx-70:#A69F92; --tx-45:#797366;
+    --accent:#D98A72; --band:#0A0908;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141311; --paper2:#1C1A17; --card:#1A1815;
+  --line:#332F29; --line-soft:#252220;
+  --tx:#EFEBE2; --tx-70:#A69F92; --tx-45:#797366;
+  --accent:#D98A72; --band:#0A0908;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--tx);font-family:var(--fb);font-size:17px;font-weight:300;line-height:1.66;-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{margin:0;text-wrap:balance;}
+p{margin:0 0 16px;max-width:64ch;}
+p:last-child{margin-bottom:0;}
+strong{font-weight:600;color:var(--tx);}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+.wrap{max-width:1080px;margin:0 auto;padding:0 32px;}
+.col{max-width:640px;}
+
+header{padding:60px 0 40px;border-bottom:1px solid var(--line);}
+.brand{font-family:var(--fm);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+.brand::after{content:'';flex:1;height:1px;background:var(--line);}
+h1{font-family:var(--fs);font-size:clamp(36px,6vw,58px);font-weight:400;font-style:italic;line-height:1.05;}
+.deck{font-size:19px;color:var(--tx-70);line-height:1.6;margin-top:20px;max-width:58ch;}
+.meta{font-family:var(--fm);font-size:11px;letter-spacing:.06em;color:var(--tx-45);margin-top:26px;display:flex;flex-wrap:wrap;gap:8px 22px;}
+
+section{padding:48px 0;}
+.eyebrow{font-family:var(--fm);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--tx-45);margin-bottom:12px;}
+h2{font-family:var(--fs);font-size:clamp(25px,3.4vw,33px);font-weight:400;font-style:italic;line-height:1.16;margin-bottom:18px;}
+h3{font-family:var(--fb);font-size:15px;font-weight:600;margin:26px 0 8px;}
+
+.fixed-list{border-top:1px solid var(--line);margin-top:22px;max-width:820px;}
+.fx{display:grid;grid-template-columns:150px 1fr;gap:20px;padding:13px 0;border-bottom:1px solid var(--line-soft);font-size:14.5px;line-height:1.55;color:var(--tx-70);}
+.fx b{color:var(--tx);font-weight:600;font-family:var(--fm);font-size:11.5px;letter-spacing:.04em;}
+
+/* ══════════ FICHE DIRECTION ══════════ */
+.dir{border-top:1px solid var(--line);padding-top:0;}
+.plate{padding:26px 32px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+.plate-n{font-family:var(--fm);font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.6;}
+.plate-t{font-size:34px;line-height:1.04;margin-top:6px;}
+.plate-s{font-size:13.5px;line-height:1.5;max-width:38ch;opacity:.8;}
+
+.dir-body{display:grid;grid-template-columns:340px 1fr;gap:38px;padding:34px 32px 44px;align-items:start;}
+@media (max-width:900px){ .dir-body{grid-template-columns:1fr;} }
+
+.notes h4{font-family:var(--fb);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-45);margin:22px 0 8px;}
+.notes h4:first-child{margin-top:0;}
+.notes p{font-size:14.5px;line-height:1.62;color:var(--tx-70);max-width:56ch;margin-bottom:0;}
+.swatches{display:flex;gap:0;margin:4px 0 0;border:1px solid var(--line);}
+.sw{flex:1;height:52px;position:relative;}
+.sw span{position:absolute;bottom:4px;left:5px;font-family:var(--fm);font-size:8.5px;letter-spacing:.02em;}
+.specimen{border:1px solid var(--line);padding:14px 16px;background:var(--card);margin-top:4px;}
+.sp-l{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-45);margin-bottom:8px;}
+.sp-a{font-size:27px;line-height:1.1;}
+.sp-b{font-size:14px;margin-top:8px;line-height:1.5;}
+.risk{border-left:2px solid var(--accent);padding-left:14px;margin-top:8px;}
+.risk p{color:var(--tx-70);}
+
+/* ══════════ MAQUETTE ══════════ */
+.mk{
+  width:320px;border-radius:2px;overflow:hidden;position:relative;
+  box-shadow:0 14px 34px rgba(0,0,0,.14);
+  background:var(--m-paper);color:var(--m-ink);
+  font-family:var(--m-body);
+}
+.mk *{box-sizing:border-box;}
+.mk-bar{display:flex;justify-content:space-between;padding:9px 14px 0;font-size:9.5px;font-family:var(--m-mono);opacity:.5;}
+.mk-hero{height:110px;position:relative;overflow:hidden;background:var(--m-hero);}
+.mk-body{padding:16px 16px 18px;position:relative;}
+.mk-eb{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--m-accent);font-family:var(--m-mono);}
+.mk-t{font-family:var(--m-disp);font-size:23px;line-height:1.12;margin:7px 0 8px;color:var(--m-ink);}
+.mk-d{font-size:12.5px;line-height:1.5;opacity:.72;margin-bottom:13px;}
+.mk-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.mk-chip{font-family:var(--m-mono);font-size:9.5px;padding:4px 8px;border:1px solid var(--m-line);opacity:.75;}
+.mk-stn{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--m-line);}
+.mk-dot{width:22px;height:22px;flex:none;border:1px solid var(--m-line);display:flex;align-items:center;justify-content:center;font-family:var(--m-mono);font-size:9px;opacity:.6;}
+.mk-sk{font-family:var(--m-mono);font-size:9px;opacity:.5;letter-spacing:.04em;}
+.mk-st{font-family:var(--m-disp);font-size:14px;line-height:1.2;margin-top:2px;}
+.mk-cta{display:block;width:100%;margin-top:16px;padding:13px;text-align:center;background:var(--m-accent);color:var(--m-oncta);font-family:var(--m-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;border:none;}
+.mk-cap{font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;color:var(--tx-45);margin-top:12px;text-align:center;width:320px;}
+
+/* ─── D1 · CARTE D'ÉTAT-MAJOR ─── */
+.d1{--m-paper:#F4F0E6;--m-ink:#3A3428;--m-accent:#8C4A22;--m-line:#CDC4AC;--m-oncta:#F4F0E6;
+    --m-hero:#E9E3D2;--m-disp:'Bodoni Moda',serif;--m-body:'Barlow Condensed',sans-serif;--m-mono:'DM Mono',monospace;}
+.d1 .mk-body{font-size:15px;}
+.d1 .mk-hero{background:
+  repeating-radial-gradient(circle at 30% 120%, transparent 0 11px, rgba(140,74,34,.28) 11px 12px),
+  linear-gradient(#EDE7D6,#E4DCC6);}
+.d1 .mk-t{font-style:italic;letter-spacing:-.01em;}
+.d1 .mk-alt{position:absolute;top:10px;right:14px;font-family:'Bodoni Moda',serif;font-size:30px;color:#8C4A22;}
+.d1 .mk-grid{position:absolute;inset:0;background:
+  repeating-linear-gradient(to right,transparent 0 39px,rgba(58,52,40,.14) 39px 40px),
+  repeating-linear-gradient(to bottom,transparent 0 39px,rgba(58,52,40,.14) 39px 40px);}
+.d1 .mk-chip{border-radius:0;}
+.plate.p1{background:#EDE7D6;color:#3A3428;}
+.plate.p1 .plate-t{font-family:'Bodoni Moda',serif;font-style:italic;}
+
+/* ─── D2 · PRESSE DE TERRITOIRE ─── */
+.d2{--m-paper:#FAFAF7;--m-ink:#1A1814;--m-accent:#C8201A;--m-line:#E4E0D6;--m-oncta:#fff;
+    --m-hero:#E8E4DC;--m-disp:'Playfair Display',serif;--m-body:'Source Sans 3',sans-serif;--m-mono:'DM Mono',monospace;}
+.d2 .mk-t{font-style:italic;}
+.d2 .mk-hero{background:linear-gradient(150deg,#4a3f34,#8a7355 60%,#c4a882);}
+.d2 .mk-rule{height:1px;background:#1A1814;margin:0 16px;}
+.plate.p2{background:#F2F0EB;color:#1A1814;}
+.plate.p2 .plate-t{font-family:'Playfair Display',serif;font-style:italic;}
+
+/* ─── D3 · ARCHIVE & TAMPON ─── */
+.d3{--m-paper:#E9E0CC;--m-ink:#2B2721;--m-accent:#7A2E20;--m-line:#C6B994;--m-oncta:#E9E0CC;
+    --m-hero:#DED3B9;--m-disp:'Spectral',serif;--m-body:'Courier Prime',monospace;--m-mono:'Courier Prime',monospace;}
+.d3 .mk-hero{background:linear-gradient(#E2D7BE,#D6C9AB);}
+.d3 .mk-punch{position:absolute;left:12px;top:0;bottom:0;width:14px;display:flex;flex-direction:column;justify-content:space-around;padding:14px 0;}
+.d3 .mk-punch i{width:9px;height:9px;border-radius:50%;background:rgba(43,39,33,.16);display:block;}
+.d3 .mk-body{padding-left:38px;}
+.d3 .mk-stamp{
+  position:absolute;right:12px;top:-26px;transform:rotate(-11deg);
+  border:2px solid rgba(122,46,32,.62);color:rgba(122,46,32,.62);
+  font-family:'Courier Prime',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;
+  padding:5px 9px;}
+.d3 .mk-chip{border-style:dashed;}
+.d3 .mk-cta{letter-spacing:.2em;}
+.plate.p3{background:#DED3B9;color:#2B2721;}
+.plate.p3 .plate-t{font-family:'Spectral',serif;}
+
+/* ─── D4 · CÉRAMIQUE CATALANE ─── */
+.d4{--m-paper:#FFFDF6;--m-ink:#17303F;--m-accent:#C1272D;--m-line:#D8D2BE;--m-oncta:#FFFDF6;
+    --m-hero:#1E5A7A;--m-disp:'Fraunces',serif;--m-body:'Karla',sans-serif;--m-mono:'Karla',sans-serif;}
+.d4 .mk-hero{background:
+  repeating-linear-gradient(45deg,#1E5A7A 0 16px,#2A6D8F 16px 32px),
+  #1E5A7A;}
+.d4 .mk-senyera{position:absolute;left:0;right:0;bottom:0;height:9px;background:repeating-linear-gradient(to right,#F2C300 0 9px,#C1272D 9px 18px);}
+.d4 .mk-t{font-weight:700;}
+.d4 .mk-chip{border-radius:12px;border-color:#1E5A7A;color:#1E5A7A;opacity:1;}
+.d4 .mk-cta{border-radius:12px;font-weight:600;letter-spacing:.08em;}
+.plate.p4{background:#1E5A7A;color:#FFFDF6;}
+.plate.p4 .plate-t{font-family:'Fraunces',serif;font-weight:700;}
+
+/* ─── D5 · NUIT ET SIGNAL ─── */
+.d5{--m-paper:#0C0E0D;--m-ink:#E6EDE6;--m-accent:#B9FF3D;--m-line:#25302A;--m-oncta:#0C0E0D;
+    --m-hero:#111614;--m-disp:'IBM Plex Sans Condensed',sans-serif;--m-body:'IBM Plex Sans Condensed',sans-serif;--m-mono:'IBM Plex Mono',monospace;}
+.d5 .mk-hero{background:linear-gradient(#121815,#0C0E0D);position:relative;}
+.d5 .mk-prof{position:absolute;left:0;right:0;bottom:0;height:64px;
+  background:linear-gradient(to top,rgba(185,255,61,.16),transparent);
+  clip-path:polygon(0 100%,12% 62%,24% 74%,38% 30%,52% 48%,66% 18%,80% 44%,100% 26%,100% 100%);}
+.d5 .mk-alt{position:absolute;left:14px;bottom:10px;font-family:'IBM Plex Mono',monospace;font-size:30px;color:#B9FF3D;letter-spacing:-.02em;}
+.d5 .mk-t{font-weight:600;letter-spacing:-.01em;}
+.d5 .mk-chip{border-color:#25302A;color:#8FA593;}
+.d5 .mk-cta{font-weight:500;}
+.plate.p5{background:#0C0E0D;color:#E6EDE6;}
+.plate.p5 .plate-t{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;}
+.plate.p5 .plate-n{color:#B9FF3D;opacity:1;}
+
+/* ─── D6 · HERBIER ─── */
+.d6{--m-paper:#FCFBF4;--m-ink:#33352C;--m-accent:#5B6B3A;--m-line:#DDDCC8;--m-oncta:#FCFBF4;
+    --m-hero:#F3F2E4;--m-disp:'Cormorant Garamond',serif;--m-body:'EB Garamond',serif;--m-mono:'EB Garamond',serif;}
+.d6 .mk-hero{background:#F3F2E4;position:relative;}
+.d6 .mk-plate{position:absolute;inset:14px;border:1px solid #C9C9AE;}
+.d6 .mk-plate::after{content:'';position:absolute;inset:5px;border:1px solid #E1E1CC;}
+.d6 .mk-t{font-style:italic;font-size:26px;}
+.d6 .mk-eb{font-style:italic;text-transform:none;letter-spacing:.02em;font-size:12px;}
+.d6 .mk-label{position:absolute;right:20px;bottom:18px;background:#FCFBF4;border:1px solid #DDDCC8;
+  font-family:'EB Garamond',serif;font-size:9.5px;padding:4px 8px;font-style:italic;}
+.d6 .mk-chip{border:none;border-bottom:1px solid #DDDCC8;padding:2px 4px;font-style:italic;font-size:11px;}
+.d6 .mk-cta{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;letter-spacing:.06em;text-transform:none;}
+.plate.p6{background:#F3F2E4;color:#33352C;}
+.plate.p6 .plate-t{font-family:'Cormorant Garamond',serif;font-style:italic;}
+
+/* ─── D7 · LAPIDAIRE ─── */
+.d7{--m-paper:#DEDAD2;--m-ink:#2C2A26;--m-accent:#6B6257;--m-line:#C3BDB2;--m-oncta:#EFECE6;
+    --m-hero:#B9B3A8;--m-disp:'Cinzel',serif;--m-body:'Spectral',serif;--m-mono:'Cinzel',serif;}
+.d7 .mk-hero{background:linear-gradient(160deg,#C6C0B5,#A9A296);position:relative;}
+.d7 .mk-carve{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-size:21px;letter-spacing:.24em;color:rgba(44,42,38,.42);
+  text-shadow:0 1px 0 rgba(255,255,255,.5);}
+.d7 .mk-t{font-size:17px;letter-spacing:.06em;line-height:1.35;text-transform:uppercase;}
+.d7 .mk-eb{letter-spacing:.24em;}
+.d7 .mk-chip{border-color:#C3BDB2;letter-spacing:.1em;font-size:9px;}
+.d7 .mk-cta{letter-spacing:.2em;font-size:9.5px;}
+.plate.p7{background:#C6C0B5;color:#2C2A26;}
+.plate.p7 .plate-t{font-family:'Cinzel',serif;letter-spacing:.06em;font-size:27px;}
+
+/* ─── D8 · SIGNALÉTIQUE GR ─── */
+.d8{--m-paper:#FFFFFF;--m-ink:#161616;--m-accent:#E2231A;--m-line:#DCDCDC;--m-oncta:#fff;
+    --m-hero:#161616;--m-disp:'Oswald',sans-serif;--m-body:'Archivo',sans-serif;--m-mono:'Archivo',sans-serif;}
+.d8 .mk-hero{background:#161616;position:relative;}
+.d8 .mk-blaze{position:absolute;left:16px;top:20px;width:34px;}
+.d8 .mk-blaze i{display:block;height:9px;}
+.d8 .mk-blaze i:first-child{background:#fff;}
+.d8 .mk-blaze i:last-child{background:#E2231A;margin-top:4px;}
+.d8 .mk-arrow{position:absolute;right:0;bottom:14px;background:#E2231A;color:#fff;
+  font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.1em;padding:6px 14px 6px 18px;text-transform:uppercase;}
+.d8 .mk-t{font-weight:600;text-transform:uppercase;font-size:19px;letter-spacing:.01em;line-height:1.15;}
+.d8 .mk-eb{font-weight:700;color:#161616;background:#F2C300;display:inline-block;padding:2px 6px;letter-spacing:.1em;}
+.d8 .mk-chip{border:2px solid #161616;font-weight:600;opacity:1;}
+.d8 .mk-cta{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.1em;}
+.plate.p8{background:#161616;color:#fff;}
+.plate.p8 .plate-t{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;}
+.plate.p8 .plate-n{color:#E2231A;opacity:1;}
+
+/* ─── D9 · PLEIN CADRE ─── */
+.d9{--m-paper:#0E0E0E;--m-ink:#F2F0EC;--m-accent:#F2F0EC;--m-line:#2A2A2A;--m-oncta:#0E0E0E;
+    --m-hero:#0E0E0E;--m-disp:'Instrument Serif',serif;--m-body:'Libre Franklin',sans-serif;--m-mono:'Libre Franklin',sans-serif;}
+.d9 .mk-hero{height:230px;background:linear-gradient(170deg,#2b3a45 0%,#5c5142 55%,#8a7a5e 100%);position:relative;}
+.d9 .mk-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(14,14,14,.92) 6%,transparent 62%);}
+.d9 .mk-over{position:absolute;left:16px;right:16px;bottom:14px;z-index:2;}
+.d9 .mk-t{font-family:'Instrument Serif',serif;font-size:30px;font-style:italic;line-height:1.04;color:#fff;margin:0;}
+.d9 .mk-eb{font-weight:300;letter-spacing:.2em;font-size:9px;color:rgba(255,255,255,.6);}
+.d9 .mk-body{padding-top:14px;}
+.d9 .mk-chip{border-color:#2A2A2A;font-weight:200;letter-spacing:.08em;}
+.d9 .mk-cta{background:none;border:1px solid #4A4A4A;color:#F2F0EC;font-weight:300;letter-spacing:.16em;}
+.d9 .mk-stn{border-color:#2A2A2A;}
+.d9 .mk-dot{border-color:#2A2A2A;}
+.plate.p9{background:#0E0E0E;color:#F2F0EC;}
+.plate.p9 .plate-t{font-family:'Instrument Serif',serif;font-style:italic;}
+
+/* ══════════ MATRICE ══════════ */
+.tw{overflow-x:auto;margin:22px 0;border:1px solid var(--line);}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:760px;background:var(--card);}
+th{font-family:var(--fm);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-45);text-align:left;font-weight:400;padding:11px 12px;border-bottom:1px solid var(--line);background:var(--paper2);vertical-align:bottom;}
+td{padding:11px 12px;border-bottom:1px solid var(--line-soft);color:var(--tx-70);line-height:1.45;}
+tr:last-child td{border-bottom:none;}
+td:first-child{color:var(--tx);font-weight:500;white-space:nowrap;}
+.sc{font-family:var(--fm);font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+.s3{color:#1B7A17;} .s2{color:#9A7226;} .s1{color:#B8342B;}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .s3{color:#7FBF77;}
+  :root:not([data-theme="light"]) .s2{color:#D2A755;}
+  :root:not([data-theme="light"]) .s1{color:#E4665F;}
+}
+:root[data-theme="dark"] .s3{color:#7FBF77;}
+:root[data-theme="dark"] .s2{color:#D2A755;}
+:root[data-theme="dark"] .s1{color:#E4665F;}
+
+.reco{background:var(--band);color:#fff;padding:52px 0;}
+.reco h2{color:#fff;}
+.reco p{color:rgba(255,255,255,.72);}
+.reco .eyebrow{color:rgba(255,255,255,.45);}
+.reco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.14);margin-top:28px;border:1px solid rgba(255,255,255,.14);}
+.rg{background:var(--band);padding:20px;}
+.rg-n{font-family:var(--fm);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.42);margin-bottom:8px;}
+.rg-t{font-family:var(--fs);font-size:19px;font-style:italic;color:#fff;line-height:1.2;margin-bottom:9px;}
+.rg-d{font-size:13.5px;line-height:1.55;color:rgba(255,255,255,.65);}
+@media (max-width:820px){ .reco-grid{grid-template-columns:1fr;} }
+
+footer{padding:42px 0 60px;font-family:var(--fm);font-size:11px;letter-spacing:.05em;color:var(--tx-45);line-height:1.9;}
+footer .rule{height:1px;background:var(--line);margin-bottom:22px;}
+@media (max-width:680px){
+  body{font-size:16px;}
+  .wrap{padding:0 20px;}
+  .plate,.dir-body{padding-left:20px;padding-right:20px;}
+  .mk,.mk-cap{width:100%;max-width:340px;}
+  .fx{grid-template-columns:1fr;gap:4px;}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="brand">Points P-O · Camins · Étude de directions visuelles</div>
+    <h1>Neuf directions visuelles</h1>
+    <p class="deck">Neuf mondes graphiques possibles pour la même application, rendus sur le même écran pour que la comparaison soit honnête. Chacun est tiré d'un objet réel du territoire — une carte, une fiche d'archive, un balisage, une plaque émaillée — plutôt que d'une tendance d'interface.</p>
+    <div class="meta">
+      <span>Document 04</span>
+      <span>9 directions · 1 écran de référence</span>
+      <span>Matrice de décision + recommandation</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="col">
+      <div class="eyebrow">La méthode</div>
+      <h2>Ce qui ne change pas d'une direction à l'autre</h2>
+      <p>Une direction visuelle n'est pas un goût, c'est un ensemble de contraintes tenues. Les décisions produit prises dans les documents 01 à 03 s'imposent aux neuf : ce sont elles qui rendent la comparaison utile plutôt qu'esthétique.</p>
+    </div>
+    <div class="fixed-list">
+      <div class="fx"><b>Écran commun</b><span>Toutes les maquettes montrent la fiche Récit de Montségur : même contenu, même hiérarchie, même bouton. Seule l'exécution visuelle varie.</span></div>
+      <div class="fx"><b>Un seul accent</b><span>Une action engageante par écran. Aucune direction n'a le droit de peindre deux appels au même endroit.</span></div>
+      <div class="fx"><b>Lisibilité 7:1</b><span>Contraste minimum sur tout élément fonctionnel — soleil rasant, écran gras, main qui tremble.</span></div>
+      <div class="fx"><b>Cibles 48 px</b><span>Atteignables au pouce, d'une seule main, en marchant.</span></div>
+      <div class="fx"><b>Le jaune réservé</b><span>Aucune direction ne peut utiliser le jaune ailleurs que dans l'instant de déverrouillage d'un Éclat.</span></div>
+      <div class="fx"><b>Tenue en nuit</b><span>Chaque direction doit avoir une déclinaison sombre crédible : on part avant le jour et on rentre après.</span></div>
+    </div>
+    <div class="col" style="margin-top:24px">
+      <p><strong>Les bandeaux de titre et les maquettes sont montrés dans leur propre palette</strong>, quel que soit le thème de votre écran : une direction, c'est justement un choix de clair ou de sombre. La colonne « nuit » de la matrice finale juge cette capacité séparément.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ D1 ═══════════ -->
+<div class="dir d1">
+  <div class="plate p1">
+    <div>
+      <div class="plate-n">Direction 01</div>
+      <div class="plate-t">Carte d'état-major</div>
+    </div>
+    <div class="plate-s">L'app se comporte comme une carte : courbes de niveau, carroyage, altitudes en gros caractères. Le fond n'est pas un décor, c'est de l'information.</div>
+  </div>
+  <div class="dir-body">
+    <div>
+      <div class="mk">
+        <div class="mk-hero"><div class="mk-grid"></div><div class="mk-alt">+430</div></div>
+        <div class="mk-body">
+          <div class="mk-eb">09 · Ariège · 42°87′N 1°83′E</div>
+          <div class="mk-t">Montségur, le pog et le champ des cramats</div>
+          <div class="mk-d">Une montée courte et raide vers un lieu qu'on croit connaître.</div>
+          <div class="mk-meta"><span class="mk-chip">6,2 km</span><span class="mk-chip">3h00</span><span class="mk-chip">D+ 430</span></div>
+          <div class="mk-stn"><div class="mk-dot">1</div><div><div class="mk-sk">km 0,4 · archive 1244</div><div class="mk-st">Le champ des cramats</div></div></div>
+          <button class="mk-cta">Démarrer le mode Sentier</button>
+        </div>
+      </div>
+      <div class="mk-cap">maquette 01 · fiche Récit</div>
+    </div>
+    <div class="notes">
+      <h4>Palette</h4>
+      <div class="swatches">
+        <div class="sw" style="background:#F4F0E6"><span style="color:#3A3428">F4F0E6</span></div>
+        <div class="sw" style="background:#E9E3D2"><span style="color:#3A3428">E9E3D2</span></div>
+        <div class="sw" style="background:#8C4A22"><span style="color:#F4F0E6">8C4A22</span></div>
+        <div class="sw" style="background:#3A3428"><span style="color:#F4F0E6">3A3428</span></div>
+        <div class="sw" style="background:#5B6B3A"><span style="color:#F4F0E6">5B6B3A</span></div>
+      </div>
+      <h4>Typographie</h4>
+      <div class="specimen">
+        <div class="sp-l">Bodoni Moda italique · Barlow Condensed</div>
+        <div class="sp-a" style="font-family:'Bodoni Moda',serif;font-style:italic">Le pog de Montségur</div>
+        <div class="sp-b" style="font-family:'Barlow Condensed',sans-serif">Une montée courte et raide vers un lieu qu'on croit connaître — 6,2 km, 3h00, 430 m de dénivelé positif.</div>
+      </div>
+      <h4>Le geste signature</h4>
+      <p>Le carroyage et les courbes de niveau traversent l'interface. Les chiffres d'altitude sont composés comme sur une carte : gros, bistre, posés dans l'angle.</p>
+      <h4>Ce que ça dit du produit</h4>
+      <p>Sérieux, technique, ancré dans un savoir. C'est le registre de l'IGN et des cartes anciennes — il donne immédiatement de la crédibilité au versant historique.</p>
+      <div class="risk"><p><strong>Le risque.</strong> Le bistre sur crème plafonne vite en contraste : il faudra pousser l'encre à un brun presque noir pour tenir le 7:1 au soleil. Et le carroyage, s'il n'est pas très discret, entre en concurrence avec la vraie carte de l'écran Sentiers.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ D2 ═══════════ -->
+<div class="dir d2">
+  <div class="plate p2">
+    <div>
+      <div class="plate-n">Direction 02 · l'existant</div>
+      <div class="plate-t">Presse de territoire</div>
+    </div>
+    <div class="plate-s">Le registre du site Points P-O actuel : didone italique, filets fins, rouge catalan. Une revue, pas une app.</div>
+  </div>
+  <div class="dir-body">
+    <div>
+      <div class="mk">
+        <div class="mk-hero"></div>
+        <div class="mk-body">
+          <div class="mk-eb">09 · Ariège</div>
+          <div class="mk-t">Montségur, le pog et le champ des cramats</div>
+          <div class="mk-d">Une montée courte et raide vers un lieu qu'on croit connaître.</div>
+          <div class="mk-meta"><span class="mk-chip">6,2 km</span><span class="mk-chip">3h00</span><span class="mk-chip">+430 m</span></div>
+          <div class="mk-stn"><div class="mk-dot">1</div><div><div class="mk-sk">km 0,4 · archive 1244</div><div class="mk-st">Le champ des cramats</div></div></div>
+          <button class="mk-cta">Démarrer le mode Sentier</button>
+        </div>
+      </div>
+      <div class="mk-cap">maquette 02 · fiche Récit</div>
+    </div>
+    <div class="notes">
+      <h4>Palette</h4>
+      <div class="swatches">
+        <div class="sw" style="background:#FAFAF7"><span style="color:#1A1814">FAFAF7</span></div>
+        <div class="sw" style="background:#E8E4DC"><span style="color:#1A1814">E8E4DC</span></div>
+        <div class="sw" style="background:#C8201A"><span style="color:#fff">C8201A</span></div>
+        <div class="sw" style="background:#1E6B1A"><span style="color:#fff">1E6B1A</span></div>
+        <div class="sw" style="background:#1A1814"><span style="color:#F5D800">1A1814</span></div>
+      </div>
+      <h4>Typographie</h4>
+      <div class="specimen">
+        <div class="sp-l">Playfair Display italique · Source Sans 3</div>
+        <div class="sp-a" style="font-family:'Playfair Display',serif;font-style:italic">Le pog de Montségur</div>
+        <div class="sp-b" style="font-family:'Source Sans 3',sans-serif">Une montée courte et raide vers un lieu qu'on croit connaître — 6,2 km, 3h00, 430 m de dénivelé positif.</div>
+      </div>
+      <h4>Le geste signature</h4>
+      <p>Le filet. Tout est séparé par des hairlines, les titres sont en italique, l'œil lit comme dans un journal.</p>
+      <h4>Ce que ça dit du produit</h4>
+      <p>Éditorial, cultivé, adulte. Avantage décisif : <strong>zéro coût de transition</strong> — le site existant, les guides et les reportages sont déjà dans ce monde.</p>
+      <div class="risk"><p><strong>Le risque.</strong> C'est un habillage de <em>site</em>, pas d'<em>application</em>. Les filets fins et la didone italique tiennent mal en petit, en mouvement, à bout de bras. Et c'est la direction la moins distinctive du lot : cent marques de territoire l'utilisent déjà.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ D3 ═══════════ -->
+<div class="dir d3">
+  <div class="plate p3">
+    <div>
+      <div class="plate-n">Direction 03</div>
+      <div class="plate-t">Archive & tampon</div>
+    </div>
+    <div class="plate-s">Le monde des archives départementales : papier kraft, machine à écrire, tampons encreurs, fiches perforées. Le déverrouillage devient un cachet apposé.</div>
+  </div>
+  <div class="dir-body">
+    <div>
+      <div class="mk">
+        <div class="mk-hero"></div>
+        <div class="mk-body">
+          <div class="mk-punch"><i></i><i></i><i></i><i></i></div>
+          <div class="mk-stamp">VERROUILLÉ</div>
+          <div class="mk-eb">Cote 09 · ARIÈGE · série J</div>
+          <div class="mk-t">Montségur, le pog et le champ des cramats</div>
+          <div class="mk-d">Une montée courte et raide vers un lieu qu'on croit connaître.</div>
+          <div class="mk-meta"><span class="mk-chip">6,2 km</span><span class="mk-chip">3h00</span><span class="mk-chip">+430 m</span></div>
+          <div class="mk-stn"><div class="mk-dot">1</div><div><div class="mk-sk">km 0,4 · archive 1244</div><div class="mk-st">Le champ des cramats</div></div></div>
+          <button class="mk-cta">Démarrer le mode Sentier</button>
+        </div>
+      </div>
+      <div class="mk-cap">maquette 03 · fiche Récit</div>
+    </div>
+    <div class="notes">
+      <h4>Palette</h4>
+      <div class="swatches">
+        <div class="sw" style="background:#E9E0CC"><span style="color:#2B2721">E9E0CC</span></div>
+        <div class="sw" style="background:#D6C9AB"><span style="color:#2B2721">D6C9AB</span></div>
+        <div class="sw" style="background:#7A2E20"><span style="color:#E9E0CC">7A2E20</span></div>
+        <div class="sw" style="background:#2B2721"><span style="color:#E9E0CC">2B2721</span></div>
+        <div class="sw" style="background:#3F5A4A"><span style="color:#E9E0CC">3F5A4A</span></div>
+      </div>
+      <h4>Typographie</h4>
+      <div class="specimen">
+        <div class="sp-l">Spectral · Courier Prime</div>
+        <div class="sp-a" style="font-family:'Spectral',serif">Le pog de Montségur</div>
+        <div class="sp-b" style="font-family:'Courier Prime',monospace">Une montée courte et raide vers un lieu qu'on croit connaître — 6,2 km, 3h00, 430 m.</div>
+      </div>
+      <h4>Le geste signature</h4>
+      <p>Le tampon. Chaque Éclat est estampillé à l'obtention, avec sa date et sa cote. Le Cabinet devient un carton d'archives — et la collection prend un sens matériel immédiat.</p>
+      <h4>Ce que ça dit du produit</h4>
+      <p>Que le contenu vient de sources réelles. C'est la direction qui raconte le mieux <em>d'où sort</em> chaque récit, et celle qui donne le plus de valeur perçue à la collection.</p>
+      <div class="risk"><p><strong>Le risque.</strong> Le pastiche. Le kraft et la machine à écrire glissent vite vers le décor de chambre d'hôte, et le Courier en corps courant est fatigant sur une longue lecture. À réserver au lecteur d'Éclat et au Cabinet plutôt qu'à toute l'app.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ D4 ═══════════ -->
+<div class="dir d4">
+  <div class="plate p4">
+    <div>
+      <div class="plate-n">Direction 04</div>
+      <div class="plate-t">Céramique catalane</div>
+    </div>
+    <div class="plate-s">Bleu de faïence, ocre, les barres de la senyera. Aplats francs, formes rondes, une joie décorative assumée.</div>
+  </div>
+  <div class="dir-body">
+    <div>
+      <div class="mk">
+        <div class="mk-hero"><div class="mk-senyera"></div></div>
+        <div class="mk-body">
+          <div class="mk-eb">09 · Ariège</div>
+          <div class="mk-t">Montségur, le pog et le champ des cramats</div>
+          <div class="mk-d">Une montée courte et raide vers un lieu qu'on croit connaître.</div>
+          <div class="mk-meta"><span class="mk-chip">6,2 km</span><span class="mk-chip">3h00</span><span class="mk-chip">+430 m</span></div>
+          <div class="mk-stn"><div class="mk-dot">1</div><div><div class="mk-sk">km 0,4 · archive 1244</div><div class="mk-st">Le champ des cramats</div></div></div>
+          <button class="mk-cta">Démarrer le mode Sentier</button>
+        </div>
+      </div>
+      <div class="mk-cap">maquette 04 · fiche Récit</div>
+    </div>
+    <div class="notes">
+      <h4>Palette</h4>
+      <div class="swatches">
+        <div class="sw" style="background:#FFFDF6"><span style="color:#17303F">FFFDF6</span></div>
+        <div class="sw" style="background:#1E5A7A"><span style="color:#FFFDF6">1E5A7A</span></div>
+        <div class="sw" style="background:#C1272D"><span style="color:#FFFDF6">C1272D</span></div>
+        <div class="sw" style="background:#F2C300"><span style="color:#17303F">F2C300</span></div>
+        <div class="sw" style="background:#17303F"><span style="color:#FFFDF6">17303F</span></div>
+      </div>
+      <h4>Typographie</h4>
+      <div class="specimen">
+        <div class="sp-l">Fraunces · Karla</div>
+        <div class="sp-a" style="font-family:'Fraunces',serif;font-weight:700">Le pog de Montségur</div>
+        <div class="sp-b" style="font-family:'Karla',sans-serif">Une montée courte et raide vers un lieu qu'on croit connaître — 6,2 km, 3h00, 430 m de dénivelé.</div>
+      </div>
+      <h4>Le geste signature</h4>
+      <p>Les barres jaune et rouge, utilisées comme rail structurel — bas d'image, séparateur, indicateur de progression dans un Cycle.</p>
+      <h4>Ce que ça dit du produit</h4>
+      <p>Chaleureux, populaire, fier de sa culture. C'est la direction la plus <em>aimable</em> des neuf, et la plus facile à décliner en objets — carnets, tote bags, panneaux.</p>
+      <div class="risk"><p><strong>Le risque, et il est sérieux.</strong> La senyera est un signe catalan, or l'app couvre les treize départements d'Occitanie. À Rodez ou à Mende, ce drapeau ne dit rien — ou dit autre chose. La direction fonctionne pour Points P-O dans le 66 ; elle ne passe pas à l'échelle régionale sans devenir un contresens.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ D5 ═══════════ -->
+<div class="dir d5">
+  <div class="plate p5">
+    <div>
+      <div class="plate-n">Direction 05</div>
+      <div class="plate-t">Nuit et signal</div>
+    </div>
+    <div class="plate-s">Conçue d'abord pour le noir : départ avant l'aube, retour après le coucher. Un seul accent phosphorescent, des chiffres d'instrument.</div>
+  </div>
+  <div class="dir-body">
+    <div>
+      <div class="mk">
+        <div class="mk-hero"><div class="mk-prof"></div><div class="mk-alt">+430</div></div>
+        <div class="mk-body">
+          <div class="mk-eb">09 · Ariège</div>
+          <div class="mk-t">Montségur, le pog et le champ des cramats</div>
+          <div class="mk-d">Une montée courte et raide vers un lieu qu'on croit connaître.</div>
+          <div class="mk-meta"><span class="mk-chip">6,2 km</span><span class="mk-chip">3h00</span><span class="mk-chip">+430 m</span></div>
+          <div class="mk-stn"><div class="mk-dot">1</div><div><div class="mk-sk">km 0,4 · archive 1244</div><div class="mk-st">Le champ des cramats</div></div></div>
+          <button class="mk-cta">Démarrer le mode Sentier</button>
+        </div>
+      </div>
+      <div class="mk-cap">maquette 05 · fiche Récit</div>
+    </div>
+    <div class="notes">
+      <h4>Palette</h4>
+      <div class="swatches">
+        <div class="sw" style="background:#0C0E0D"><span style="color:#B9FF3D">0C0E0D</span></div>
+        <div class="sw" style="background:#25302A"><span style="color:#E6EDE6">25302A</span></div>
+        <div class="sw" style="background:#B9FF3D"><span style="color:#0C0E0D">B9FF3D</span></div>
+        <div class="sw" style="background:#E6EDE6"><span style="color:#0C0E0D">E6EDE6</span></div>
+        <div class="sw" style="background:#FF6B35"><span style="color:#0C0E0D">FF6B35</span></div>
+      </div>
+      <h4>Typographie</h4>
+      <div class="specimen">
+        <div class="sp-l">IBM Plex Sans Condensed · IBM Plex Mono</div>
+        <div class="sp-a" style="font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600">Le pog de Montségur</div>
+        <div class="sp-b" style="font-family:'IBM Plex Mono',monospace;font-size:13px">6,2 km · 3h00 · D+430 · 42.8756 N / 1.8331 E</div>
+      </div>
+      <h4>Le geste signature</h4>
+      <p>Le profil altimétrique en fond, tracé au trait phosphorescent, et le kilomètre en très gros chiffres. L'app ressemble à un altimètre plutôt qu'à un magazine.</p>
+      <h4>Ce que ça dit du produit</h4>
+      <p>Sérieux montagne, sécurité, matériel de confiance. C'est aussi la seule direction où le <strong>mode Sentier n'est pas une rupture</strong> : l'écran noir est déjà le régime normal.</p>
+      <div class="risk"><p><strong>Le risque.</strong> Le vert phosphorescent est un code de sport connecté — il tire vers Strava, c'est-à-dire vers la performance, exactement l'axe que le produit refuse. Il faudrait déplacer l'accent vers un jaune de balisage ou un orange de secours pour éviter le contresens.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ D6 ═══════════ -->
+<div class="dir d6">
+  <div class="plate p6">
+    <div>
+      <div class="plate-n">Direction 06</div>
+      <div class="plate-t">Herbier</div>
+    </div>
+    <div class="plate-s">La planche de naturaliste : cadre double, étiquette manuscrite, italiques fines. Le Cabinet devient littéralement un herbier.</div>
+  </div>
+  <div class="dir-body">
+    <div>
+      <div class="mk">
+        <div class="mk-hero"><div class="mk-plate"></div><div class="mk-label">Pl. IX — Ariège</div></div>
+        <div class="mk-body">
+          <div class="mk-eb">Neuvième planche · Ariège</div>
+          <div class="mk-t">Montségur, le pog et le champ des cramats</div>
+          <div class="mk-d">Une montée courte et raide vers un lieu qu'on croit connaître.</div>
+          <div class="mk-meta"><span class="mk-chip">6,2 km</span><span class="mk-chip">3h00</span><span class="mk-chip">+430 m</span></div>
+          <div class="mk-stn"><div class="mk-dot">1</div><div><div class="mk-sk">km 0,4 · archive 1244</div><div class="mk-st">Le champ des cramats</div></div></div>
+          <button class="mk-cta">Démarrer le mode Sentier</button>
+        </div>
+      </div>
+      <div class="mk-cap">maquette 06 · fiche Récit</div>
+    </div>
+    <div class="notes">
+      <h4>Palette</h4>
+      <div class="swatches">
+        <div class="sw" style="background:#FCFBF4"><span style="color:#33352C">FCFBF4</span></div>
+        <div class="sw" style="background:#F3F2E4"><span style="color:#33352C">F3F2E4</span></div>
+        <div class="sw" style="background:#5B6B3A"><span style="color:#FCFBF4">5B6B3A</span></div>
+        <div class="sw" style="background:#8C6A3F"><span style="color:#FCFBF4">8C6A3F</span></div>
+        <div class="sw" style="background:#33352C"><span style="color:#FCFBF4">33352C</span></div>
+      </div>
+      <h4>Typographie</h4>
+      <div class="specimen">
+        <div class="sp-l">Cormorant Garamond italique · EB Garamond</div>
+        <div class="sp-a" style="font-family:'Cormorant Garamond',serif;font-style:italic">Le pog de Montségur</div>
+        <div class="sp-b" style="font-family:'EB Garamond',serif">Une montée courte et raide vers un lieu qu'on croit connaître — 6,2 km, 3h00, 430 m de dénivelé positif.</div>
+      </div>
+      <h4>Le geste signature</h4>
+      <p>L'étiquette de spécimen, collée dans l'angle : numéro de planche, lieu, date de récolte. Appliquée à un Éclat, elle date et situe le fragment sans un mot d'interface.</p>
+      <h4>Ce que ça dit du produit</h4>
+      <p>Patient, savant, précieux. C'est la direction qui rend le mieux la <strong>logique de collection</strong> — et de très loin la plus belle en objet imprimé pour le carnet de fin de Cycle.</p>
+      <div class="risk"><p><strong>Le risque.</strong> La finesse. Le Cormorant en petit corps et les traits d'un demi-pixel disparaissent au soleil et sur un écran gras : cette direction échoue au test des 7:1 si on la prend telle quelle. Elle demande une version « terrain » nettement plus grasse, donc deux systèmes à maintenir.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ D7 ═══════════ -->
+<div class="dir d7">
+  <div class="plate p7">
+    <div>
+      <div class="plate-n">Direction 07</div>
+      <div class="plate-t">Lapidaire</div>
+    </div>
+    <div class="plate-s">L'épigraphie romane : capitales gravées, pierre, ombre portée d'un millimètre. Les titres sont des inscriptions.</div>
+  </div>
+  <div class="dir-body">
+    <div>
+      <div class="mk">
+        <div class="mk-hero"><div class="mk-carve">MONTSEGUR</div></div>
+        <div class="mk-body">
+          <div class="mk-eb">09 · Ariège</div>
+          <div class="mk-t">Le pog et le champ des cramats</div>
+          <div class="mk-d">Une montée courte et raide vers un lieu qu'on croit connaître.</div>
+          <div class="mk-meta"><span class="mk-chip">6,2 km</span><span class="mk-chip">3h00</span><span class="mk-chip">+430 m</span></div>
+          <div class="mk-stn"><div class="mk-dot">I</div><div><div class="mk-sk">km 0,4 · archive 1244</div><div class="mk-st">Le champ des cramats</div></div></div>
+          <button class="mk-cta">Démarrer le mode Sentier</button>
+        </div>
+      </div>
+      <div class="mk-cap">maquette 07 · fiche Récit</div>
+    </div>
+    <div class="notes">
+      <h4>Palette</h4>
+      <div class="swatches">
+        <div class="sw" style="background:#DEDAD2"><span style="color:#2C2A26">DEDAD2</span></div>
+        <div class="sw" style="background:#B9B3A8"><span style="color:#2C2A26">B9B3A8</span></div>
+        <div class="sw" style="background:#6B6257"><span style="color:#EFECE6">6B6257</span></div>
+        <div class="sw" style="background:#2C2A26"><span style="color:#EFECE6">2C2A26</span></div>
+        <div class="sw" style="background:#8A3324"><span style="color:#EFECE6">8A3324</span></div>
+      </div>
+      <h4>Typographie</h4>
+      <div class="specimen">
+        <div class="sp-l">Cinzel capitales · Spectral</div>
+        <div class="sp-a" style="font-family:'Cinzel',serif;font-size:22px;letter-spacing:.08em">MONTSEGVR</div>
+        <div class="sp-b" style="font-family:'Spectral',serif">Une montée courte et raide vers un lieu qu'on croit connaître — 6,2 km, 3h00, 430 m.</div>
+      </div>
+      <h4>Le geste signature</h4>
+      <p>Le titre gravé : capitales espacées, légère ombre haute qui simule le creux du ciseau. Les numéros de station sont en chiffres romains.</p>
+      <h4>Ce que ça dit du produit</h4>
+      <p>Ancien, monumental, durable. Cohérent avec l'art roman du Conflent, les abbayes, les châteaux — c'est-à-dire avec la moitié du corpus.</p>
+      <div class="risk"><p><strong>Le risque.</strong> La solennité. Tout en capitales, l'app devient un mémorial : illisible en corps courant, pesante à l'usage quotidien, et franchement inadaptée aux Récits qui parlent de bergers, de sel ou de vigneronnes. Un registre de titraille, pas un système complet.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ D8 ═══════════ -->
+<div class="dir d8">
+  <div class="plate p8">
+    <div>
+      <div class="plate-n">Direction 08</div>
+      <div class="plate-t">Signalétique GR</div>
+    </div>
+    <div class="plate-s">Le monde du balisage : la marque blanc-rouge, les plaques émaillées de refuge, les flèches directionnelles. Fonctionnel avant d'être beau.</div>
+  </div>
+  <div class="dir-body">
+    <div>
+      <div class="mk">
+        <div class="mk-hero">
+          <div class="mk-blaze"><i></i><i></i></div>
+          <div class="mk-arrow">Montségur 2h10</div>
+        </div>
+        <div class="mk-body">
+          <div class="mk-eb">09 · ARIÈGE</div>
+          <div class="mk-t">Montségur, le pog et le champ des cramats</div>
+          <div class="mk-d">Une montée courte et raide vers un lieu qu'on croit connaître.</div>
+          <div class="mk-meta"><span class="mk-chip">6,2 km</span><span class="mk-chip">3h00</span><span class="mk-chip">+430 m</span></div>
+          <div class="mk-stn"><div class="mk-dot">1</div><div><div class="mk-sk">km 0,4 · archive 1244</div><div class="mk-st">Le champ des cramats</div></div></div>
+          <button class="mk-cta">Démarrer le mode Sentier</button>
+        </div>
+      </div>
+      <div class="mk-cap">maquette 08 · fiche Récit</div>
+    </div>
+    <div class="notes">
+      <h4>Palette</h4>
+      <div class="swatches">
+        <div class="sw" style="background:#FFFFFF"><span style="color:#161616">FFFFFF</span></div>
+        <div class="sw" style="background:#E2231A"><span style="color:#fff">E2231A</span></div>
+        <div class="sw" style="background:#161616"><span style="color:#fff">161616</span></div>
+        <div class="sw" style="background:#F2C300"><span style="color:#161616">F2C300</span></div>
+        <div class="sw" style="background:#1B6E4A"><span style="color:#fff">1B6E4A</span></div>
+      </div>
+      <h4>Typographie</h4>
+      <div class="specimen">
+        <div class="sp-l">Oswald · Archivo</div>
+        <div class="sp-a" style="font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;font-size:24px">Le pog de Montségur</div>
+        <div class="sp-b" style="font-family:'Archivo',sans-serif">Une montée courte et raide vers un lieu qu'on croit connaître — 6,2 km, 3h00, 430 m.</div>
+      </div>
+      <h4>Le geste signature</h4>
+      <p>La marque blanc-rouge du GR, utilisée comme élément de structure : indicateur de progression, séparateur, marqueur de station. Elle est déjà comprise par tous les marcheurs de France.</p>
+      <h4>Ce que ça dit du produit</h4>
+      <p>Utile, robuste, sans manières. C'est la direction la plus <strong>lisible au soleil</strong> des neuf, et celle qui installe le plus vite la confiance sur le terrain.</p>
+      <div class="risk"><p><strong>Le risque.</strong> Elle ne raconte rien. Le balisage est un langage d'orientation, pas de récit : appliqué au lecteur d'Éclat, il aplatit un témoignage du XIIIᵉ siècle au rang de panneau directionnel. Excellente pour la navigation, muette pour l'histoire — c'est-à-dire pour la moitié du produit.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ D9 ═══════════ -->
+<div class="dir d9">
+  <div class="plate p9">
+    <div>
+      <div class="plate-n">Direction 09</div>
+      <div class="plate-t">Plein cadre</div>
+    </div>
+    <div class="plate-s">L'image occupe tout, l'interface disparaît. Un seul filet de texte, une typographie chuchotée. C'est le registre d'AllTrails et d'Instagram.</div>
+  </div>
+  <div class="dir-body">
+    <div>
+      <div class="mk">
+        <div class="mk-hero">
+          <div class="mk-over">
+            <div class="mk-eb">09 · ARIÈGE</div>
+            <div class="mk-t">Montségur, le pog et le champ des cramats</div>
+          </div>
+        </div>
+        <div class="mk-body">
+          <div class="mk-d">Une montée courte et raide vers un lieu qu'on croit connaître.</div>
+          <div class="mk-meta"><span class="mk-chip">6,2 km</span><span class="mk-chip">3h00</span><span class="mk-chip">+430 m</span></div>
+          <div class="mk-stn"><div class="mk-dot">1</div><div><div class="mk-sk">km 0,4 · archive 1244</div><div class="mk-st">Le champ des cramats</div></div></div>
+          <button class="mk-cta">Démarrer le mode Sentier</button>
+        </div>
+      </div>
+      <div class="mk-cap">maquette 09 · fiche Récit · <em>l'image est un aplat de substitution</em></div>
+    </div>
+    <div class="notes">
+      <h4>Palette</h4>
+      <div class="swatches">
+        <div class="sw" style="background:#0E0E0E"><span style="color:#F2F0EC">0E0E0E</span></div>
+        <div class="sw" style="background:#2A2A2A"><span style="color:#F2F0EC">2A2A2A</span></div>
+        <div class="sw" style="background:#F2F0EC"><span style="color:#0E0E0E">F2F0EC</span></div>
+        <div class="sw" style="background:#8A7A5E"><span style="color:#0E0E0E">8A7A5E</span></div>
+        <div class="sw" style="background:#2B3A45"><span style="color:#F2F0EC">2B3A45</span></div>
+      </div>
+      <h4>Typographie</h4>
+      <div class="specimen">
+        <div class="sp-l">Instrument Serif italique · Libre Franklin light</div>
+        <div class="sp-a" style="font-family:'Instrument Serif',serif;font-style:italic">Le pog de Montségur</div>
+        <div class="sp-b" style="font-family:'Libre Franklin',sans-serif;font-weight:300">Une montée courte et raide vers un lieu qu'on croit connaître — 6,2 km, 3h00, 430 m.</div>
+      </div>
+      <h4>Le geste signature</h4>
+      <p>L'absence de geste. Aucun ornement, aucune couleur de marque : la photographie porte tout, la typographie s'excuse d'être là.</p>
+      <h4>Ce que ça dit du produit</h4>
+      <p>Contemporain, désirable, immédiatement familier. C'est le registre que les utilisateurs connaissent déjà — donc zéro apprentissage.</p>
+      <div class="risk"><p><strong>Le risque, et c'est le plus coûteux du lot.</strong> Cette direction n'existe que si les photographies sont excellentes, homogènes et nombreuses : treize sentiers, quatre-vingt-onze stations, quatre saisons. C'est une ligne budgétaire, pas une décision graphique. Et sans identité propre, l'app ressemble à AllTrails — dont elle prétend justement se distinguer.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MATRICE ═══════════ -->
+<section style="border-top:1px solid var(--line)">
+  <div class="wrap">
+    <div class="col">
+      <div class="eyebrow">La décision</div>
+      <h2>Matrice de confrontation</h2>
+      <p>Six critères, notés de 1 à 3. Les deux derniers ne sont pas esthétiques et sont pourtant décisifs : ce qu'une direction coûte à produire, et ce qu'elle exclut.</p>
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th>Direction</th><th>Lisible<br>au soleil</th><th>Tenue<br>en nuit</th><th>Sert le<br>récit</th><th>Distinctive<br>vs AllTrails</th><th>Coût de<br>production</th><th>Échelle<br>Occitanie</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>01 · Carte d'état-major</td><td class="sc s2">2</td><td class="sc s2">2</td><td class="sc s3">3</td><td class="sc s3">3</td><td class="sc s3">3</td><td class="sc s3">3</td></tr>
+          <tr><td>02 · Presse de territoire</td><td class="sc s2">2</td><td class="sc s2">2</td><td class="sc s3">3</td><td class="sc s1">1</td><td class="sc s3">3</td><td class="sc s3">3</td></tr>
+          <tr><td>03 · Archive &amp; tampon</td><td class="sc s2">2</td><td class="sc s1">1</td><td class="sc s3">3</td><td class="sc s3">3</td><td class="sc s2">2</td><td class="sc s3">3</td></tr>
+          <tr><td>04 · Céramique catalane</td><td class="sc s3">3</td><td class="sc s2">2</td><td class="sc s2">2</td><td class="sc s3">3</td><td class="sc s3">3</td><td class="sc s1">1</td></tr>
+          <tr><td>05 · Nuit et signal</td><td class="sc s2">2</td><td class="sc s3">3</td><td class="sc s1">1</td><td class="sc s2">2</td><td class="sc s3">3</td><td class="sc s3">3</td></tr>
+          <tr><td>06 · Herbier</td><td class="sc s1">1</td><td class="sc s1">1</td><td class="sc s3">3</td><td class="sc s3">3</td><td class="sc s2">2</td><td class="sc s3">3</td></tr>
+          <tr><td>07 · Lapidaire</td><td class="sc s2">2</td><td class="sc s2">2</td><td class="sc s2">2</td><td class="sc s3">3</td><td class="sc s3">3</td><td class="sc s2">2</td></tr>
+          <tr><td>08 · Signalétique GR</td><td class="sc s3">3</td><td class="sc s2">2</td><td class="sc s1">1</td><td class="sc s2">2</td><td class="sc s3">3</td><td class="sc s3">3</td></tr>
+          <tr><td>09 · Plein cadre</td><td class="sc s2">2</td><td class="sc s3">3</td><td class="sc s2">2</td><td class="sc s1">1</td><td class="sc s1">1</td><td class="sc s3">3</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col">
+      <p>Deux enseignements sortent du tableau plus que des maquettes. D'abord, <strong>aucune direction ne gagne partout</strong> : celles qui servent le récit (03, 06) sont les plus fragiles sur le terrain, et celles qui tiennent le terrain (08, 05) ne racontent rien. Ensuite, <strong>les deux directions les plus séduisantes sont éliminées par des critères non graphiques</strong> : la céramique catalane par la géographie, le plein cadre par le budget photo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ RECO ═══════════ -->
+<div class="reco">
+  <div class="wrap">
+    <div class="col">
+      <div class="eyebrow">Recommandation</div>
+      <h2>Une base, un registre narratif, un mode terrain</h2>
+      <p>La bonne réponse n'est pas une direction, c'est une <strong>répartition</strong> : l'application n'a pas un seul régime d'usage, elle en a trois — on prépare, on marche, on écoute. Chacun mérite son traitement, à condition qu'un seul système de couleur et de type les tienne ensemble.</p>
+    </div>
+    <div class="reco-grid">
+      <div class="rg">
+        <div class="rg-n">Base · toute l'app</div>
+        <div class="rg-t">Carte d'état-major</div>
+        <div class="rg-d">Elle est la seule à bien noter partout, elle donne au produit son sérieux documentaire, et son vocabulaire — courbes, carroyage, altitudes — est déjà celui de l'écran principal. Corriger l'encre vers un brun quasi noir pour tenir le 7:1.</div>
+      </div>
+      <div class="rg">
+        <div class="rg-n">Registre narratif · Éclat, Cabinet</div>
+        <div class="rg-t">Archive & tampon</div>
+        <div class="rg-d">Réservée aux moments de récit et de collection, où la lecture est courte et l'écran regardé de près. Le tampon donne au déverrouillage un geste matériel que la base ne peut pas offrir.</div>
+      </div>
+      <div class="rg">
+        <div class="rg-n">Mode terrain · mode Sentier</div>
+        <div class="rg-t">Nuit et signal</div>
+        <div class="rg-d">Sans le vert phosphorescent, remplacé par le jaune de balisage déjà réservé au déverrouillage. Chiffres d'instrument, fond noir, trois informations. Le mode Sentier existe déjà comme rupture : autant l'assumer graphiquement.</div>
+      </div>
+    </div>
+    <div class="col" style="margin-top:30px">
+      <p><strong>Ce qu'il faut trancher avant de dessiner quoi que ce soit :</strong> le budget photo. Si la banque d'images est financée, la direction 09 redevient jouable en base et change tout le reste. Sinon, elle est hors jeu et l'arbitrage ci-dessus tient.</p>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="col">
+      <div class="eyebrow">Étape suivante</div>
+      <h2>Ce que ces maquettes ne disent pas encore</h2>
+      <p>Une fiche Récit est l'écran le plus facile. Avant d'arrêter une direction, il faut la faire tenir sur les trois écrans qui cassent les systèmes : <strong>la carte</strong> — où le fond graphique entre en concurrence avec la cartographie réelle ; <strong>le lecteur d'Éclat</strong> — plein écran, texte long, image d'archive ; et <strong>la Veillée</strong> — direct, chat, drop, trois densités d'information simultanées.</p>
+      <p>Prochaine passe utile : les deux ou trois directions retenues, déclinées sur ces trois écrans plus une version nuit de chacun. C'est là que la moitié des directions de cette page tomberont.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="rule"></div>
+    Points P-O · Camins — étude de directions visuelles, document 04<br>
+    Compléments : spécification produit (01), étude de rétention (02), design de l'attention (03) — dépôt <span style="font-family:var(--fm)">points-po</span>, branche <span style="font-family:var(--fm)">claude/hiking-app-occitanie-8erplx</span><br>
+    Les maquettes sont des rendus HTML, pas des images : elles s'impriment et se copient telles quelles.
+  </div>
+</footer>
