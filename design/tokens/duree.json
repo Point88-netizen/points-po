@@ -1,0 +1,12 @@
+{
+  "$description": "Camins — les six rythmes autorisés (document 03, §3). Toute durée de l'interface doit citer l'un d'eux. Le vérificateur signale toute durée littérale dans le code.",
+  "duree": {
+    "$type": "duration",
+    "toucher":    { "$value": { "value": 90,      "unit": "ms" }, "$description": "Réponse au toucher. Sous ce seuil, l'action est perçue comme instantanée." },
+    "sortie":     { "$value": { "value": 180,     "unit": "ms" }, "$description": "Disparition d'un objet. Plus court que l'entrée : un objet qui part n'a pas besoin d'être regardé." },
+    "transition": { "$value": { "value": 320,     "unit": "ms" }, "$description": "Changement d'état. Assez pour suivre du regard, pas assez pour attendre." },
+    "presence":   { "$value": { "value": 45000,   "unit": "ms" }, "$description": "Temps sur place exigé pour déverrouiller un Éclat." },
+    "eclat":      { "$value": { "value": 90000,   "unit": "ms" }, "$description": "Durée cible d'un Éclat." },
+    "veillee":    { "$value": { "value": 2400000, "unit": "ms" }, "$description": "40 minutes. Plafond dur du direct hebdomadaire." }
+  }
+}

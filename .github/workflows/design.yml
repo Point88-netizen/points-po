@@ -1,0 +1,35 @@
+name: Design
+
+on:
+  pull_request:
+    paths: ["design/**", "app/**", ".github/workflows/design.yml"]
+  push:
+    branches: [main]
+
+jobs:
+  systeme:
+    name: Système de design
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+
+      - name: Régénérer les tokens
+        run: node design/construire.mjs
+
+      - name: Vérifier que build/ est à jour
+        run: git diff --exit-code design/build/
+          || (echo "::error::design/build/ n'est pas à jour — lancez node design/construire.mjs et committez." && exit 1)
+
+      - name: Contrôles statiques (contraste, durées, zone du jaune)
+        run: node design/verifier-tokens.mjs app
+
+      - name: Installer Playwright
+        run: npm i -D playwright && npx playwright install --with-deps chromium
+
+      - name: Servir le prototype
+        run: npx http-server -p 8899 -s . & sleep 3
+
+      - name: Contrôles sur écran rendu
+        run: node design/verifier-ecran.mjs http://127.0.0.1:8899/app/index.html 390 844

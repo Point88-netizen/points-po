@@ -1,0 +1,106 @@
+/* Généré par design/construire.mjs — ne pas modifier à la main.
+   Source : design/tokens/*.json (format DTCG). */
+
+:root {
+  /* 2 sorties × 4 min de préparation. */
+  --budget-preparation: 480000ms;
+  /* 2 × 3 s. Le poste le plus cher : il est arraché à autre chose. */
+  --budget-notification: 6000ms;
+  /* Consentie à l'avance, à heure dite. */
+  --budget-veillee: 2400000ms;
+  /* Zéro. L'audio ne compte pas : il se superpose à la marche. */
+  --budget-ecran-sentier: 0ms;
+  /* ≈ 48 min. Toute fonctionnalité nouvelle déclare son poste et son coût. */
+  --budget-total-hebdo: 2886000ms;
+  /* Sécurité exceptée. Réglable à 0 par la personne. */
+  --quota-notifications-par-semaine: 2;
+  /* Un par Éclat, plafond haut d'une journée de marche. */
+  --quota-sons-par-sortie: 9;
+  /* Le point du direct. Aucun autre. */
+  --quota-clignotements-dans-l-app: 1;
+  /* Règle du seul accent. */
+  --quota-accents-par-ecran: 1;
+  --socle-papier-blanc: #FCFAF4;
+  --socle-papier-clair: #F4F0E6;
+  --socle-papier-moyen: #E9E3D2;
+  --socle-papier-sombre: #DCD4BE;
+  /* Brun quasi noir — corrigé depuis le bistre de la direction 01 pour tenir 7:1 sur papier clair. */
+  --socle-encre-forte: #241E16;
+  --socle-encre-moyenne: #554C3C;
+  /* Corrigé de #7E7461 (4,05:1) après échec du vérificateur — le token change, pas le seuil. */
+  --socle-encre-faible: #6E6553;
+  --socle-bistre: #8C4A22;
+  --socle-bistre-fonce: #6E3818;
+  --socle-vert: #2A5A22;
+  --socle-jaune: #E8C400;
+  --socle-alerte: #B8342B;
+  --socle-nuit-fond: #0E0D0B;
+  --socle-nuit-encre: #EDE7D8;
+  --socle-nuit-jaune: #F5D800;
+  --socle-nuit-ligne: #2A2620;
+  --role-fond-page: #F4F0E6;
+  --role-fond-carte: #FCFAF4;
+  --role-fond-creux: #E9E3D2;
+  --role-texte-principal: #241E16;
+  --role-texte-secondaire: #554C3C;
+  --role-texte-tertiaire: #6E6553;
+  --role-ligne: #DCD4BE;
+  /* UNE SEULE par écran. Le vérificateur échoue si un écran en déclare deux. */
+  --role-action-principale: #8C4A22;
+  --role-action-principale-appui: #6E3818;
+  /* Confirmation d'un état obtenu. Jamais un appel à l'action. */
+  --role-etat-acquis: #2A5A22;
+  /* L'instant de déverrouillage d'un Éclat, et rien d'autre. Interdit dans toute la navigation. */
+  --role-attention-deverrouillage: #E8C400;
+  /* Météo, danger, fermeture de station. Jamais commercial. */
+  --role-securite: #B8342B;
+  /* Réponse au toucher. Sous ce seuil, l'action est perçue comme instantanée. */
+  --duree-toucher: 90ms;
+  /* Disparition d'un objet. Plus court que l'entrée : un objet qui part n'a pas besoin d'être regardé. */
+  --duree-sortie: 180ms;
+  /* Changement d'état. Assez pour suivre du regard, pas assez pour attendre. */
+  --duree-transition: 320ms;
+  /* Temps sur place exigé pour déverrouiller un Éclat. */
+  --duree-presence: 45000ms;
+  /* Durée cible d'un Éclat. */
+  --duree-eclat: 90000ms;
+  /* 40 minutes. Plafond dur du direct hebdomadaire. */
+  --duree-veillee: 2400000ms;
+  --espace-1: 4px;
+  --espace-2: 8px;
+  --espace-3: 12px;
+  --espace-4: 16px;
+  --espace-5: 24px;
+  --espace-6: 32px;
+  --espace-7: 48px;
+  /* WCAG 2.2 SC 2.5.8 exige 24 px en AA ; on double pour l'usage en marche, gants et main qui tremble. */
+  --cible-minimum: 48px;
+  /* Décélération : l'objet arrive et se pose. */
+  --courbe-entree: cubic-bezier(0.2, 0.8, 0.3, 1);
+  /* Linéaire : on ne regarde pas un objet partir. */
+  --courbe-sortie: cubic-bezier(0, 0, 1, 1);
+  /* Objet qui change de place sans entrer ni sortir. */
+  --courbe-deplacement: cubic-bezier(0.4, 0, 0.2, 1);
+  --famille-titre: 'Bodoni Moda', Georgia, serif;
+  --famille-courant: 'Barlow Condensed', system-ui, sans-serif;
+  --famille-donnee: 'DM Mono', ui-monospace, monospace;
+  --corps-legende: 12px;
+  --corps-annexe: 14px;
+  /* Plancher de lisibilité en marche. Rien en dessous pour un texte fonctionnel. */
+  --corps-courant: 16px;
+  --corps-intro: 19px;
+  --corps-titre: 23px;
+  --corps-grand: 30px;
+  /* Le kilomètre en mode Sentier, lisible à bout de bras. */
+  --corps-chiffre: 48px;
+}
+
+/* Déclinaison nuit — ne redéfinit que les rôles, jamais le socle. */
+:root[data-theme="nuit"] {
+  --role-fond-page: #0E0D0B;
+  --role-fond-carte: #16140F;
+  --role-texte-principal: #EDE7D8;
+  --role-texte-secondaire: #A79C88;
+  --role-ligne: #2A2620;
+  --role-attention-deverrouillage: #F5D800;
+}

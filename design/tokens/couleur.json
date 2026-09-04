@@ -1,0 +1,72 @@
+{
+  "$description": "Camins — couleurs. Socle = valeurs brutes, jamais utilisées directement dans le code. Rôle = ce que le code consomme.",
+  "socle": {
+    "$type": "color",
+    "papier": {
+      "blanc":  { "$value": "#FCFAF4" },
+      "clair":  { "$value": "#F4F0E6" },
+      "moyen":  { "$value": "#E9E3D2" },
+      "sombre": { "$value": "#DCD4BE" }
+    },
+    "encre": {
+      "forte":   { "$value": "#241E16", "$description": "Brun quasi noir — corrigé depuis le bistre de la direction 01 pour tenir 7:1 sur papier clair." },
+      "moyenne": { "$value": "#554C3C" },
+      "faible":  { "$value": "#6E6553", "$description": "Corrigé de #7E7461 (4,05:1) après échec du vérificateur — le token change, pas le seuil." }
+    },
+    "bistre":       { "$value": "#8C4A22" },
+    "bistre-fonce": { "$value": "#6E3818" },
+    "vert":         { "$value": "#2A5A22" },
+    "jaune":        { "$value": "#E8C400" },
+    "alerte":       { "$value": "#B8342B" },
+    "nuit": {
+      "fond":  { "$value": "#0E0D0B" },
+      "encre": { "$value": "#EDE7D8" },
+      "jaune": { "$value": "#F5D800" },
+      "ligne": { "$value": "#2A2620" }
+    }
+  },
+
+  "role": {
+    "$type": "color",
+    "fond": {
+      "page":  { "$value": "{socle.papier.clair}" },
+      "carte": { "$value": "{socle.papier.blanc}" },
+      "creux": { "$value": "{socle.papier.moyen}" }
+    },
+    "texte": {
+      "principal":  { "$value": "{socle.encre.forte}" },
+      "secondaire": { "$value": "{socle.encre.moyenne}" },
+      "tertiaire":  { "$value": "{socle.encre.faible}" }
+    },
+    "ligne": { "$value": "{socle.papier.sombre}" },
+    "action-principale": {
+      "$value": "{socle.bistre}",
+      "$description": "UNE SEULE par écran. Le vérificateur échoue si un écran en déclare deux.",
+      "$extensions": { "camins.usage": "un-par-ecran" }
+    },
+    "action-principale-appui": { "$value": "{socle.bistre-fonce}" },
+    "etat-acquis": {
+      "$value": "{socle.vert}",
+      "$description": "Confirmation d'un état obtenu. Jamais un appel à l'action.",
+      "$extensions": { "camins.usage": "confirmation-seule" }
+    },
+    "attention-deverrouillage": {
+      "$value": "{socle.jaune}",
+      "$description": "L'instant de déverrouillage d'un Éclat, et rien d'autre. Interdit dans toute la navigation.",
+      "$extensions": { "camins.usage": "deverrouillage-seul", "camins.fichiers-autorises": ["Eclat/*", "ModeSentier/Deverrouillage*"] }
+    },
+    "securite": {
+      "$value": "{socle.alerte}",
+      "$description": "Météo, danger, fermeture de station. Jamais commercial.",
+      "$extensions": { "camins.usage": "securite-seule" }
+    }
+  },
+
+  "role-nuit": {
+    "$type": "color",
+    "fond":  { "page": { "$value": "{socle.nuit.fond}" }, "carte": { "$value": "#16140F" } },
+    "texte": { "principal": { "$value": "{socle.nuit.encre}" }, "secondaire": { "$value": "#A79C88" } },
+    "ligne": { "$value": "{socle.nuit.ligne}" },
+    "attention-deverrouillage": { "$value": "{socle.nuit.jaune}" }
+  }
+}

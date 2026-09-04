@@ -1,0 +1,18 @@
+{
+  "famille": {
+    "$type": "fontFamily",
+    "titre":   { "$value": ["Bodoni Moda", "Georgia", "serif"] },
+    "courant": { "$value": ["Barlow Condensed", "system-ui", "sans-serif"] },
+    "donnee":  { "$value": ["DM Mono", "ui-monospace", "monospace"] }
+  },
+  "corps": {
+    "$type": "dimension",
+    "legende": { "$value": { "value": 12, "unit": "px" } },
+    "annexe":  { "$value": { "value": 14, "unit": "px" } },
+    "courant": { "$value": { "value": 16, "unit": "px" }, "$description": "Plancher de lisibilité en marche. Rien en dessous pour un texte fonctionnel." },
+    "intro":   { "$value": { "value": 19, "unit": "px" } },
+    "titre":   { "$value": { "value": 23, "unit": "px" } },
+    "grand":   { "$value": { "value": 30, "unit": "px" } },
+    "chiffre": { "$value": { "value": 48, "unit": "px" }, "$description": "Le kilomètre en mode Sentier, lisible à bout de bras." }
+  }
+}

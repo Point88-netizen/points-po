@@ -1,0 +1,138 @@
+#!/usr/bin/env node
+/**
+ * Camins — vérificateur d'écran rendu.
+ *
+ * Le vérificateur statique lit le code ; celui-ci lit le résultat.
+ * Il ouvre une page dans un vrai navigateur et applique quatre des
+ * protocoles du document 03 (§10) à ce qui s'affiche réellement.
+ *
+ * Usage :  node design/verifier-ecran.mjs <url> [largeur] [hauteur]
+ * Requiert Playwright (déjà présent sur les runners CI usuels).
+ */
+import { readdirSync, readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
+
+const ici = dirname(fileURLToPath(import.meta.url));
+const require_ = createRequire(import.meta.url);
+let chromium;
+try { ({ chromium } = require_("playwright")); }
+catch { ({ chromium } = require_("/opt/node22/lib/node_modules/playwright")); }
+
+const url = process.argv[2];
+if (!url) { console.error("Usage : node design/verifier-ecran.mjs <url>"); process.exit(2); }
+const largeur = +(process.argv[3] ?? 390), hauteur = +(process.argv[4] ?? 844);
+
+/* ── seuils, lus dans les tokens ── */
+const arbre = {};
+for (const f of readdirSync(join(ici, "tokens")).filter(f => f.endsWith(".json")))
+  Object.assign(arbre, JSON.parse(readFileSync(join(ici, "tokens", f), "utf8")));
+const CIBLE_MIN = arbre.cible.minimum.$value.value;          // 48
+const ACCENTS_MAX = arbre.quota["accents-par-ecran"].$value; // 1
+const CLIGNOTEMENTS_MAX = arbre.quota["clignotements-dans-l-app"].$value; // 1
+
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: largeur, height: hauteur }, deviceScaleFactor: 2 });
+await p.goto(url, { waitUntil: "domcontentloaded" });
+await p.waitForTimeout(1500);
+
+const rapport = await p.evaluate(({ CIBLE_MIN }) => {
+  const visible = el => {
+    const r = el.getBoundingClientRect(), s = getComputedStyle(el);
+    return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && +s.opacity > .05;
+  };
+  const nomme = el =>
+    (el.textContent || "").trim().slice(0, 34).replace(/\s+/g, " ") ||
+    el.getAttribute("aria-label") || el.className || el.tagName;
+
+  /* 1 · cibles tactiles */
+  const interactifs = [...document.querySelectorAll('button, a[href], input, select, [role="button"], [onclick]')].filter(visible);
+  const petites = interactifs
+    .map(el => ({ el, r: el.getBoundingClientRect() }))
+    .filter(({ r }) => r.width < CIBLE_MIN || r.height < CIBLE_MIN)
+    .map(({ el, r }) => ({ nom: nomme(el), l: Math.round(r.width), h: Math.round(r.height) }));
+
+  /* 2 · éléments qui bougent en boucle */
+  const anim = [...document.querySelectorAll("*")].filter(el => {
+    if (!visible(el)) return false;
+    const s = getComputedStyle(el);
+    return s.animationName !== "none" && (s.animationIterationCount === "infinite" || +s.animationIterationCount > 3);
+  }).map(el => ({ nom: nomme(el), animation: getComputedStyle(el).animationName }));
+
+  /* 3 · contraste réellement rendu */
+  const canal = c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const lum = rgb => { const [r, g, bl] = rgb.map(v => v / 255); return .2126 * canal(r) + .7152 * canal(g) + .0722 * canal(bl); };
+  const lire = s => (s.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+  const alpha = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return 1; const p = m[1].split(","); return p.length > 3 ? parseFloat(p[3]) : 1; };
+  /* Compose les fonds translucides sur leurs ancêtres : sans ça, un badge
+     posé sur rgba(...,.12) est comparé à sa propre teinte et tout ressort à 1:1. */
+  const fondDe = el => {
+    const couches = [];
+    for (let n = el; n && n !== document.documentElement; n = n.parentElement) {
+      const c = getComputedStyle(n).backgroundColor;
+      const a = alpha(c);
+      if (a > 0) { couches.push({ rgb: lire(c), a }); if (a >= 1) break; }
+    }
+    let fond = [255, 255, 255];
+    for (let i = couches.length - 1; i >= 0; i--) {
+      const { rgb, a } = couches[i];
+      fond = fond.map((v, k) => rgb[k] * a + v * (1 - a));
+    }
+    return fond;
+  };
+  const textes = [...document.querySelectorAll("p, span, div, li, td, h1, h2, h3, h4, button, a")]
+    .filter(el => visible(el) && [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim().length > 3));
+  const faibles = [];
+  for (const el of textes.slice(0, 400)) {
+    const s = getComputedStyle(el);
+    const [x, y] = [lum(lire(s.color)), lum(fondDe(el))].sort((a, c) => c - a);
+    const ratio = (x + .05) / (y + .05);
+    const taille = parseFloat(s.fontSize), gras = +s.fontWeight >= 700;
+    const seuil = (taille >= 24 || (taille >= 18.66 && gras)) ? 3 : 4.5;
+    if (ratio < seuil) faibles.push({ nom: nomme(el), ratio: +ratio.toFixed(2), seuil, taille: Math.round(taille) });
+  }
+
+  /* 4 · accents primaires */
+  const accent = (getComputedStyle(document.documentElement).getPropertyValue("--role-action-principale") || "#8C4A22").trim();
+  const hex = h => { const m = h.replace("#", "").match(/../g); return m ? m.map(v => parseInt(v, 16)) : null; };
+  const cible = hex(accent);
+  const proche = (a, c) => a && c && Math.abs(a[0] - c[0]) + Math.abs(a[1] - c[1]) + Math.abs(a[2] - c[2]) < 40;
+  const accents = interactifs.filter(el => proche(lire(getComputedStyle(el).backgroundColor), cible)).map(nomme);
+
+  return { total: interactifs.length, petites, anim, faibles: faibles.slice(0, 12), nbFaibles: faibles.length, accents, accentHex: accent };
+}, { CIBLE_MIN });
+
+await b.close();
+
+/* ── rapport ── */
+let bloquantes = 0, avert = 0;
+const bloc = t => console.log("\n\x1b[1m" + t + "\x1b[0m");
+const ko = m => { console.log("  \x1b[31m✕\x1b[0m " + m); bloquantes++; };
+const at = m => { console.log("  \x1b[33m!\x1b[0m " + m); avert++; };
+const ok = m => console.log("  \x1b[32m✓\x1b[0m " + m);
+
+console.log(`\n\x1b[1mÉcran vérifié\x1b[0m  ${url}  —  ${largeur}×${hauteur}`);
+
+bloc(`1 · Cibles tactiles — minimum ${CIBLE_MIN} px (WCAG 2.2 SC 2.5.8 exige 24 ; on double pour la marche)`);
+if (!rapport.petites.length) ok(`${rapport.total} éléments interactifs, tous conformes`);
+else {
+  ko(`${rapport.petites.length} cibles sur ${rapport.total} sous ${CIBLE_MIN} px`);
+  for (const c of rapport.petites.slice(0, 8)) console.log(`      ${c.l}×${c.h} — « ${c.nom} »`);
+  if (rapport.petites.length > 8) console.log(`      … et ${rapport.petites.length - 8} autres`);
+}
+
+bloc(`2 · Mouvement en boucle — maximum ${CLIGNOTEMENTS_MAX} (le point du direct)`);
+if (rapport.anim.length <= CLIGNOTEMENTS_MAX) ok(`${rapport.anim.length} élément(s) en boucle`);
+else { ko(`${rapport.anim.length} éléments bouclent en permanence`); for (const a of rapport.anim.slice(0, 6)) console.log(`      ${a.animation} — « ${a.nom} »`); }
+
+bloc("3 · Contraste rendu");
+if (!rapport.nbFaibles) ok("Tous les textes échantillonnés passent le seuil AA");
+else { ko(`${rapport.nbFaibles} textes sous le seuil`); for (const f of rapport.faibles.slice(0, 8)) console.log(`      ${f.ratio}:1 (exigé ${f.seuil}, ${f.taille}px) — « ${f.nom} »`); }
+
+bloc(`4 · Règle du seul accent — maximum ${ACCENTS_MAX} par écran (${rapport.accentHex})`);
+if (rapport.accents.length <= ACCENTS_MAX) ok(`${rapport.accents.length} accent(s) primaire(s)`);
+else { at(`${rapport.accents.length} éléments portent l'accent primaire`); for (const a of rapport.accents.slice(0, 6)) console.log(`      « ${a} »`); }
+
+console.log(`\n\x1b[31m${bloquantes} bloquantes\x1b[0m, \x1b[33m${avert} avertissements\x1b[0m\n`);
+process.exit(bloquantes ? 1 : 0);

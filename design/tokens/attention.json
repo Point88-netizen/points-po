@@ -1,0 +1,17 @@
+{
+  "$description": "Camins — le budget d'attention hebdomadaire (document 03, §1), rendu lisible par machine. Le vérificateur additionne ce que déclarent les fonctionnalités et échoue au dépassement.",
+  "budget": {
+    "$type": "duration",
+    "preparation":  { "$value": { "value": 480000,  "unit": "ms" }, "$description": "2 sorties × 4 min de préparation." },
+    "notification": { "$value": { "value": 6000,    "unit": "ms" }, "$description": "2 × 3 s. Le poste le plus cher : il est arraché à autre chose." },
+    "veillee":      { "$value": { "value": 2400000, "unit": "ms" }, "$description": "Consentie à l'avance, à heure dite." },
+    "ecran-sentier":{ "$value": { "value": 0,       "unit": "ms" }, "$description": "Zéro. L'audio ne compte pas : il se superpose à la marche." },
+    "total-hebdo":  { "$value": { "value": 2886000, "unit": "ms" }, "$description": "≈ 48 min. Toute fonctionnalité nouvelle déclare son poste et son coût." }
+  },
+  "quota": {
+    "notifications-par-semaine": { "$type": "number", "$value": 2, "$description": "Sécurité exceptée. Réglable à 0 par la personne." },
+    "sons-par-sortie":           { "$type": "number", "$value": 9, "$description": "Un par Éclat, plafond haut d'une journée de marche." },
+    "clignotements-dans-l-app":  { "$type": "number", "$value": 1, "$description": "Le point du direct. Aucun autre." },
+    "accents-par-ecran":         { "$type": "number", "$value": 1, "$description": "Règle du seul accent." }
+  }
+}

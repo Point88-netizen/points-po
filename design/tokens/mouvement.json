@@ -1,0 +1,9 @@
+{
+  "$description": "Camins — courbes. Dissymétrie volontaire entrée/sortie (document 03, §4).",
+  "courbe": {
+    "$type": "cubicBezier",
+    "entree":     { "$value": [0.2, 0.8, 0.3, 1.0], "$description": "Décélération : l'objet arrive et se pose." },
+    "sortie":     { "$value": [0.0, 0.0, 1.0, 1.0], "$description": "Linéaire : on ne regarde pas un objet partir." },
+    "deplacement":{ "$value": [0.4, 0.0, 0.2, 1.0], "$description": "Objet qui change de place sans entrer ni sortir." }
+  }
+}
