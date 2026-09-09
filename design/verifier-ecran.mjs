@@ -147,7 +147,24 @@ const mesurer = () => p.evaluate(({ CIBLE_MIN, CIBLE_ANNO }) => {
       collees.push(el.className + " + " + sv.className + " — « " + (el.textContent || "").trim().slice(0, 30) + " »");
   }
 
-  return { total: interactifs.length, petites, petitesAnno, nbAnno, anim, faibles: faibles.slice(0, 12), nbFaibles: faibles.length, accents, accentHex: accent, collees };
+  /* ── 6 · boîtes écrasées ───────────────────────────────────────────────
+     Un <span> à qui le CSS donne une hauteur, une largeur ou un fond, mais
+     qui reste display:inline, se rend en boîte de hauteur nulle : la règle
+     s'applique et l'élément est invisible quand même. Une jauge de
+     progression a disparu comme ça, sans que rien ne le signale. */
+  const ecrasees = [];
+  for (const el of document.querySelectorAll("span[class], i[class], b[class]")){
+    const st = getComputedStyle(el);
+    if (st.display !== "inline") continue;
+    const veutBoite = st.height !== "auto" || st.backgroundColor !== "rgba(0, 0, 0, 0)" ||
+                      st.backgroundImage !== "none" || st.borderTopWidth !== "0px";
+    if (!veutBoite) continue;
+    const r = el.getBoundingClientRect();
+    if (r.height < 1 || r.width < 1)
+      ecrasees.push(el.className + " — " + Math.round(r.width) + "×" + Math.round(r.height));
+  }
+
+  return { total: interactifs.length, petites, petitesAnno, nbAnno, anim, faibles: faibles.slice(0, 12), nbFaibles: faibles.length, accents, accentHex: accent, collees, ecrasees };
 }, { CIBLE_MIN, CIBLE_ANNO });
 
 /* Une mesure par étape, fusionnées : un défaut n'a pas besoin d'être sur
@@ -156,6 +173,8 @@ const rapport = await mesurer();
 const etapes = [];
 /* Le plus grand nombre de boucles vues SIMULTANÉMENT sur une étape. */
 let maxSimultane = rapport.anim.length;
+/* Même raison pour l'accent : la règle dit « par écran », pas « par parcours ». */
+let maxAccents = rapport.accents.length;
 for (const sel of parcours){
   try {
     await p.locator(sel).first().click({ timeout: 4000 });
@@ -165,13 +184,15 @@ for (const sel of parcours){
     rapport.total += r.total;
     rapport.nbAnno += r.nbAnno;
     maxSimultane = Math.max(maxSimultane, r.anim.length);
-    for (const k of ["petites", "petitesAnno", "anim", "faibles", "accents", "collees"])
+    maxAccents = Math.max(maxAccents, r.accents.length);
+    for (const k of ["petites", "petitesAnno", "anim", "faibles", "accents", "collees", "ecrasees"])
       rapport[k] = [...rapport[k], ...r[k]];
     rapport.nbFaibles += r.nbFaibles;
   } catch { console.error(`  (étape ignorée, introuvable : ${sel})`); }
 }
 /* Une même paire collée revue à chaque étape ne compte qu'une fois. */
 rapport.collees = [...new Set(rapport.collees)];
+rapport.ecrasees = [...new Set(rapport.ecrasees)];
 /* Le quota porte sur ce qui boucle EN MÊME TEMPS à l'écran, pas sur la
    somme des étapes : sans ça un parcours de sept écrans multiplie par sept
    le même point du direct et le chiffre ne veut plus rien dire. */
@@ -179,7 +200,7 @@ const vus = new Map();
 for (const a of rapport.anim) vus.set(a.animation + "|" + a.nom, a);
 rapport.anim = [...vus.values()];
 rapport.anim = rapport.anim.slice(0, maxSimultane);
-rapport.accents = [...new Set(rapport.accents)];
+rapport.accents = [...new Set(rapport.accents)].slice(0, maxAccents);
 
 await b.close();
 
@@ -214,13 +235,17 @@ bloc("3 · Contraste rendu");
 if (!rapport.nbFaibles) ok("Tous les textes échantillonnés passent le seuil AA");
 else { ko(`${rapport.nbFaibles} textes sous le seuil`); for (const f of rapport.faibles.slice(0, 8)) console.log(`      ${f.ratio}:1 (exigé ${f.seuil}, ${f.taille}px) — « ${f.nom} »`); }
 
-bloc(`4 · Règle du seul accent — maximum ${ACCENTS_MAX} par écran (${rapport.accentHex})`);
+bloc(`4 · Règle du seul accent — maximum ${ACCENTS_MAX} simultané(s) (${rapport.accentHex})`);
 if (rapport.accents.length <= ACCENTS_MAX) ok(`${rapport.accents.length} accent(s) primaire(s)`);
 else { at(`${rapport.accents.length} éléments portent l'accent primaire`); for (const a of rapport.accents.slice(0, 6)) console.log(`      « ${a} »`); }
 
 bloc("5 · Lignes de texte collées — un span stylé en ligne mange le retour");
 if (!rapport.collees.length) ok("Aucune ligne collée à sa voisine");
 else { ko(`${rapport.collees.length} paire(s) de lignes collées`); for (const c of rapport.collees.slice(0, 8)) console.log(`      ${c}`); }
+
+bloc("6 · Boîtes écrasées — un span stylé en ligne se rend sur zéro pixel");
+if (!rapport.ecrasees.length) ok("Aucune boîte à hauteur nulle");
+else { ko(`${rapport.ecrasees.length} élément(s) rendus sur zéro pixel`); for (const e of rapport.ecrasees.slice(0, 8)) console.log(`      ${e}`); }
 
 console.log(`\n\x1b[31m${bloquantes} bloquantes\x1b[0m, \x1b[33m${avert} avertissements\x1b[0m\n`);
 process.exit(bloquantes ? 1 : 0);

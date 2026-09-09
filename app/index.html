@@ -20,14 +20,24 @@
    couleur d'action, beaucoup de blanc, peu de traits.
    ═════════════════════════════════════════════════════════════ */
 :root{
-  /* Brasier & Corail */
-  --rouille:#A63A18; --rouille-f:#692813;
-  --corail:#F99F83;  --corail-v:#F4511E;
-  --paille:#FBFBCC;  --paille-2:#F3F0B8; --paille-3:#E9DE9C; --pierre:#D6C579;
+  /* ═══ BRASIER — l'échelle du document de marque, rôle par rôle.
+     Le 500 est la couleur principale et le CTA ; le 700 n'est QUE du texte
+     sur fond clair. Les confondre, c'est perdre l'orange de la marque. ═══ */
+  --brasier-100:#FDE5DD;   /* fond léger, badges          */
+  --brasier-300:#F99F83;   /* saumon — accents doux       */
+  --brasier-500:#F4511E;   /* couleur principale, CTA     */
+  --brasier-700:#A63A18;   /* texte sur fond clair        */
+  --brasier-900:#692813;   /* texte foncé, mode sombre    */
+  --orange:var(--brasier-500);
+  --saumon:var(--brasier-300);
+  --saumon-pale:var(--brasier-100);
+  --rouille:var(--brasier-700); --rouille-f:var(--brasier-900);
+  /* Neutres : Papier et Encre du même document. Le fond jaune paille
+     précédent avalait l'orange ; sur un papier chaud, il ressort. */
+  --papier:#FAF7F2;  --papier-2:#F3EEE6; --papier-3:#E8E0D4; --pierre:#D8CDBC;
   --blanc:#FFFFFF;
-  /* encres : le brun rouille sert d'encre, comme dans l'app d'origine */
-  --encre:#3A1C0E; --encre-2:#6B4630; --encre-3:#8A6A52;
-  --trait:rgba(58,28,14,.10); --trait-2:rgba(58,28,14,.055);
+  --encre:#1C1410; --encre-2:#5C5349; --encre-3:#7C7062;
+  --trait:rgba(28,20,16,.11); --trait-2:rgba(28,20,16,.06);
   --vert:#2A5A1E; --ambre:#8B5920;
   --fd:'Fraunces',Georgia,serif;
   --fb:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -36,13 +46,19 @@
   --o1:0 1px 2px rgba(58,28,14,.06), 0 4px 12px rgba(58,28,14,.07);
   --o2:0 2px 6px rgba(58,28,14,.08), 0 12px 30px rgba(58,28,14,.12);
   --ressort:cubic-bezier(.22,1.1,.36,1);
+  /* Ce que le vérificateur compte comme « accent » : l'orange 500. */
+  --role-action-principale:#F4511E;
 }
 .nuit{
-  --paille:#191509; --paille-2:#221D0F; --paille-3:#2E2716; --pierre:#3D3520;
-  --blanc:#211B10;
-  --encre:#F6F0DC; --encre-2:#BCAE92; --encre-3:#8E8168;
-  --trait:rgba(246,240,220,.13); --trait-2:rgba(246,240,220,.07);
-  --rouille:#E9714A; --rouille-f:#F08A67; --corail:#F99F83; --corail-v:#FF7043;
+  --papier:#141110; --papier-2:#1D1917; --papier-3:#2A2421; --pierre:#3B332D;
+  --blanc:#1D1917;
+  --encre:#F5F0E9; --encre-2:#B8AFA3; --encre-3:#8B8175;
+  --trait:rgba(245,240,233,.14); --trait-2:rgba(245,240,233,.07);
+  /* Sur fond sombre l'orange 500 reste le CTA ; le saumon 300 prend le
+     rôle du texte accentué, où le 700 serait illisible. */
+  --orange:var(--brasier-500); --saumon:var(--brasier-300);
+  --saumon-pale:rgba(249,159,131,.16);
+  --rouille:#F99F83; --rouille-f:#FDE5DD;
   --vert:#8FCB7C; --ambre:#D9A850;
   --o1:0 1px 2px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.35);
   --o2:0 2px 6px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.5);
@@ -61,7 +77,7 @@ img{max-width:100%;display:block;}
 .n-p{font-size:14px;font-weight:300;line-height:1.72;color:rgba(255,255,255,.55);margin-bottom:20px;}
 .n-i{display:flex;gap:12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.1);font-size:12.5px;line-height:1.55;color:rgba(255,255,255,.52);}
 .n-i b{color:#fff;font-weight:700;display:block;font-size:12px;}
-.n-s{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--corail);flex:none;width:64px;padding-top:2px;}
+.n-s{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--saumon);flex:none;width:64px;padding-top:2px;}
 .n-l{margin-top:18px;display:flex;gap:7px;flex-wrap:wrap;}
 .n-l a{font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);
   text-decoration:none;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:var(--r-p);}
@@ -69,7 +85,7 @@ img{max-width:100%;display:block;}
 
 /* ── coque ── */
 #tel{flex:none;width:394px;height:830px;border-radius:46px;position:relative;overflow:hidden;
-  background:var(--paille);box-shadow:0 0 0 11px #0A0806,0 0 0 13px #2E2417,0 44px 100px rgba(0,0,0,.66);
+  background:var(--papier);box-shadow:0 0 0 11px #0A0806,0 0 0 13px #2E2417,0 44px 100px rgba(0,0,0,.66);
   display:flex;flex-direction:column;}
 #encoche{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:104px;height:29px;
   background:#0A0806;border-radius:999px;z-index:90;pointer-events:none;}
@@ -77,7 +93,7 @@ img{max-width:100%;display:block;}
   padding:0 26px 6px;font-family:var(--fm);font-size:11px;color:var(--encre);z-index:60;}
 
 /* ═══ EN-TÊTE : recherche en pilule (Airbnb) ═══ */
-#entete{flex:none;padding:2px 18px 0;background:var(--paille);z-index:50;transition:box-shadow var(--duree-toucher);}
+#entete{flex:none;padding:2px 18px 0;background:var(--papier);z-index:50;transition:box-shadow var(--duree-toucher);}
 #entete.colle{box-shadow:0 1px 0 var(--trait);}
 .recherche{width:100%;min-height:56px;display:flex;align-items:center;gap:12px;padding:0 8px 0 18px;
   background:var(--blanc);border-radius:var(--r-p);box-shadow:var(--o1);text-align:left;
@@ -120,9 +136,9 @@ img{max-width:100%;display:block;}
 .f-coeur:active{transform:scale(.86);}
 .f-coeur svg{width:25px;height:25px;fill:rgba(20,12,6,.44);stroke:#fff;stroke-width:1.9;
   transition:fill var(--duree-toucher);}
-.f-coeur.aime svg{fill:var(--corail-v);stroke:var(--corail-v);}
+.f-coeur.aime svg{fill:var(--orange);stroke:var(--orange);}
 .f-tag{position:absolute;top:12px;left:12px;background:var(--blanc);color:var(--encre);
-  font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:var(--r-p);box-shadow:var(--o1);}
+  font-size:11.5px;font-weight:800;padding:5px 11px;border-radius:var(--r-p);box-shadow:var(--o1);}
 .f-t{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-top:11px;}
 .f-n{font-size:15px;font-weight:700;line-height:1.3;}
 .f-d{font-size:14px;font-weight:600;color:var(--encre-2);white-space:nowrap;}
@@ -134,7 +150,7 @@ img{max-width:100%;display:block;}
 .d-f{color:var(--vert);} .d-m{color:var(--ambre);} .d-d{color:var(--rouille);}
 
 /* ═══ CARTE PLEIN ÉCRAN ═══ */
-#vuecarte{position:absolute;inset:0;z-index:70;display:none;background:var(--paille-2);}
+#vuecarte{position:absolute;inset:0;z-index:70;display:none;background:var(--papier-2);}
 #vuecarte.on{display:block;}
 /* un canvas est un élément remplacé : inset:0 seul le laisse à sa taille
    intrinsèque (300×150). Il faut lui donner width/height explicites. */
@@ -145,7 +161,7 @@ img{max-width:100%;display:block;}
   padding:7px 12px;border-radius:var(--r-p);box-shadow:var(--o2);white-space:nowrap;
   border:1px solid var(--trait);transition:transform var(--duree-toucher) var(--ressort);}
 .pastille:active{transform:translate(-50%,-50%) scale(.92);}
-.pastille.on{background:var(--encre);color:var(--paille);border-color:var(--encre);}
+.pastille.on{background:var(--encre);color:var(--papier);border-color:var(--encre);}
 .pastille.pt{padding:8px;border-radius:50%;line-height:0;}
 /* point simple : marque le lieu quand l'étiquette ne tient pas */
 .point{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;
@@ -176,16 +192,16 @@ img{max-width:100%;display:block;}
 /* bouton bascule liste/carte, flottant (Airbnb) */
 #bascule{position:absolute;left:50%;transform:translateX(-50%);bottom:96px;z-index:80;
   min-height:var(--cible-minimum);padding:0 20px;display:flex;align-items:center;gap:8px;
-  background:var(--encre);color:var(--paille);border-radius:var(--r-p);
-  font-size:14px;font-weight:700;box-shadow:var(--o2);
+  background:var(--orange);color:var(--encre);border-radius:var(--r-p);
+  font-size:14px;font-weight:800;box-shadow:var(--o2);
   transition:transform var(--duree-toucher) var(--ressort);}
-#bascule:active{transform:translateX(-50%) scale(.94);}
+#bascule:active{transform:translateX(-50%) scale(.94);background:#E04512;}
 #bascule svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
 
 /* ═══ BARRE D'ONGLETS ═══ */
-#onglets{flex:none;height:78px;display:flex;padding-bottom:14px;background:var(--paille);
+#onglets{flex:none;height:78px;display:flex;padding-bottom:14px;background:var(--papier);
   border-top:1px solid var(--trait);z-index:60;}
-.og{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+.og{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
   color:var(--encre-3);transition:color var(--duree-toucher);}
 .og svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
 .og-l{font-size:10px;font-weight:600;}
@@ -193,7 +209,7 @@ img{max-width:100%;display:block;}
 .og.on svg{stroke-width:2.1;}
 
 /* ═══ FICHE DÉTAILLÉE ═══ */
-#detail{position:absolute;inset:0;z-index:95;background:var(--paille);display:none;flex-direction:column;}
+#detail{position:absolute;inset:0;z-index:95;background:var(--papier);display:none;flex-direction:column;}
 #detail.on{display:flex;animation:monte var(--duree-transition) var(--ressort);}
 @keyframes monte{from{transform:translateY(100%)}to{transform:none}}
 
@@ -232,8 +248,8 @@ img{max-width:100%;display:block;}
 /* ═══ LE DIRECT — pastille de sortie en cours ═══ */
 .direct{display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);
   font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;}
-.direct .pt-d{position:relative;width:7px;height:7px;flex:none;border-radius:50%;background:var(--rouille);}
-.direct .pt-d::after{content:'';position:absolute;inset:0;border-radius:50%;background:var(--rouille);
+.direct .pt-d{position:relative;width:7px;height:7px;flex:none;border-radius:50%;background:var(--saumon);}
+.direct .pt-d::after{content:'';position:absolute;inset:0;border-radius:50%;background:var(--saumon);
   animation:pouls var(--duree-clignotement-direct) var(--sortie-douce, cubic-bezier(.2,0,0,1)) infinite;}
 
 /* ═══ BARRE DE SORTIE EN COURS — le trajet en cours d'Uber ═══
@@ -244,10 +260,13 @@ img{max-width:100%;display:block;}
   transform:translateY(calc(100% + 78px));pointer-events:none;
   transition:transform var(--duree-transition) var(--ressort);}
 #course.on{transform:none;pointer-events:auto;}
+/* Un écran par-dessus couvre le bouton flottant : le laisser là, c'est une
+   cible qui reste atteignable sur les bords et un second accent à l'écran. */
+#tel.couvert #bascule{display:none;}
 /* Quand une sortie est en cours, le bouton flottant lui laisse la place. */
 #tel.en-course #bascule{bottom:186px;}
 #tel.en-course #carte-bas{bottom:248px;}
-#c-carte{width:100%;text-align:left;background:var(--encre);color:var(--paille);
+#c-carte{width:100%;text-align:left;background:var(--encre);color:var(--papier);
   border-radius:var(--r-c);box-shadow:var(--o2);padding:12px 15px 13px;
   transition:transform var(--duree-toucher) var(--ressort);}
 #c-carte:active{transform:scale(.985);}
@@ -256,19 +275,19 @@ img{max-width:100%;display:block;}
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #c-chrono{font-family:var(--fm);font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;}
 #c-jauge{height:4px;border-radius:2px;background:rgba(251,251,204,.22);overflow:hidden;margin-top:10px;}
-#c-jauge i{display:block;height:100%;width:0;background:var(--corail);border-radius:2px;
+#c-jauge i{display:block;height:100%;width:0;background:var(--saumon);border-radius:2px;
   transition:width var(--duree-transition) var(--sortie-douce, cubic-bezier(.2,0,0,1));}
 #c-bas{display:flex;justify-content:space-between;margin-top:7px;
-  font-family:var(--fm);font-size:11px;color:var(--paille-3);}
-.direct.clair .pt-d, .direct.clair .pt-d::after{background:var(--corail);}
+  font-family:var(--fm);font-size:11px;color:var(--papier-3);}
+.direct.clair .pt-d, .direct.clair .pt-d::after{background:var(--saumon);}
 
 /* ═══ SORTIE EN GRAND ═══ */
 #plein{position:absolute;inset:0;z-index:95;display:none;flex-direction:column;
-  background:var(--encre);color:var(--paille);}
+  background:var(--encre);color:var(--papier);}
 #plein.on{display:flex;animation:monte var(--duree-transition) var(--ressort);}
 #p-haut{flex:none;padding:24px 22px 0;display:flex;align-items:center;justify-content:space-between;}
 #p-reduire{width:var(--cible-minimum);height:var(--cible-minimum);display:grid;place-items:center;
-  border-radius:50%;background:rgba(251,251,204,.11);color:var(--paille);}
+  border-radius:50%;background:rgba(251,251,204,.11);color:var(--papier);}
 #p-reduire svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;}
 #p-corps{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 22px;}
 /* Le profil du sentier, et le point qui y avance : l'équivalent de
@@ -280,9 +299,9 @@ img{max-width:100%;display:block;}
    viewBox. Le motif se répétait et la part parcourue s'affichait à
    l'autre bout du tracé. */
 #p-profil .fond{fill:none;stroke:rgba(251,251,204,.22);stroke-width:2;stroke-linejoin:round;}
-#p-profil .fait{fill:none;stroke:var(--corail);stroke-width:2.6;stroke-linecap:round;
+#p-profil .fait{fill:none;stroke:var(--saumon);stroke-width:2.6;stroke-linecap:round;
   stroke-linejoin:round;transition:stroke-dashoffset var(--duree-transition) linear;}
-#p-profil .ici{fill:var(--corail);stroke:var(--encre);stroke-width:2.5;
+#p-profil .ici{fill:var(--saumon);stroke:var(--encre);stroke-width:2.5;
   transition:cx var(--duree-transition) linear,cy var(--duree-transition) linear;}
 #p-profil .ech{display:flex;justify-content:space-between;font-family:var(--fm);
   font-size:10.5px;color:var(--pierre);margin-top:6px;}
@@ -295,11 +314,11 @@ img{max-width:100%;display:block;}
 .p-cv{font-size:20px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
 .p-cl{font-size:11.5px;color:var(--pierre);margin-top:5px;font-weight:600;}
 #p-jauge{height:6px;border-radius:3px;background:rgba(251,251,204,.18);overflow:hidden;margin-top:26px;}
-#p-jauge i{display:block;height:100%;width:0;background:var(--corail);border-radius:3px;
+#p-jauge i{display:block;height:100%;width:0;background:var(--saumon);border-radius:3px;
   transition:width var(--duree-transition) var(--sortie-douce, cubic-bezier(.2,0,0,1));}
 #p-reste{font-family:var(--fm);font-size:11.5px;color:var(--pierre);margin-top:9px;}
 #p-barre{flex:none;padding:14px 22px 30px;}
-#p-fin{width:100%;min-height:56px;border-radius:var(--r-b);background:var(--corail);color:var(--encre);
+#p-fin{width:100%;min-height:56px;border-radius:var(--r-b);background:var(--orange);color:var(--encre);
   font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;
   transition:transform var(--duree-toucher) var(--ressort);}
 #p-fin:active{transform:scale(.97);}
@@ -307,11 +326,11 @@ img{max-width:100%;display:block;}
 /* ═══ LE MOMENT — la confirmation d'Uber, transposée à l'arrivée ═══ */
 #moment{position:absolute;inset:0;z-index:99;display:none;flex-direction:column;
   align-items:center;justify-content:center;padding:40px 34px;text-align:center;
-  background:var(--paille);}
+  background:var(--papier);}
 #moment.on{display:flex;animation:voile var(--duree-sortie) both;}
-#m-rond{width:104px;height:104px;border-radius:50%;background:var(--rouille);
+#m-rond{width:104px;height:104px;border-radius:50%;background:var(--orange);
   display:grid;place-items:center;animation:eclot var(--duree-transition) var(--ressort) both;}
-#m-rond svg{width:52px;height:52px;stroke:#fff;fill:none;stroke-width:2.6;
+#m-rond svg{width:52px;height:52px;stroke:var(--encre);fill:none;stroke-width:2.6;
   stroke-linecap:round;stroke-linejoin:round;}
 #m-rond path{stroke-dasharray:34;stroke-dashoffset:34;
   animation:trace var(--duree-sortie) var(--ressort) var(--duree-transition) forwards;}
@@ -326,14 +345,68 @@ img{max-width:100%;display:block;}
 .m-cl{font-size:12px;color:var(--encre-3);margin-top:5px;font-weight:600;}
 #m-ok{margin-top:34px;min-width:190px;}
 
+/* ═══ RÉCIT GUIDÉ ═══ */
+#recit{position:absolute;inset:0;z-index:97;display:none;flex-direction:column;
+  background:var(--papier);}
+#recit.on{display:flex;animation:monte var(--duree-transition) var(--ressort);}
+#r-haut{flex:none;padding:22px 18px 0;display:flex;align-items:center;gap:14px;}
+#r-x{width:var(--cible-minimum);height:var(--cible-minimum);flex:none;display:grid;place-items:center;
+  border-radius:50%;background:var(--papier-2);}
+#r-x svg{width:19px;height:19px;stroke:var(--encre);fill:none;stroke-width:2;stroke-linecap:round;}
+#r-seg{flex:1;display:flex;gap:5px;}
+#r-seg i{flex:1;height:3px;border-radius:2px;background:var(--papier-3);}
+#r-seg i.vu{background:var(--rouille);}
+/* Centré verticalement et large : on lit ce texte en marchant, pas assis. */
+#r-corps{flex:1;overflow-y:auto;padding:24px 24px 10px;scrollbar-width:none;
+  display:flex;flex-direction:column;justify-content:center;}
+#r-corps::-webkit-scrollbar{display:none;}
+#r-nom{flex:none;font-family:var(--fd);font-style:italic;font-size:26px;line-height:1.15;}
+#r-txt{flex:none;font-size:20px;line-height:1.65;color:var(--encre);margin-top:22px;
+  max-width:34ch;}
+#r-bas{flex:none;padding:12px 18px 26px;border-top:1px solid var(--trait);}
+#r-src{font-family:var(--fm);font-size:11px;color:var(--encre-3);line-height:1.5;}
+#r-nav{display:flex;gap:10px;margin-top:12px;}
+#r-nav .btn{flex:1;}
+
+/* ═══ HISTOIRE ═══ */
+.rec{display:flex;gap:14px;width:100%;text-align:left;padding:14px 18px;
+  border-bottom:1px solid var(--trait-2);}
+.rec:active{background:var(--papier-2);}
+.rec-i{width:64px;height:64px;flex:none;border-radius:var(--r-b);}
+.rec-c{flex:1;min-width:0;}
+.rec-n{display:block;font-size:15px;font-weight:800;line-height:1.25;}
+.rec-x{display:block;font-size:13px;color:var(--encre-3);line-height:1.45;margin-top:3px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.rec-m{display:block;font-family:var(--fm);font-size:11px;color:var(--rouille);margin-top:5px;}
+.rep{display:flex;gap:12px;overflow-x:auto;padding:4px 18px 6px;scrollbar-width:none;}
+.rep::-webkit-scrollbar{display:none;}
+.rep-c{flex:none;width:210px;}
+.rep-i{display:block;height:132px;border-radius:var(--r-c);position:relative;}
+.rep-cat{position:absolute;top:10px;left:10px;background:var(--saumon-pale);color:var(--rouille);
+  font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:var(--r-p);}
+.rep-t{display:block;font-size:14.5px;font-weight:700;line-height:1.3;margin-top:9px;}
+.rep-d{display:block;font-family:var(--fm);font-size:11px;color:var(--encre-3);margin-top:3px;}
+
+/* ═══ TABLEAU DE BORD ═══ */
+.niv{margin:14px 18px 0;padding:16px;border-radius:var(--r-c);background:var(--saumon-pale);}
+.niv-b{display:block;font-family:var(--fd);font-style:italic;font-size:22px;color:var(--rouille-f);}
+.niv-k{display:block;font-family:var(--fm);font-size:12px;color:var(--rouille);margin-top:4px;}
+.niv .jauge{background:rgba(105,40,19,.16);margin-top:12px;}
+.niv .jauge i{background:var(--rouille);}
+.niv-s{display:block;font-size:12.5px;color:var(--rouille-f);margin-top:8px;}
+.jg{padding:12px 0;border-bottom:1px solid var(--trait-2);}
+.jg-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
+.jg-l{font-size:13.5px;font-weight:600;}
+.jg-v{font-family:var(--fm);font-size:12.5px;color:var(--encre-2);}
+
 /* ═══ ÉLAN — la progression, sans punition ═══ */
 .elan{display:flex;align-items:center;gap:16px;margin:16px 18px 0;padding:16px;
   border:1px solid var(--trait);border-radius:var(--r-c);}
 .elan-r{position:relative;width:62px;height:62px;flex:none;}
 .elan-r svg{width:62px;height:62px;transform:rotate(-90deg);}
 .elan-r circle{fill:none;stroke-width:6;stroke-linecap:round;}
-.elan-r .fond{stroke:var(--paille-3);}
-.elan-r .arc{stroke:var(--rouille);stroke-dasharray:var(--tour);stroke-dashoffset:var(--tour);
+.elan-r .fond{stroke:var(--papier-3);}
+.elan-r .arc{stroke:var(--orange);stroke-dasharray:var(--tour);stroke-dashoffset:var(--tour);
   transition:stroke-dashoffset var(--duree-transition) var(--sortie-douce, cubic-bezier(.2,0,0,1));}
 .elan-n{position:absolute;inset:0;display:grid;place-items:center;
   font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;}
@@ -343,12 +416,12 @@ img{max-width:100%;display:block;}
 
 /* ═══ APPEL — l'incitation, mais qui dit vrai ═══ */
 .appel{display:flex;align-items:center;gap:13px;margin:16px 18px 0;padding:14px 16px;
-  border-radius:var(--r-c);background:var(--paille-2);width:calc(100% - 36px);text-align:left;
+  border-radius:var(--r-c);background:var(--saumon-pale);width:calc(100% - 36px);text-align:left;
   transition:transform var(--duree-toucher) var(--ressort);}
 .appel:active{transform:scale(.985);}
-.appel-i{width:42px;height:42px;flex:none;border-radius:var(--r-b);background:var(--rouille);
+.appel-i{width:42px;height:42px;flex:none;border-radius:var(--r-b);background:var(--saumon-pale);
   display:grid;place-items:center;}
-.appel-i svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.9;
+.appel-i svg{width:20px;height:20px;stroke:var(--rouille);fill:none;stroke-width:1.9;
   stroke-linecap:round;stroke-linejoin:round;}
 .appel-c{flex:1;min-width:0;}
 .appel-t{display:block;font-size:14.5px;font-weight:800;}
@@ -361,7 +434,7 @@ img{max-width:100%;display:block;}
 .reglage-c{flex:1;min-width:0;}
 .reglage-t{display:block;font-size:14.5px;font-weight:700;}
 .reglage-s{display:block;font-size:13px;color:var(--encre-3);margin-top:2px;line-height:1.45;}
-.inter{flex:none;width:50px;height:30px;border-radius:var(--r-p);background:var(--paille-3);
+.inter{flex:none;width:50px;height:30px;border-radius:var(--r-p);background:var(--papier-3);
   position:relative;transition:background var(--duree-sortie);}
 .inter::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
   background:var(--blanc);box-shadow:var(--o1);
@@ -376,7 +449,7 @@ img{max-width:100%;display:block;}
 .d-coeur{position:absolute;top:54px;right:16px;width:var(--cible-minimum);height:var(--cible-minimum);
   border-radius:50%;background:var(--blanc);box-shadow:var(--o1);display:flex;align-items:center;justify-content:center;}
 .d-coeur svg{width:21px;height:21px;fill:none;stroke:var(--encre);stroke-width:1.9;}
-.d-coeur.aime svg{fill:var(--corail-v);stroke:var(--corail-v);}
+.d-coeur.aime svg{fill:var(--orange);stroke:var(--orange);}
 .d-b{padding:20px 20px 0;}
 .d-n{font-family:var(--fd);font-size:27px;font-style:italic;line-height:1.14;letter-spacing:-.01em;}
 .d-s{font-size:15px;color:var(--encre-3);margin-top:6px;}
@@ -394,7 +467,7 @@ img{max-width:100%;display:block;}
 .profil-l{display:flex;justify-content:space-between;font-family:var(--fm);font-size:10.5px;
   color:var(--encre-3);margin-top:8px;}
 .pi{display:flex;gap:13px;align-items:center;width:100%;text-align:left;padding:12px 0;border-top:1px solid var(--trait-2);}
-.pi-i{width:44px;height:44px;flex:none;border-radius:var(--r-b);background:var(--paille-2);
+.pi-i{width:44px;height:44px;flex:none;border-radius:var(--r-b);background:var(--papier-2);
   display:flex;align-items:center;justify-content:center;color:var(--rouille);}
 .pi-i svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 .pi-c{min-width:0;}
@@ -408,16 +481,15 @@ img{max-width:100%;display:block;}
 .d-prix{min-width:0;}
 .d-p1{font-size:15px;font-weight:800;}
 .d-p2{font-size:12.5px;color:var(--encre-3);margin-top:1px;}
-.btn{min-height:var(--cible-minimum);padding:0 22px;border-radius:var(--r-b);background:var(--rouille);
-  color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;
+.btn{min-height:var(--cible-minimum);padding:0 22px;border-radius:var(--r-b);background:var(--orange);
+  color:var(--encre);font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;
   transition:transform var(--duree-toucher) var(--ressort),background var(--duree-toucher);}
-.btn:active{transform:scale(.96);background:var(--rouille-f);}
+.btn:active{transform:scale(.96);background:#E04512;}
 .btn.large{width:100%;}
-.btn.creux{background:var(--paille-2);color:var(--encre);}
-/* L'action d'engagement est sombre, pas colorée : chez Uber comme chez Bolt
-   c'est le noir qui dit « validez », et l'accent reste libre pour ailleurs. */
-.btn.sombre{background:var(--encre);color:var(--paille);min-height:54px;font-size:16px;font-weight:800;}
-.btn.sombre:active{background:var(--encre-2);}
+.btn.creux{background:var(--papier-2);color:var(--encre);}
+/* Une seule action porte l'orange 500 par écran — c'est la règle du
+   document de marque, pas une préférence. Tout le reste vit en 300/100. */
+.btn.sombre{min-height:54px;font-size:16px;}
 
 /* ═══ ÉTATS VIDES / LISTES SIMPLES ═══ */
 .titre{padding:20px 18px 4px;}
@@ -429,7 +501,7 @@ img{max-width:100%;display:block;}
 .vide-p{font-size:14px;color:var(--encre-3);line-height:1.6;margin-top:6px;}
 .rangee{display:flex;gap:14px;align-items:center;width:100%;text-align:left;padding:14px 18px;
   border-bottom:1px solid var(--trait-2);}
-.rangee:active{background:var(--paille-2);}
+.rangee:active{background:var(--papier-2);}
 .r-i{width:56px;height:56px;flex:none;border-radius:var(--r-b);}
 .r-c{flex:1;min-width:0;}
 .r-n{display:block;font-size:14.5px;font-weight:700;line-height:1.25;
@@ -438,8 +510,8 @@ img{max-width:100%;display:block;}
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .r-m{display:block;font-family:var(--fm);font-size:11px;color:var(--encre-2);margin-top:4px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.jauge{height:5px;border-radius:3px;background:var(--paille-3);overflow:hidden;margin-top:8px;}
-.jauge i{display:block;height:100%;background:var(--rouille);border-radius:3px;}
+.jauge{display:block;height:5px;border-radius:3px;background:var(--papier-3);overflow:hidden;margin-top:8px;}
+.jauge i{display:block;height:100%;background:var(--saumon);border-radius:3px;}
 .stat-g{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:0 18px;}
 .st{border:1px solid var(--trait);border-radius:var(--r-c);padding:14px;}
 .st-v{font-size:22px;font-weight:800;line-height:1;}
@@ -448,11 +520,11 @@ img{max-width:100%;display:block;}
 .puce{min-height:var(--cible-minimum);padding:0 16px;display:flex;align-items:center;
   border:1px solid var(--trait);border-radius:var(--r-p);font-size:13.5px;font-weight:600;
   transition:background var(--duree-toucher),border-color var(--duree-toucher);}
-.puce.on{background:var(--encre);color:var(--paille);border-color:var(--encre);}
+.puce.on{background:var(--encre);color:var(--papier);border-color:var(--encre);}
 .fin{text-align:center;font-size:12.5px;color:var(--encre-3);padding:26px 18px 6px;font-weight:500;}
 
 @media (max-width:1080px){
-  body{align-items:stretch;background:var(--paille);}
+  body{align-items:stretch;background:var(--papier);}
   #scene{flex-direction:column;gap:0;padding:0;}
   #note{display:none;}
   #tel{width:100%;max-width:520px;height:100dvh;border-radius:0;box-shadow:none;margin:0 auto;}
@@ -467,7 +539,10 @@ img{max-width:100%;display:block;}
 
   <aside id="note">
     <div class="n-t">Points P.O</div>
-    <p class="n-p">Interface reprise au langage d'Airbnb — recherche en pilule, rail de catégories, cartes à grande image, pastilles sur la carte, barre d'action collante. Palette « Brasier &amp; Corail » et données réelles de l'application existante.</p>
+    <p class="n-p">Interface reprise au langage d'Airbnb pour parcourir et à celui d'Uber/Bolt pour agir. Palette Brasier appliquée par rôle : le 500 <b>#F4511E</b> pour l'action, le 300 <b>#F99F83</b> pour les accents doux, le 700 pour le texte. Données réelles de l'application existante.</p>
+    <div class="n-i"><span class="n-s">Couleur</span><span><b>Le 500 est la marque, pas le 700</b>L'orange Brasier #F4511E porte l'action principale, avec du texte foncé — 5,6:1, quand du blanc tomberait à 2,9:1. Le saumon #F99F83 et le #FDE5DD portent tout le reste. Une seule action orange par écran.</span></div>
+    <div class="n-i"><span class="n-s">Histoire</span><span><b>Un onglet, pas une note de bas de fiche</b>Récits de lieu sourcés et reportages publiés. Chaque récit s'ouvre en lecture guidée : un passage par phrase, qu'on avance soi-même.</span></div>
+    <div class="n-i"><span class="n-s">Compte</span><span><b>Un tableau de bord calculé</b>Palier, kilomètres, dénivelé, lieux d'histoire — tous déduits du journal des sorties, aucun chiffre posé en dur.</span></div>
     <div class="n-i"><span class="n-s">Recherche</span><span><b>Une pilule, pas un formulaire</b>Deux lignes : ce qu'on cherche, et le filtre en cours. Les filtres sont derrière un seul bouton rond.</span></div>
     <div class="n-i"><span class="n-s">Catégories</span><span><b>Un rail, pas des onglets</b>Icône et libellé, soulignement sur l'actif. Change le contenu sans changer d'écran.</span></div>
     <div class="n-i"><span class="n-s">Cartes</span><span><b>L'image d'abord</b>Grand format, coin arrondi, cœur en haut à droite. Le texte tient en trois lignes hiérarchisées.</span></div>
@@ -499,6 +574,7 @@ img{max-width:100%;display:block;}
 
     <main id="corps">
       <section class="ecran on" id="e-explorer"></section>
+      <section class="ecran" id="e-histoire"></section>
       <section class="ecran" id="e-favoris"></section>
       <section class="ecran" id="e-sorties"></section>
       <section class="ecran" id="e-compte"></section>
@@ -561,6 +637,28 @@ img{max-width:100%;display:block;}
       <div id="p-barre"><button id="p-fin">Terminer la sortie</button></div>
     </div>
 
+    <!-- Récit guidé : le texte d'un lieu, découpé en passages qu'on
+         avance soi-même. Pas de lecture automatique — on marche. -->
+    <div id="recit">
+      <div id="r-haut">
+        <button id="r-x" aria-label="Fermer le récit">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <div id="r-seg"></div>
+      </div>
+      <div id="r-corps">
+        <div id="r-nom">—</div>
+        <div id="r-txt">—</div>
+      </div>
+      <div id="r-bas">
+        <div id="r-src">—</div>
+        <div id="r-nav">
+          <button class="btn creux" id="r-prec">Précédent</button>
+          <button class="btn" id="r-suiv">Suivant</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Le moment : la confirmation d'Uber, transposée à l'arrivée. -->
     <div id="moment">
       <div id="m-rond"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
@@ -571,12 +669,14 @@ img{max-width:100%;display:block;}
         <div class="m-c"><div class="m-cv" id="m-dp">0</div><div class="m-cl">D+ mètres</div></div>
         <div class="m-c"><div class="m-cv" id="m-t2">0</div><div class="m-cl">minutes</div></div>
       </div>
-      <button class="btn" id="m-ok">Voir mes sorties</button>
+      <button class="btn creux" id="m-ok">Voir mes sorties</button>
     </div>
 
     <nav id="onglets">
       <button class="og on" data-o="explorer" aria-current="page">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="og-l">Explorer</span></button>
+      <button class="og" data-o="histoire">
+        <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22Z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22Z"/></svg><span class="og-l">Histoire</span></button>
       <button class="og" data-o="favoris">
         <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.6-7-9.3A4.2 4.2 0 0 1 12 8a4.2 4.2 0 0 1 7 2.7C19 15.4 12 20 12 20Z"/></svg><span class="og-l">Favoris</span></button>
       <button class="og" data-o="sorties">
@@ -657,6 +757,26 @@ const EVENTS = [
 const PLACES = [...TRAILS, ...MONUMENTS, ...EVENTS];
 const parPlaceCle = cle => PLACES.find(p => p.cle === cle);
 
+/* Reportages publiés — repris de l'application existante. */
+const REPORTAGES = [
+  { titre:"Les châteaux cathares vus du ciel", cat:"Drone", date:"Janvier 2025", pal:0 },
+  { titre:"Catalan du Nord, une langue qui résiste", cat:"Documentaire", date:"Mars 2025", pal:5 },
+  { titre:"Collioure : entre peinture et pêche", cat:"Photo", date:"Décembre 2024", pal:2 },
+];
+
+/* Échelle de badges de l'application existante. Le seuil est en kilomètres
+   cumulés — calculés sur le journal réel, jamais posés en dur. */
+const BADGES = [
+  { seuil:0,    nom:"Premiers pas" },
+  { seuil:200,  nom:"Débutant" },
+  { seuil:700,  nom:"Randonneur" },
+  { seuil:1200, nom:"Explorateur" },
+  { seuil:1700, nom:"Aventurier" },
+  { seuil:2200, nom:"Marcheur Roussillon" },
+  { seuil:2700, nom:"Gardien du Canigou" },
+  { seuil:3200, nom:"Maître des sentiers" },
+];
+
 const RECIT = {
   poi: [
     { id:'peyrepertuse', nom:'Château de Peyrepertuse', x:22, y:76,
@@ -686,15 +806,19 @@ const ech = t => String(t ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&l
 /* Toutes tirées de « Brasier & Corail » : le rouille, le corail, la paille,
    la pierre, l'encre. Deux tons plus froids pour les massifs lointains —
    au-delà, l'application cesserait de se ressembler. */
+/* Toutes construites sur l'échelle Brasier et les neutres du document :
+   le 900 pour le premier plan, le 500/700 au milieu, le 300/100 pour le
+   ciel. Une seule sort de la famille — la garrigue est verte sur le
+   terrain, la nier serait plus faux que de varier. */
 const PALETTES = [
-  ["#3A1C0E","#A63A18","#F99F83"], /* brasier          */
-  ["#692813","#8A6A52","#E9DE9C"], /* terre et paille  */
-  ["#2E1B10","#8B5A2B","#D6C579"], /* pierre chaude    */
-  ["#33241A","#6B4630","#F3F0B8"], /* ombre et paille  */
-  ["#3E1A10","#C25A2E","#F6D2AC"], /* couchant         */
+  ["#692813","#F4511E","#FDE5DD"], /* brasier plein    */
+  ["#5A2A14","#A63A18","#F99F83"], /* rouille et saumon*/
+  ["#3B1F12","#C25A2E","#F6D2AC"], /* couchant         */
   ["#4A2415","#9E6A3A","#EBC98F"], /* soir doré        */
-  ["#25231A","#5E6247","#BFC08D"], /* garrigue         */
-  ["#1F2A2A","#4C6660","#A9BFA6"]  /* massif lointain  */
+  ["#2E1B10","#8B5A2B","#D8CDBC"], /* pierre chaude    */
+  ["#33241A","#6B4630","#F3EEE6"], /* ombre et papier  */
+  ["#3A2A22","#8A6A5C","#E8DCD2"], /* brume du matin   */
+  ["#2A2A1E","#63684B","#C3C494"]  /* garrigue         */
 ];
 let empreinte = 0;
 const empreinteDe = id => { let h = 0; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
@@ -889,6 +1013,7 @@ function lancerSortie(cle){
 function montrerPlein(v){
   $("#plein").classList.toggle("on", v);
   $("#course").classList.toggle("on", !v && !!C.cle);
+  majCouverture();
 }
 
 function battre(){
@@ -945,6 +1070,7 @@ function terminerSortie(){
     ? p.nom + " est dans vos sorties. Le récit du lieu reste lisible hors ligne."
     : "Vous vous êtes arrêté avant la fin — c'est compté quand même, sans pénalité.";
   $("#moment").classList.add("on");
+  majCouverture();
   /* Les chiffres montent après la coche : la récompense arrive en deuxième. */
   const apres = SOBRE() ? 0 : 420;
   setTimeout(() => {
@@ -954,8 +1080,66 @@ function terminerSortie(){
   }, apres);
 }
 
+/* Un seul endroit décide si quelque chose recouvre l'écran. */
+function majCouverture(){
+  const couvert = ["#detail", "#recit", "#plein", "#moment"]
+    .some(sel => $(sel) && $(sel).classList.contains("on"));
+  $("#tel").classList.toggle("couvert", couvert);
+}
+
+/* ══════════════════════════════════════════════════════════
+   RÉCIT GUIDÉ
+   Le texte d'un lieu, coupé en passages qu'on avance soi-même.
+   Rien ne défile tout seul : on lit en marchant, pas en regardant.
+   ══════════════════════════════════════════════════════════ */
+const R = { cle: null, pass: [], i: 0, src: "" };
+
+/* Un passage par phrase. Les récits font deux ou trois phrases : les
+   regrouper par blocs de 150 signes n'en produisait qu'un seul, et
+   l'écran perdait sa raison d'être. Une phrase très courte se rattache à
+   la précédente plutôt que de faire un passage à elle seule. */
+function passages(texte){
+  const phrases = texte.match(/[^.!?]+[.!?]+\s*/g) || [texte];
+  const out = [];
+  for (const ph of phrases){
+    const t = ph.trim();
+    if (!t) continue;
+    if (out.length && t.length < 60) out[out.length - 1] += " " + t;
+    else out.push(t);
+  }
+  return out.length ? out : [texte.trim()];
+}
+
+function ouvrirRecit(cle){
+  const p = parCle(cle); if (!p) return;
+  const r = RECIT_PAR_ID[p.id]; if (!r) return;
+  R.cle = cle; R.pass = passages(r.texte); R.i = 0; R.src = r.source;
+  $("#r-nom").textContent = p.nom;
+  $("#recit").classList.add("on");
+  majCouverture();
+  majRecit();
+}
+
+function majRecit(){
+  $("#r-seg").innerHTML = R.pass.map((_, i) =>
+    '<i class="' + (i <= R.i ? "vu" : "") + '"></i>').join("");
+  $("#r-txt").textContent = R.pass[R.i];
+  $("#r-src").textContent = "Sources · " + R.src;
+  $("#r-prec").disabled = R.i === 0;
+  $("#r-prec").style.opacity = R.i === 0 ? ".4" : "1";
+  $("#r-suiv").textContent = R.i === R.pass.length - 1 ? "Terminer" : "Suivant";
+  $("#r-corps").scrollTop = 0;
+}
+
+function suivantRecit(){
+  if (R.i < R.pass.length - 1) { R.i++; majRecit(); return; }
+  fermerRecit();
+}
+function fermerRecit(){ $("#recit").classList.remove("on"); majCouverture(); }
+
 function fermerMoment(){
   $("#moment").classList.remove("on");
+  majCouverture();
   allerA("sorties");
 }
 const enregistrerAimes = () => {
@@ -1113,9 +1297,70 @@ function rangee(p, note, e){
     '<span class="pi-f"><svg class="ico" viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:1.9"><path d="m9 5 7 7-7 7"/></svg></span></button>';
 }
 
+/* ══ HISTOIRE ══
+   L'écran que l'application existante appelle « Histoire » : les récits
+   attachés aux lieux, et les reportages publiés. C'est ce qui distingue
+   Points P.O d'une application de randonnée — il lui fallait sa place,
+   pas une ligne au fond d'une fiche. */
+function ecranHistoire(){
+  const lieux = PLACES.filter(p => RECIT_PAR_ID[p.id]);
+  const lus = new Set(S.journal.map(e => e.cle));
+  return '<div class="titre"><div class="t-1">Histoire</div>' +
+      '<div class="t-2">' + lieux.length + " récits de lieu · " + REPORTAGES.length + " reportages</div></div>" +
+    '<div class="titre"><div class="t-1" style="font-size:20px">Récits de lieu</div>' +
+      '<div class="t-2">Sourcés, lisibles hors ligne, écoutables en marchant.</div></div>' +
+    lieux.map(p => {
+      const r = RECIT_PAR_ID[p.id];
+      return '<button class="rec" data-recit="' + p.cle + '">' +
+        '<span class="rec-i" style="background:' + fondDeCarte(p) + '"></span>' +
+        '<span class="rec-c"><span class="rec-n">' + ech(p.nom) + "</span>" +
+        '<span class="rec-x">' + ech(r.texte) + "</span>" +
+        '<span class="rec-m">' + (lus.has(p.cle) ? "Déjà lu · " : "") +
+          Math.max(1, Math.round(r.texte.split(/\s+/).length / 160)) + " min de lecture</span></span></button>";
+    }).join("") +
+    '<div class="titre"><div class="t-1" style="font-size:20px">Reportages</div></div>' +
+    '<div class="rep">' + REPORTAGES.map((r, i) =>
+      '<article class="rep-c"><span class="rep-i" style="background:' + gradPal(r.pal) + '">' +
+        '<span class="rep-cat">' + ech(r.cat) + "</span></span>" +
+        '<span class="rep-t">' + ech(r.titre) + "</span>" +
+        '<span class="rep-d">' + ech(r.date) + "</span></article>").join("") + "</div>" +
+    '<div class="bas"></div>';
+}
+const gradPal = i => {
+  const q = PALETTES[i % PALETTES.length];
+  return "linear-gradient(155deg," + q[2] + " 0%," + q[1] + " 55%," + q[0] + " 100%)";
+};
+
 /* ══ COMPTE ══ */
 function ecranCompte(){
+  const km = S.journal.reduce((n, e) => n + e.km, 0);
+  const dp = S.journal.reduce((n, e) => n + e.dp, 0);
+  const vus = new Set(S.journal.map(e => e.cle));
+  const hist = PLACES.filter(p => RECIT_PAR_ID[p.id] && vus.has(p.cle)).length;
+  /* Le badge courant se déduit des kilomètres réellement marchés. */
+  let idx = 0;
+  BADGES.forEach((b, i) => { if (km >= b.seuil) idx = i; });
+  const b = BADGES[idx], suivant = BADGES[idx + 1];
+  const versSuivant = suivant ? Math.min(1, (km - b.seuil) / (suivant.seuil - b.seuil)) : 1;
+
+  const jauges = [
+    ["Kilomètres parcourus", km.toFixed(1), " km", Math.min(1, km / 2000)],
+    ["Randonnées effectuées", S.journal.length, "", Math.min(1, S.journal.length / 50)],
+    ["Dénivelé cumulé", dp, " m", Math.min(1, dp / 30000)],
+    ["Lieux d'histoire visités", hist, "", Math.min(1, hist / PLACES.filter(p => RECIT_PAR_ID[p.id]).length)],
+  ];
+
   return '<div class="titre"><div class="t-1">Votre compte</div><div class="t-2">Invité · aucune donnée envoyée</div></div>' +
+    '<div class="niv"><span class="niv-b">' + ech(b.nom) + "</span>" +
+      '<span class="niv-k">' + vgl(km.toFixed(1)) + " km parcourus</span>" +
+      '<span class="jauge"><i style="width:' + (versSuivant * 100).toFixed(1) + '%"></i></span>' +
+      '<span class="niv-s">' + (suivant
+        ? "Encore " + vgl((suivant.seuil - km).toFixed(1)) + " km avant « " + ech(suivant.nom) + " »"
+        : "Dernier palier atteint.") + "</span></div>" +
+    '<div style="padding:4px 18px 0">' + jauges.map(j =>
+      '<div class="jg"><span class="jg-h"><span class="jg-l">' + j[0] + "</span>" +
+      '<span class="jg-v">' + vgl(String(j[1])) + j[2] + "</span></span>" +
+      '<span class="jauge"><i style="width:' + (j[3] * 100).toFixed(1) + '%"></i></span></div>').join("") + "</div>" +
     '<div class="puces"><button class="puce on">Français</button><button class="puce">Català</button></div>' +
     '<div style="padding:18px">' +
       '<button class="btn large">Créer un compte</button>' +
@@ -1133,7 +1378,8 @@ function ecranCompte(){
 }
 
 /* ══ RENDU ══ */
-const ECRANS = { explorer: ecranExplorer, favoris: ecranFavoris, sorties: ecranSorties, compte: ecranCompte };
+const ECRANS = { explorer: ecranExplorer, histoire: ecranHistoire, favoris: ecranFavoris,
+                sorties: ecranSorties, compte: ecranCompte };
 function rendre(){
   $("#e-" + S.onglet).innerHTML = ECRANS[S.onglet]();
   brancher();
@@ -1156,6 +1402,7 @@ function rendre(){
   }
 }
 function brancher(){
+  $$("[data-recit]").forEach(b => b.onclick = () => ouvrirRecit(b.dataset.recit));
   const re = $("#r-elan");
   if (re) re.onclick = () => {
     S.elanVisible = !S.elanVisible;
@@ -1193,7 +1440,7 @@ function profilSvg(profil){
   const pts = profil.map(p => X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1));
   return '<div class="profil"><svg viewBox="0 0 300 96" preserveAspectRatio="none" role="img" ' +
       'aria-label="Profil altimétrique de ' + mn + ' à ' + mx + ' mètres sur ' + kmax + ' kilomètres">' +
-      '<polygon points="0,96 ' + pts.join(" ") + ' 300,96" fill="rgba(166,58,24,.14)"></polygon>' +
+      '<polygon points="0,96 ' + pts.join(" ") + ' 300,96" fill="rgba(249,159,131,.30)"></polygon>' +
       '<polyline class="d-trace" points="' + pts.join(" ") + '" fill="none" stroke="var(--rouille)" stroke-width="2.2" ' +
       'stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline></svg>' +
       '<div class="profil-l"><span>' + mn + ' m</span><span>' + kmax.toFixed(1).replace(".", ",") + ' km</span><span>' + mx + " m</span></div></div>";
@@ -1220,7 +1467,8 @@ function ouvrir(cle){
       (p.quote ? '<div class="d-p">' + ech(p.quote) + "</div>" : "") +
       (p.desc ? '<div class="d-p">' + ech(p.desc) + "</div>" : "") +
       (r ? '<div class="d-sep"></div><div class="d-h">L\'histoire</div><div class="d-p">' + ech(r.texte) + "</div>" +
-           '<div class="d-src">Sources · ' + ech(r.source) + "</div>" : "") +
+           '<div class="d-src">Sources · ' + ech(r.source) + "</div>" +
+           '<div style="height:12px"></div><button class="btn large creux" data-recit="' + p.cle + '">Lire le récit guidé</button>' : "") +
       (p.profil ? '<div class="d-sep"></div><div class="d-h">Profil du parcours</div>' + profilSvg(p.profil) +
         '<div class="d-src">Relevé issu de la trace GPX du parcours.</div>' : "") +
       '<div class="d-sep"></div><div class="d-h">Sur place</div>' +
@@ -1237,6 +1485,7 @@ function ouvrir(cle){
     '<button class="btn large sombre" id="d-go">' + action + "</button>";
 
   $("#detail").classList.add("on");
+  majCouverture();
   $("#d-x").onclick = fermer;
   $("#d-go").onclick = () => {
     fermer();
@@ -1268,7 +1517,7 @@ function pratique(p){
   return lignes.map(l => '<div class="pi"><span class="pi-i"><svg viewBox="0 0 24 24">' + l[0] + "</svg></span>" +
     '<span class="pi-c"><span class="pi-n">' + l[1] + '</span><span class="pi-s">' + l[2] + "</span></span></div>").join("");
 }
-function fermer(){ $("#detail").classList.remove("on"); }
+function fermer(){ $("#detail").classList.remove("on"); majCouverture(); }
 
 /* ══════════════════════════════════════════════════════════
    CARTE — rendu maison, sans tuile ni bibliothèque
@@ -1501,6 +1750,11 @@ function quitterCarte(){
   $("#bascule-l").textContent = "Carte";
   $("#bascule").querySelector("svg").innerHTML = '<path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4v13"/>';
 }
+/* ── récit guidé ── */
+$("#r-x").onclick = fermerRecit;
+$("#r-suiv").onclick = suivantRecit;
+$("#r-prec").onclick = () => { if (R.i > 0) { R.i--; majRecit(); } };
+
 /* ── sortie en cours ── */
 $("#c-carte").onclick = () => montrerPlein(true);
 $("#p-reduire").onclick = () => montrerPlein(false);
