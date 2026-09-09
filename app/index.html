@@ -225,8 +225,9 @@ img{max-width:100%;display:block;}
 .pi-i{width:44px;height:44px;flex:none;border-radius:var(--r-b);background:var(--paille-2);
   display:flex;align-items:center;justify-content:center;color:var(--rouille);}
 .pi-i svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-.pi-n{font-size:14.5px;font-weight:700;}
-.pi-s{font-size:13px;color:var(--encre-3);margin-top:1px;}
+.pi-c{min-width:0;}
+.pi-n{display:block;font-size:14.5px;font-weight:700;}
+.pi-s{display:block;font-size:13px;color:var(--encre-3);margin-top:1px;}
 .pi-f{margin-left:auto;color:var(--encre-3);}
 
 /* barre d'action collante (Airbnb) */
@@ -447,18 +448,96 @@ const ech = t => String(t ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&l
 
 /* ══ VISUELS — dégradés déterministes, chauds, dérivés de l'identifiant.
    En production ce sont les photographies du fonds Points P.O. ══ */
+/* Toutes tirées de « Brasier & Corail » : le rouille, le corail, la paille,
+   la pierre, l'encre. Deux tons plus froids pour les massifs lointains —
+   au-delà, l'application cesserait de se ressembler. */
 const PALETTES = [
-  ["#3B2214","#8A4A26","#D9A05B"], ["#22303A","#4E6B62","#A8BFA0"],
-  ["#402617","#96502A","#E0B07A"], ["#2C2A18","#6E6733","#C3B978"],
-  ["#331A18","#7E3A2C","#DE9A7E"], ["#1E2E33","#456A6B","#9CC2B4"],
-  ["#3A2A12","#8B6524","#E3C480"], ["#2A1C24","#6B4258","#C795A4"]
+  ["#3A1C0E","#A63A18","#F99F83"], /* brasier          */
+  ["#692813","#8A6A52","#E9DE9C"], /* terre et paille  */
+  ["#2E1B10","#8B5A2B","#D6C579"], /* pierre chaude    */
+  ["#33241A","#6B4630","#F3F0B8"], /* ombre et paille  */
+  ["#3E1A10","#C25A2E","#F6D2AC"], /* couchant         */
+  ["#4A2415","#9E6A3A","#EBC98F"], /* soir doré        */
+  ["#25231A","#5E6247","#BFC08D"], /* garrigue         */
+  ["#1F2A2A","#4C6660","#A9BFA6"]  /* massif lointain  */
 ];
 let empreinte = 0;
+const empreinteDe = id => { let h = 0; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
 const grad = id => {
-  let h = 0; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  const p = PALETTES[h % PALETTES.length];
+  const p = PALETTES[empreinteDe(id) % PALETTES.length];
   return "linear-gradient(155deg," + p[0] + " 0%," + p[1] + " 52%," + p[2] + " 100%)";
 };
+
+/* ══ COUVERTURES — un paysage dessiné par lieu.
+   Chez Airbnb la photographie EST l'interface : un aplat ne tient pas ce
+   rôle. Faute de fonds photographique, on dessine une ligne de crête — et
+   pour une randonnée c'est SA crête, tracée depuis son profil GPX réel.
+   SVG plutôt que canvas : quelques centaines d'octets, net à toute taille,
+   et aucune dépendance réseau. ══ */
+const covers = new Map();
+
+function crete(h, base, amp, dents){
+  /* Somme de sinus déphasés : une silhouette lisse et déterministe. */
+  const a = 0.37 + (h % 100) / 260, b = 1.7 + ((h >> 7) % 100) / 90;
+  const c = 3.1 + ((h >> 13) % 100) / 55, d = ((h >> 19) % 628) / 100;
+  const pts = [];
+  for (let x = 0; x <= 100; x += 2.5){
+    const t = x / 100 * Math.PI * 2;
+    const v = Math.sin(t * a + d) * 0.55 + Math.sin(t * b + d * 2) * 0.3
+            + Math.sin(t * c + d * 3) * 0.15 * dents;
+    pts.push(x.toFixed(1) + "," + (base - amp * (v + 1) / 2).toFixed(1));
+  }
+  return pts.join(" ");
+}
+
+function creteProfil(profil, base, amp){
+  const alts = profil.map(q => q[1]), kms = profil.map(q => q[0]);
+  const mn = Math.min(...alts), mx = Math.max(...alts), km = kms[kms.length - 1] || 1;
+  const et = mx - mn || 1;
+  return profil.map(q =>
+    (q[0] / km * 100).toFixed(1) + "," + (base - amp * (0.18 + 0.82 * (q[1] - mn) / et)).toFixed(1)
+  ).join(" ");
+}
+
+function visuel(p){
+  if (covers.has(p.id)) return covers.get(p.id);
+  const h = empreinteDe(p.id), pal = PALETTES[h % PALETTES.length];
+  const [sombre, moyen, clair] = pal;
+  const g = "g" + h.toString(36);
+  /* Trois plans : le lointain pâlit, le premier plan est presque noir. */
+  const loin = crete(h, 62, 20, 0.5);
+  const milieu = crete(h ^ 0x9e3779b9, 76, 24, 0.9);
+  const pres = p.profil && p.profil.length > 2
+    ? creteProfil(p.profil, 95, 30)
+    : crete(h ^ 0x51ed270b, 95, 26, 1.2);
+  const soleil = 18 + (h % 64);
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 95" preserveAspectRatio="xMidYMid slice">' +
+    /* Le ciel reste clair jusqu'en bas : c'est le contraste avec les crêtes
+       qui fait lire les trois plans, pas un dégradé qui les avale. */
+    '<defs><linearGradient id="c' + g + '" x1="0" y1="0" x2="0.3" y2="1">' +
+      '<stop offset="0" stop-color="' + clair + '"/>' +
+      '<stop offset="0.55" stop-color="' + clair + '" stop-opacity="0.86"/>' +
+      '<stop offset="1" stop-color="' + moyen + '"/></linearGradient>' +
+    '<linearGradient id="b' + g + '" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" stop-color="' + moyen + '"/>' +
+      '<stop offset="1" stop-color="' + sombre + '"/></linearGradient></defs>' +
+    '<rect width="100" height="95" fill="' + moyen + '"/>' +
+    '<rect width="100" height="95" fill="url(#c' + g + ')"/>' +
+    '<circle cx="' + soleil + '" cy="19" r="6" fill="#FBFBCC" opacity="0.34"/>' +
+    '<polygon points="0,95 ' + loin + ' 100,95" fill="' + moyen + '" opacity="0.5"/>' +
+    '<polygon points="0,95 ' + milieu + ' 100,95" fill="url(#b' + g + ')"/>' +
+    '<polygon points="0,95 ' + pres + ' 100,95" fill="' + sombre + '"/>' +
+    "</svg>";
+  /* Guillemets simples : la valeur part dans un attribut style="…",
+     des guillemets doubles le refermeraient. */
+  const css = "url('data:image/svg+xml," +
+    encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22") + "')";
+  covers.set(p.id, css);
+  return css;
+}
+/* Le dégradé reste sous l'image : si le SVG ne rend pas, la carte a un fond. */
+const fondDeCarte = p => visuel(p) + " center/cover no-repeat," + grad(p.id);
 const DIFF_CL = { "Facile":"d-f", "Intermédiaire":"d-m", "Difficile":"d-d" };
 
 /* ══ ÉTAT ══ */
@@ -520,7 +599,7 @@ function ecranExplorer(){
 function carte(p){
   const t = etiquette(p);
   return '<article class="fiche" data-cle="' + p.cle + '">' +
-    '<div class="f-img"><i style="background:' + grad(p.id) + '"></i>' +
+    '<div class="f-img"><i style="background:' + fondDeCarte(p) + '"></i>' +
       (t ? '<span class="f-tag">' + t + "</span>" : "") +
       '<button class="f-coeur' + (aime(p.cle) ? " aime" : "") + '" data-aime="' + p.cle + '" aria-label="Ajouter aux favoris">' +
       '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.9-7.5-10A4.5 4.5 0 0 1 12 7.6a4.5 4.5 0 0 1 7.5 2.9c0 5.1-7.5 10-7.5 10Z"/></svg></button></div>' +
@@ -560,7 +639,7 @@ function ecranSorties(){
 }
 function rangee(p, note){
   return '<button class="rangee" data-cle="' + p.cle + '">' +
-    '<span class="r-i" style="background:' + grad(p.id) + '"></span>' +
+    '<span class="r-i" style="background:' + fondDeCarte(p) + '"></span>' +
     '<span class="r-c"><span class="r-n">' + ech(p.nom) + '</span>' +
     '<span class="r-s">' + ech(sousTitre(p)) + '</span>' +
     '<span class="r-m">' + (note ? note + " · " : "") + String(p.km ?? "").replace(".", ",") + (p.km ? " km" : "") + "</span></span>" +
@@ -636,7 +715,7 @@ function ouvrir(cle){
       : [[p.type, "nature"], [p.dept, "département"], ["libre", "accès"]];
 
   $("#d-corps").innerHTML =
-    '<div class="d-hero" style="background:' + grad(p.id) + '">' +
+    '<div class="d-hero" style="background:' + fondDeCarte(p) + '">' +
       '<button class="d-retour" id="d-x" aria-label="Retour"><svg class="ico ico-l" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>' +
       '<button class="d-coeur' + (aime(p.cle) ? " aime" : "") + '" data-aime="' + p.cle + '" aria-label="Favori">' +
       '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.9-7.5-10A4.5 4.5 0 0 1 12 7.6a4.5 4.5 0 0 1 7.5 2.9c0 5.1-7.5 10-7.5 10Z"/></svg></button></div>' +
@@ -681,7 +760,7 @@ function pratique(p){
       : [[ICO.event, "Gratuit et en plein air", "Aucune réservation nécessaire. Horaires précisés par la commune."],
          [ICO.refuge, "Stationnement", "Prévoyez large : les villages saturent les jours de fête."]];
   return lignes.map(l => '<div class="pi"><span class="pi-i"><svg viewBox="0 0 24 24">' + l[0] + "</svg></span>" +
-    '<span><span class="pi-n">' + l[1] + '</span><span class="pi-s">' + l[2] + "</span></span></div>").join("");
+    '<span class="pi-c"><span class="pi-n">' + l[1] + '</span><span class="pi-s">' + l[2] + "</span></span></div>").join("");
 }
 function fermer(){ $("#detail").classList.remove("on"); }
 
@@ -854,7 +933,7 @@ function selectionner(cle, garderCadre){
   const p = parCle(cle);
   $("#carte-bas").innerHTML = items().map(q =>
     '<button class="mini" data-mini="' + q.cle + '">' +
-      '<span class="mini-i" style="background:' + grad(q.id) + '"></span>' +
+      '<span class="mini-i" style="background:' + fondDeCarte(q) + '"></span>' +
       '<span class="mini-c"><span class="mini-n">' + ech(q.nom) + "</span>" +
       '<span class="mini-s">' + ech(sousTitre(q)) + '</span><span class="mini-m">' + mesure(q).replace(/<[^>]+>/g, "") + "</span></span></button>").join("");
   $$("#carte-bas [data-mini]").forEach(b => b.onclick = () => ouvrir(b.dataset.mini));

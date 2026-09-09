@@ -6,7 +6,12 @@
  * Il ouvre une page dans un vrai navigateur et applique quatre des
  * protocoles du document 03 (§10) à ce qui s'affiche réellement.
  *
- * Usage :  node design/verifier-ecran.mjs <url> [largeur] [hauteur]
+ * Usage :  node design/verifier-ecran.mjs <url> [largeur] [hauteur] [parcours]
+ *
+ * « parcours » est une suite de sélecteurs séparés par des virgules,
+ * cliqués l'un après l'autre. Sans lui, seul l'écran d'accueil est mesuré —
+ * et un défaut logé dans une fiche fermée passe inaperçu. Les résultats de
+ * chaque étape sont fusionnés.
  * Requiert Playwright (déjà présent sur les runners CI usuels).
  */
 import { readdirSync, readFileSync } from "node:fs";
@@ -23,6 +28,7 @@ catch { ({ chromium } = require_("/opt/node22/lib/node_modules/playwright")); }
 const url = process.argv[2];
 if (!url) { console.error("Usage : node design/verifier-ecran.mjs <url>"); process.exit(2); }
 const largeur = +(process.argv[3] ?? 390), hauteur = +(process.argv[4] ?? 844);
+const parcours = (process.argv[5] ?? "").split(",").map(x => x.trim()).filter(Boolean);
 
 /* ── seuils, lus dans les tokens ── */
 const arbre = {};
@@ -38,7 +44,7 @@ const p = await b.newPage({ viewport: { width: largeur, height: hauteur }, devic
 await p.goto(url, { waitUntil: "domcontentloaded" });
 await p.waitForTimeout(1500);
 
-const rapport = await p.evaluate(({ CIBLE_MIN, CIBLE_ANNO }) => {
+const mesurer = () => p.evaluate(({ CIBLE_MIN, CIBLE_ANNO }) => {
   const visible = el => {
     const r = el.getBoundingClientRect(), s = getComputedStyle(el);
     return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && +s.opacity > .05;
@@ -109,8 +115,52 @@ const rapport = await p.evaluate(({ CIBLE_MIN, CIBLE_ANNO }) => {
   const proche = (a, c) => a && c && Math.abs(a[0] - c[0]) + Math.abs(a[1] - c[1]) + Math.abs(a[2] - c[2]) < 40;
   const accents = interactifs.filter(el => proche(lire(getComputedStyle(el).backgroundColor), cible)).map(nomme);
 
-  return { total: interactifs.length, petites, petitesAnno, nbAnno, anim, faibles: faibles.slice(0, 12), nbFaibles: faibles.length, accents, accentHex: accent };
+  /* ── 5 · lignes de texte collées ───────────────────────────────────────
+     Un <span> stylé comme une ligne (poids, taille, marge) mais laissé en
+     display:inline se colle à son voisin : « Balisage sur le terrainSuivez
+     le balisage… ». Le défaut est invisible en lisant le CSS et saute aux
+     yeux à l'écran ; il a été introduit trois fois. On le mesure. */
+  const collees = [];
+  for (const el of document.querySelectorAll("span[class]")){
+    const st = getComputedStyle(el);
+    if (st.display !== "inline") continue;
+    const freres = [...el.parentElement.children].filter(c => c.tagName === "SPAN" && c.className);
+    if (freres.length < 2 || !freres.includes(el)) continue;
+    /* Un inline qui passe à la ligne a un rectangle englobant inutile ici :
+       il faut les boîtes de ligne. Le défaut, c'est que la DERNIÈRE ligne du
+       premier et la PREMIÈRE du suivant partagent la même rangée. */
+    const i = freres.indexOf(el), sv = freres[i + 1];
+    if (!sv) continue;
+    const ra = el.getClientRects(), rb = sv.getClientRects();
+    if (!ra.length || !rb.length) continue;
+    const a = ra[ra.length - 1], b = rb[0];
+    if (Math.abs(a.top - b.top) < 4 && b.left >= a.right - 2)
+      collees.push(el.className + " + " + sv.className + " — « " + (el.textContent || "").trim().slice(0, 30) + " »");
+  }
+
+  return { total: interactifs.length, petites, petitesAnno, nbAnno, anim, faibles: faibles.slice(0, 12), nbFaibles: faibles.length, accents, accentHex: accent, collees };
 }, { CIBLE_MIN, CIBLE_ANNO });
+
+/* Une mesure par étape, fusionnées : un défaut n'a pas besoin d'être sur
+   l'écran d'accueil pour compter. */
+const rapport = await mesurer();
+const etapes = [];
+for (const sel of parcours){
+  try {
+    await p.locator(sel).first().click({ timeout: 4000 });
+    await p.waitForTimeout(700);
+    const r = await mesurer();
+    etapes.push(sel);
+    rapport.total += r.total;
+    rapport.nbAnno += r.nbAnno;
+    for (const k of ["petites", "petitesAnno", "anim", "faibles", "accents", "collees"])
+      rapport[k] = [...rapport[k], ...r[k]];
+    rapport.nbFaibles += r.nbFaibles;
+  } catch { console.error(`  (étape ignorée, introuvable : ${sel})`); }
+}
+/* Une même paire collée revue à chaque étape ne compte qu'une fois. */
+rapport.collees = [...new Set(rapport.collees)];
+rapport.accents = [...new Set(rapport.accents)];
 
 await b.close();
 
@@ -121,7 +171,8 @@ const ko = m => { console.log("  \x1b[31m✕\x1b[0m " + m); bloquantes++; };
 const at = m => { console.log("  \x1b[33m!\x1b[0m " + m); avert++; };
 const ok = m => console.log("  \x1b[32m✓\x1b[0m " + m);
 
-console.log(`\n\x1b[1mÉcran vérifié\x1b[0m  ${url}  —  ${largeur}×${hauteur}`);
+console.log(`\n\x1b[1mÉcran vérifié\x1b[0m  ${url}  —  ${largeur}×${hauteur}` +
+  (etapes.length ? `  —  ${etapes.length} étape(s) de parcours` : ""));
 
 bloc(`1 · Cibles tactiles — minimum ${CIBLE_MIN} px (WCAG 2.2 SC 2.5.8 exige 24 ; on double pour la marche)`);
 if (!rapport.petites.length && !rapport.petitesAnno.length)
@@ -147,6 +198,10 @@ else { ko(`${rapport.nbFaibles} textes sous le seuil`); for (const f of rapport.
 bloc(`4 · Règle du seul accent — maximum ${ACCENTS_MAX} par écran (${rapport.accentHex})`);
 if (rapport.accents.length <= ACCENTS_MAX) ok(`${rapport.accents.length} accent(s) primaire(s)`);
 else { at(`${rapport.accents.length} éléments portent l'accent primaire`); for (const a of rapport.accents.slice(0, 6)) console.log(`      « ${a} »`); }
+
+bloc("5 · Lignes de texte collées — un span stylé en ligne mange le retour");
+if (!rapport.collees.length) ok("Aucune ligne collée à sa voisine");
+else { ko(`${rapport.collees.length} paire(s) de lignes collées`); for (const c of rapport.collees.slice(0, 8)) console.log(`      ${c}`); }
 
 console.log(`\n\x1b[31m${bloquantes} bloquantes\x1b[0m, \x1b[33m${avert} avertissements\x1b[0m\n`);
 process.exit(bloquantes ? 1 : 0);
