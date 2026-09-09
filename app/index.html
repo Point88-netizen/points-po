@@ -196,6 +196,178 @@ img{max-width:100%;display:block;}
 #detail{position:absolute;inset:0;z-index:95;background:var(--paille);display:none;flex-direction:column;}
 #detail.on{display:flex;animation:monte var(--duree-transition) var(--ressort);}
 @keyframes monte{from{transform:translateY(100%)}to{transform:none}}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MOUVEMENT — la grammaire d'Uber et de Bolt
+   Leur élan ne vient pas de boucles. Il vient de deux choses : un
+   mouvement bref CHAQUE FOIS qu'un état change, et une seule chose
+   vivante à l'écran — le direct. Tout ce qui suit est déclenché et fini ;
+   une seule animation boucle dans l'application entière, le point du
+   direct, ce que le quota déclaré autorise (clignotements-dans-l-app = 1).
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{ --echelon:calc(var(--duree-toucher) / 2); }   /* 45 ms entre deux arrivées */
+
+@keyframes surgit{from{opacity:0;transform:translateY(15px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes glisse{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes eclot{0%{transform:scale(.5);opacity:0}62%{transform:scale(1.09);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes trace{to{stroke-dashoffset:0}}
+@keyframes voile{from{opacity:0}to{opacity:1}}
+/* la seule boucle de l'application */
+@keyframes pouls{0%{transform:scale(1);opacity:.85}70%{transform:scale(2.4);opacity:0}100%{transform:scale(2.4);opacity:0}}
+
+/* Entrée échelonnée : chaque carte arrive juste après la précédente.
+   Six au maximum — au-delà, l'attente se voit au lieu de se sentir. */
+.surgit{animation:surgit var(--duree-transition) var(--ressort) both;}
+.surgit:nth-child(2){animation-delay:calc(var(--echelon) * 1)}
+.surgit:nth-child(3){animation-delay:calc(var(--echelon) * 2)}
+.surgit:nth-child(4){animation-delay:calc(var(--echelon) * 3)}
+.surgit:nth-child(5){animation-delay:calc(var(--echelon) * 4)}
+.surgit:nth-child(n+6){animation-delay:calc(var(--echelon) * 5)}
+
+/* Le tracé se dessine au lieu d'apparaître : chez Uber c'est l'itinéraire,
+   ici c'est la montée qui vous attend. */
+.d-trace{stroke-dasharray:var(--long);stroke-dashoffset:var(--long);
+  animation:trace var(--duree-transition) var(--ressort) var(--duree-toucher) forwards;}
+
+/* ═══ LE DIRECT — pastille de sortie en cours ═══ */
+.direct{display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);
+  font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;}
+.direct .pt-d{position:relative;width:7px;height:7px;flex:none;border-radius:50%;background:var(--rouille);}
+.direct .pt-d::after{content:'';position:absolute;inset:0;border-radius:50%;background:var(--rouille);
+  animation:pouls var(--duree-clignotement-direct) var(--sortie-douce, cubic-bezier(.2,0,0,1)) infinite;}
+
+/* ═══ BARRE DE SORTIE EN COURS — le trajet en cours d'Uber ═══
+   Elle ne quitte plus l'écran tant que la sortie n'est pas terminée. */
+#course{position:absolute;left:0;right:0;bottom:78px;z-index:85;padding:0 12px 10px;
+  /* Sa hauteur plus la barre d'onglets : un pourcentage seul laissait
+     dépasser une quarantaine de pixels sous les onglets. */
+  transform:translateY(calc(100% + 78px));pointer-events:none;
+  transition:transform var(--duree-transition) var(--ressort);}
+#course.on{transform:none;pointer-events:auto;}
+/* Quand une sortie est en cours, le bouton flottant lui laisse la place. */
+#tel.en-course #bascule{bottom:186px;}
+#tel.en-course #carte-bas{bottom:248px;}
+#c-carte{width:100%;text-align:left;background:var(--encre);color:var(--paille);
+  border-radius:var(--r-c);box-shadow:var(--o2);padding:12px 15px 13px;
+  transition:transform var(--duree-toucher) var(--ressort);}
+#c-carte:active{transform:scale(.985);}
+#c-haut{display:flex;align-items:center;gap:10px;}
+#c-nom{flex:1;min-width:0;font-size:14px;font-weight:700;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#c-chrono{font-family:var(--fm);font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;}
+#c-jauge{height:4px;border-radius:2px;background:rgba(251,251,204,.22);overflow:hidden;margin-top:10px;}
+#c-jauge i{display:block;height:100%;width:0;background:var(--corail);border-radius:2px;
+  transition:width var(--duree-transition) var(--sortie-douce, cubic-bezier(.2,0,0,1));}
+#c-bas{display:flex;justify-content:space-between;margin-top:7px;
+  font-family:var(--fm);font-size:11px;color:var(--paille-3);}
+.direct.clair .pt-d, .direct.clair .pt-d::after{background:var(--corail);}
+
+/* ═══ SORTIE EN GRAND ═══ */
+#plein{position:absolute;inset:0;z-index:95;display:none;flex-direction:column;
+  background:var(--encre);color:var(--paille);}
+#plein.on{display:flex;animation:monte var(--duree-transition) var(--ressort);}
+#p-haut{flex:none;padding:24px 22px 0;display:flex;align-items:center;justify-content:space-between;}
+#p-reduire{width:var(--cible-minimum);height:var(--cible-minimum);display:grid;place-items:center;
+  border-radius:50%;background:rgba(251,251,204,.11);color:var(--paille);}
+#p-reduire svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;}
+#p-corps{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 22px;}
+/* Le profil du sentier, et le point qui y avance : l'équivalent de
+   l'itinéraire d'Uber, sauf qu'ici la ligne est le relief à monter. */
+#p-profil{height:132px;margin-bottom:26px;}
+#p-profil svg{width:100%;height:110px;display:block;overflow:visible;}
+/* Pas de vector-effect ici : avec non-scaling-stroke, stroke-dasharray se
+   résout en pixels écran alors que la longueur est calculée en unités du
+   viewBox. Le motif se répétait et la part parcourue s'affichait à
+   l'autre bout du tracé. */
+#p-profil .fond{fill:none;stroke:rgba(251,251,204,.22);stroke-width:2;stroke-linejoin:round;}
+#p-profil .fait{fill:none;stroke:var(--corail);stroke-width:2.6;stroke-linecap:round;
+  stroke-linejoin:round;transition:stroke-dashoffset var(--duree-transition) linear;}
+#p-profil .ici{fill:var(--corail);stroke:var(--encre);stroke-width:2.5;
+  transition:cx var(--duree-transition) linear,cy var(--duree-transition) linear;}
+#p-profil .ech{display:flex;justify-content:space-between;font-family:var(--fm);
+  font-size:10.5px;color:var(--pierre);margin-top:6px;}
+#p-nom{font-family:var(--fd);font-style:italic;font-size:28px;line-height:1.1;}
+#p-lieu{font-size:14.5px;color:var(--pierre);margin-top:7px;}
+#p-chrono{font-family:var(--fm);font-size:52px;font-weight:500;line-height:1;margin-top:22px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+#p-chiffres{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:22px;}
+.p-ch{border:1px solid rgba(251,251,204,.15);border-radius:var(--r-c);padding:12px 13px;}
+.p-cv{font-size:20px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+.p-cl{font-size:11.5px;color:var(--pierre);margin-top:5px;font-weight:600;}
+#p-jauge{height:6px;border-radius:3px;background:rgba(251,251,204,.18);overflow:hidden;margin-top:26px;}
+#p-jauge i{display:block;height:100%;width:0;background:var(--corail);border-radius:3px;
+  transition:width var(--duree-transition) var(--sortie-douce, cubic-bezier(.2,0,0,1));}
+#p-reste{font-family:var(--fm);font-size:11.5px;color:var(--pierre);margin-top:9px;}
+#p-barre{flex:none;padding:14px 22px 30px;}
+#p-fin{width:100%;min-height:56px;border-radius:var(--r-b);background:var(--corail);color:var(--encre);
+  font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  transition:transform var(--duree-toucher) var(--ressort);}
+#p-fin:active{transform:scale(.97);}
+
+/* ═══ LE MOMENT — la confirmation d'Uber, transposée à l'arrivée ═══ */
+#moment{position:absolute;inset:0;z-index:99;display:none;flex-direction:column;
+  align-items:center;justify-content:center;padding:40px 34px;text-align:center;
+  background:var(--paille);}
+#moment.on{display:flex;animation:voile var(--duree-sortie) both;}
+#m-rond{width:104px;height:104px;border-radius:50%;background:var(--rouille);
+  display:grid;place-items:center;animation:eclot var(--duree-transition) var(--ressort) both;}
+#m-rond svg{width:52px;height:52px;stroke:#fff;fill:none;stroke-width:2.6;
+  stroke-linecap:round;stroke-linejoin:round;}
+#m-rond path{stroke-dasharray:34;stroke-dashoffset:34;
+  animation:trace var(--duree-sortie) var(--ressort) var(--duree-transition) forwards;}
+#m-t{font-family:var(--fd);font-style:italic;font-size:29px;line-height:1.15;margin-top:26px;
+  animation:glisse var(--duree-transition) var(--ressort) var(--duree-toucher) both;}
+#m-s{font-size:15px;color:var(--encre-2);line-height:1.6;margin-top:10px;
+  animation:glisse var(--duree-transition) var(--ressort) var(--duree-sortie) both;}
+#m-ch{display:flex;gap:26px;margin-top:26px;
+  animation:glisse var(--duree-transition) var(--ressort) var(--duree-transition) both;}
+.m-c{text-align:center;}
+.m-cv{font-size:26px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+.m-cl{font-size:12px;color:var(--encre-3);margin-top:5px;font-weight:600;}
+#m-ok{margin-top:34px;min-width:190px;}
+
+/* ═══ ÉLAN — la progression, sans punition ═══ */
+.elan{display:flex;align-items:center;gap:16px;margin:16px 18px 0;padding:16px;
+  border:1px solid var(--trait);border-radius:var(--r-c);}
+.elan-r{position:relative;width:62px;height:62px;flex:none;}
+.elan-r svg{width:62px;height:62px;transform:rotate(-90deg);}
+.elan-r circle{fill:none;stroke-width:6;stroke-linecap:round;}
+.elan-r .fond{stroke:var(--paille-3);}
+.elan-r .arc{stroke:var(--rouille);stroke-dasharray:var(--tour);stroke-dashoffset:var(--tour);
+  transition:stroke-dashoffset var(--duree-transition) var(--sortie-douce, cubic-bezier(.2,0,0,1));}
+.elan-n{position:absolute;inset:0;display:grid;place-items:center;
+  font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;}
+.elan-c{flex:1;min-width:0;}
+.elan-t{display:block;font-size:15px;font-weight:800;}
+.elan-p{display:block;font-size:13px;color:var(--encre-3);line-height:1.5;margin-top:3px;}
+
+/* ═══ APPEL — l'incitation, mais qui dit vrai ═══ */
+.appel{display:flex;align-items:center;gap:13px;margin:16px 18px 0;padding:14px 16px;
+  border-radius:var(--r-c);background:var(--paille-2);width:calc(100% - 36px);text-align:left;
+  transition:transform var(--duree-toucher) var(--ressort);}
+.appel:active{transform:scale(.985);}
+.appel-i{width:42px;height:42px;flex:none;border-radius:var(--r-b);background:var(--rouille);
+  display:grid;place-items:center;}
+.appel-i svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round;}
+.appel-c{flex:1;min-width:0;}
+.appel-t{display:block;font-size:14.5px;font-weight:800;}
+.appel-s{display:block;font-size:13px;color:var(--encre-2);margin-top:2px;line-height:1.45;}
+.appel-f{flex:none;color:var(--encre-3);}
+.appel-f svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* ═══ BASCULE — réglage on/off ═══ */
+.reglage{display:flex;align-items:center;gap:14px;min-height:var(--cible-minimum);width:100%;text-align:left;}
+.reglage-c{flex:1;min-width:0;}
+.reglage-t{display:block;font-size:14.5px;font-weight:700;}
+.reglage-s{display:block;font-size:13px;color:var(--encre-3);margin-top:2px;line-height:1.45;}
+.inter{flex:none;width:50px;height:30px;border-radius:var(--r-p);background:var(--paille-3);
+  position:relative;transition:background var(--duree-sortie);}
+.inter::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+  background:var(--blanc);box-shadow:var(--o1);
+  transition:transform var(--duree-sortie) var(--ressort);}
+.reglage[aria-pressed="true"] .inter{background:var(--rouille);}
+.reglage[aria-pressed="true"] .inter::after{transform:translateX(20px);}
 #d-corps{flex:1;overflow-y:auto;scrollbar-width:none;}
 #d-corps::-webkit-scrollbar{display:none;}
 .d-hero{height:290px;position:relative;}
@@ -231,9 +403,9 @@ img{max-width:100%;display:block;}
 .pi-f{margin-left:auto;color:var(--encre-3);}
 
 /* barre d'action collante (Airbnb) */
-#d-barre{flex:none;padding:12px 20px 26px;background:var(--blanc);border-top:1px solid var(--trait);
-  display:flex;align-items:center;gap:14px;}
-.d-prix{flex:1;min-width:0;}
+#d-barre{flex:none;padding:12px 20px 24px;background:var(--blanc);border-top:1px solid var(--trait);
+  display:flex;flex-direction:column;gap:10px;}
+.d-prix{min-width:0;}
 .d-p1{font-size:15px;font-weight:800;}
 .d-p2{font-size:12.5px;color:var(--encre-3);margin-top:1px;}
 .btn{min-height:var(--cible-minimum);padding:0 22px;border-radius:var(--r-b);background:var(--rouille);
@@ -242,6 +414,10 @@ img{max-width:100%;display:block;}
 .btn:active{transform:scale(.96);background:var(--rouille-f);}
 .btn.large{width:100%;}
 .btn.creux{background:var(--paille-2);color:var(--encre);}
+/* L'action d'engagement est sombre, pas colorée : chez Uber comme chez Bolt
+   c'est le noir qui dit « validez », et l'accent reste libre pour ailleurs. */
+.btn.sombre{background:var(--encre);color:var(--paille);min-height:54px;font-size:16px;font-weight:800;}
+.btn.sombre:active{background:var(--encre-2);}
 
 /* ═══ ÉTATS VIDES / LISTES SIMPLES ═══ */
 .titre{padding:20px 18px 4px;}
@@ -256,9 +432,12 @@ img{max-width:100%;display:block;}
 .rangee:active{background:var(--paille-2);}
 .r-i{width:56px;height:56px;flex:none;border-radius:var(--r-b);}
 .r-c{flex:1;min-width:0;}
-.r-n{font-size:14.5px;font-weight:700;line-height:1.25;}
-.r-s{font-size:13px;color:var(--encre-3);margin-top:2px;}
-.r-m{font-family:var(--fm);font-size:11px;color:var(--encre-2);margin-top:4px;}
+.r-n{display:block;font-size:14.5px;font-weight:700;line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.r-s{display:block;font-size:13px;color:var(--encre-3);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.r-m{display:block;font-family:var(--fm);font-size:11px;color:var(--encre-2);margin-top:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .jauge{height:5px;border-radius:3px;background:var(--paille-3);overflow:hidden;margin-top:8px;}
 .jauge i{display:block;height:100%;background:var(--rouille);border-radius:3px;}
 .stat-g{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:0 18px;}
@@ -293,7 +472,10 @@ img{max-width:100%;display:block;}
     <div class="n-i"><span class="n-s">Catégories</span><span><b>Un rail, pas des onglets</b>Icône et libellé, soulignement sur l'actif. Change le contenu sans changer d'écran.</span></div>
     <div class="n-i"><span class="n-s">Cartes</span><span><b>L'image d'abord</b>Grand format, coin arrondi, cœur en haut à droite. Le texte tient en trois lignes hiérarchisées.</span></div>
     <div class="n-i"><span class="n-s">Carte</span><span><b>Des pastilles, pas des épingles</b>Chaque point porte sa distance. Un carrousel de mini-cartes en bas suit la sélection.</span></div>
-    <div class="n-i"><span class="n-s">Fiche</span><span><b>Barre d'action collante</b>Le résumé à gauche, l'action à droite, toujours visible. Le profil altimétrique vient des traces GPX réelles.</span></div>
+    <div class="n-i"><span class="n-s">Fiche</span><span><b>Une seule action, pleine largeur</b>Le résumé au-dessus, l'engagement en dessous — la forme d'Uber et de Bolt. Le profil altimétrique vient des traces GPX réelles et se dessine à l'ouverture.</span></div>
+    <div class="n-i"><span class="n-s">Sortie</span><span><b>Le trajet en cours</b>Une fois lancée, la sortie ne quitte plus l'écran : barre réduite au-dessus des onglets, plein écran au toucher. Le point avance sur le profil du sentier.</span></div>
+    <div class="n-i"><span class="n-s">Arrivée</span><span><b>Le moment</b>Coche qui se trace, puis les chiffres qui montent. La récompense arrive en second, jamais avant l'effort.</span></div>
+    <div class="n-i"><span class="n-s">Élan</span><span><b>Une progression sans punition</b>L'anneau monte quand vous marchez et ne redescend jamais. Désactivable dans Compte. Une seule chose boucle dans toute l'application : le point du direct.</span></div>
     <div class="n-l">
       <a href="v1-etude.html">Prototype d'étude</a>
       <a href="../docs/04-directions-visuelles.md">Directions visuelles</a>
@@ -337,6 +519,59 @@ img{max-width:100%;display:block;}
         </button>
       </div>
       <div id="carte-bas"></div>
+    </div>
+
+    <!-- Sortie en cours : le trajet en cours d'Uber. Elle ne quitte plus
+         l'écran tant qu'on n'a pas terminé. -->
+    <div id="course">
+      <button id="c-carte">
+        <span id="c-haut">
+          <span id="c-nom">—</span>
+          <span id="c-chrono">0:00</span>
+        </span>
+        <span id="c-jauge"><i></i></span>
+        <span id="c-bas">
+          <span class="direct clair"><span class="pt-d"></span>en cours</span>
+          <span id="c-km">0,0 km</span>
+        </span>
+      </button>
+    </div>
+
+    <div id="plein">
+      <div id="p-haut">
+        <button id="p-reduire" aria-label="Réduire">
+          <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <span class="direct clair"><span class="pt-d"></span>sortie en cours</span>
+        <span style="width:48px"></span>
+      </div>
+      <div id="p-corps">
+        <div id="p-profil"></div>
+        <div id="p-nom">—</div>
+        <div id="p-lieu">—</div>
+        <div id="p-chrono">0:00</div>
+        <div id="p-chiffres">
+          <div class="p-ch"><div class="p-cv" id="p-km">0,0</div><div class="p-cl">kilomètres</div></div>
+          <div class="p-ch"><div class="p-cv" id="p-dp">0</div><div class="p-cl">D+ mètres</div></div>
+          <div class="p-ch"><div class="p-cv" id="p-alt">0</div><div class="p-cl">altitude</div></div>
+        </div>
+        <div id="p-jauge"><i></i></div>
+        <div id="p-reste">—</div>
+      </div>
+      <div id="p-barre"><button id="p-fin">Terminer la sortie</button></div>
+    </div>
+
+    <!-- Le moment : la confirmation d'Uber, transposée à l'arrivée. -->
+    <div id="moment">
+      <div id="m-rond"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+      <div id="m-t">—</div>
+      <div id="m-s">—</div>
+      <div id="m-ch">
+        <div class="m-c"><div class="m-cv" id="m-km">0</div><div class="m-cl">kilomètres</div></div>
+        <div class="m-c"><div class="m-cv" id="m-dp">0</div><div class="m-cl">D+ mètres</div></div>
+        <div class="m-c"><div class="m-cv" id="m-t2">0</div><div class="m-cl">minutes</div></div>
+      </div>
+      <button class="btn" id="m-ok">Voir mes sorties</button>
     </div>
 
     <nav id="onglets">
@@ -542,11 +777,187 @@ const DIFF_CL = { "Facile":"d-f", "Intermédiaire":"d-m", "Difficile":"d-d" };
 
 /* ══ ÉTAT ══ */
 const AIMES = "ppo_aimes";
+const ELAN_CLE = "ppo_elan";
 const S = {
   onglet: "explorer", cat: "poi-rando", carte: false,
   aimes: new Set(JSON.parse(localStorage.getItem(AIMES) || "[]")),
-  selection: null, faits: new Set()
+  selection: null, faits: new Set(), journal: [],
+  elanVisible: localStorage.getItem(ELAN_CLE) !== "0",
+  objectif: 2   /* sorties par semaine, choisi par la personne, pas par nous */
 };
+
+/* ══════════════════════════════════════════════════════════
+   MOUVEMENT — outils
+   ══════════════════════════════════════════════════════════ */
+const SOBRE = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Le chiffre qui monte. Chez Bolt c'est le prix, ici c'est le kilomètre
+   gagné : la même mécanique, une récompense qui n'est pas achetée. */
+function rouler(el, de, vers, ms, fmt){
+  if (!el) return;
+  const f = fmt || (v => Math.round(v));
+  if (SOBRE()) { el.textContent = f(vers); return; }
+  const t0 = performance.now();
+  const pas = t => {
+    const k = Math.min(1, (t - t0) / ms);
+    const e = 1 - Math.pow(1 - k, 4);        /* sortie douce, jamais de rebond sur un chiffre */
+    el.textContent = f(de + (vers - de) * e);
+    if (k < 1) requestAnimationFrame(pas);
+  };
+  requestAnimationFrame(pas);
+}
+
+/* Entrée échelonnée : on repose la classe pour que l'animation rejoue
+   à chaque rendu, sinon le navigateur la considère déjà consommée. */
+function echelonner(sel){
+  if (SOBRE()) return;
+  $$(sel).forEach(el => { el.classList.remove("surgit"); void el.offsetWidth; el.classList.add("surgit"); });
+}
+
+const deuxChiffres = n => (n < 10 ? "0" : "") + n;
+const chrono = sec => Math.floor(sec / 3600) > 0
+  ? Math.floor(sec / 3600) + ":" + deuxChiffres(Math.floor(sec / 60) % 60) + ":" + deuxChiffres(sec % 60)
+  : Math.floor(sec / 60) + ":" + deuxChiffres(sec % 60);
+const vgl = n => String(n).replace(".", ",");
+
+/* ══════════════════════════════════════════════════════════
+   SORTIE EN COURS — le trajet en cours d'Uber
+   Un seul état vivant dans l'application, et il dit la vérité :
+   tant qu'il est là, quelque chose est réellement en train de se faire.
+   ══════════════════════════════════════════════════════════ */
+const ACCEL = 60;   /* démonstration : une seconde réelle vaut une minute */
+const C = { cle: null, t0: 0, minutes: 0, timer: null };
+
+function altitudeA(p, part){
+  if (!p.profil || p.profil.length < 2) return null;
+  const km = p.profil[p.profil.length - 1][0] * part;
+  for (let i = 1; i < p.profil.length; i++){
+    if (p.profil[i][0] >= km){
+      const [k0, a0] = p.profil[i - 1], [k1, a1] = p.profil[i];
+      const u = k1 === k0 ? 0 : (km - k0) / (k1 - k0);
+      return Math.round(a0 + (a1 - a0) * u);
+    }
+  }
+  return p.profil[p.profil.length - 1][1];
+}
+
+/* Le profil vivant : la ligne complète en sourdine, la part parcourue en
+   corail, et le point où l'on se trouve. */
+function profilVivant(p){
+  if (!p.profil || p.profil.length < 2) return "";
+  const alts = p.profil.map(q => q[1]), kms = p.profil.map(q => q[0]);
+  const mn = Math.min(...alts), mx = Math.max(...alts), kmax = kms[kms.length - 1];
+  const amp = Math.max(1, mx - mn);
+  const xy = p.profil.map(q =>
+    [(q[0] / kmax) * 300, 96 - ((q[1] - mn) / amp) * 84]);
+  const pts = xy.map(c => c[0].toFixed(1) + "," + c[1].toFixed(1)).join(" ");
+  /* Longueur calculée, pas mesurée : getTotalLength() lève une exception
+     tant que l'élément n'est pas rendu, et l'écran est encore caché ici.
+     Pour une polyligne la somme des segments est exacte, en unités du
+     viewBox — ce qu'attend stroke-dasharray. */
+  C.long = xy.reduce((n, c, i) =>
+    i ? n + Math.hypot(c[0] - xy[i-1][0], c[1] - xy[i-1][1]) : 0, 0);
+  /* Échelle uniforme : avec preserveAspectRatio="none" le point deviendrait
+     une ellipse écrasée. */
+  return '<svg viewBox="0 0 300 100" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Progression sur le profil">' +
+    '<polyline class="fond" points="' + pts + '"/>' +
+    '<polyline class="fait" points="' + pts + '"/>' +
+    '<circle class="ici" r="5" cx="0" cy="96"/></svg>' +
+    '<div class="ech"><span>' + mn + " m</span><span>" + vgl(kmax.toFixed(1)) + " km</span><span>" + mx + " m</span></div>";
+}
+
+function lancerSortie(cle){
+  const p = parCle(cle); if (!p || p.cat !== "poi-rando") return;
+  C.cle = cle; C.t0 = performance.now(); C.minutes = 0;
+  $("#c-nom").textContent = p.nom;
+  $("#p-nom").textContent = p.nom;
+  $("#p-lieu").textContent = sousTitre(p);
+  C.long = 0;
+  $("#p-profil").innerHTML = profilVivant(p);
+  const f = $("#p-profil .fait");
+  if (f && C.long) { f.style.strokeDasharray = C.long.toFixed(1); f.style.strokeDashoffset = C.long.toFixed(1); }
+  $("#tel").classList.add("en-course");
+  clearInterval(C.timer);
+  C.timer = setInterval(battre, 1000);
+  battre();
+  montrerPlein(true);
+}
+
+/* Réduit et plein écran sont deux états d'un même objet, jamais les deux à
+   la fois : sans ça deux points du direct pulsent ensemble et le quota
+   déclaré (un seul clignotement dans l'application) saute. */
+function montrerPlein(v){
+  $("#plein").classList.toggle("on", v);
+  $("#course").classList.toggle("on", !v && !!C.cle);
+}
+
+function battre(){
+  const p = parCle(C.cle); if (!p) return;
+  C.minutes = (performance.now() - C.t0) / 1000 * ACCEL / 60;
+  const heures = C.minutes / 60;
+  const km = Math.min(p.km, heures * 4);              /* 4 km/h, l'allure de Naismith */
+  const part = p.km ? km / p.km : 0;
+  const dp = Math.round((p.denivele || 0) * part);
+  const sec = Math.round(C.minutes * 60);
+
+  $("#c-chrono").textContent = chrono(sec);
+  $("#c-km").textContent = vgl(km.toFixed(1)) + " km";
+  $("#c-jauge i").style.width = (part * 100).toFixed(1) + "%";
+  $("#p-chrono").textContent = chrono(sec);
+  $("#p-km").textContent = vgl(km.toFixed(1));
+  $("#p-dp").textContent = dp;
+  const alt = altitudeA(p, part);
+  $("#p-alt").textContent = alt === null ? "—" : alt + " m";
+  $("#p-jauge i").style.width = (part * 100).toFixed(1) + "%";
+  const f = $("#p-profil .fait");
+  if (f && C.long) f.style.strokeDashoffset = (C.long * (1 - part)).toFixed(1);
+  const ici = $("#p-profil .ici");
+  if (ici && p.profil){
+    const alts = p.profil.map(q => q[1]);
+    const mn = Math.min(...alts), amp = Math.max(1, Math.max(...alts) - mn);
+    ici.setAttribute("cx", (part * 300).toFixed(1));
+    ici.setAttribute("cy", (96 - (((alt ?? mn) - mn) / amp) * 84).toFixed(1));
+  }
+  const reste = Math.max(0, p.km - km);
+  $("#p-reste").textContent = reste < 0.05
+    ? "Vous êtes arrivé — terminez quand vous voulez."
+    : vgl(reste.toFixed(1)) + " km restants · " + Math.round(part * 100) + " %";
+  if (km >= p.km) { clearInterval(C.timer); C.timer = null; }
+}
+
+function terminerSortie(){
+  const p = parCle(C.cle); if (!p) return;
+  clearInterval(C.timer); C.timer = null;
+  const heures = C.minutes / 60;
+  const km = Math.min(p.km, heures * 4);
+  const part = p.km ? km / p.km : 0;
+  const dp = Math.round((p.denivele || 0) * part);
+  const complet = part > 0.97;
+
+  if (complet) S.faits.add(p.cle);
+  S.journal.push({ cle: p.cle, t: Date.now(), km: +km.toFixed(1), dp, min: Math.round(C.minutes) });
+  C.cle = null;
+  montrerPlein(false);
+  $("#tel").classList.remove("en-course");
+
+  $("#m-t").textContent = complet ? "Sentier bouclé" : "Sortie enregistrée";
+  $("#m-s").textContent = complet
+    ? p.nom + " est dans vos sorties. Le récit du lieu reste lisible hors ligne."
+    : "Vous vous êtes arrêté avant la fin — c'est compté quand même, sans pénalité.";
+  $("#moment").classList.add("on");
+  /* Les chiffres montent après la coche : la récompense arrive en deuxième. */
+  const apres = SOBRE() ? 0 : 420;
+  setTimeout(() => {
+    rouler($("#m-km"), 0, km, 900, v => vgl(v.toFixed(1)));
+    rouler($("#m-dp"), 0, dp, 900);
+    rouler($("#m-t2"), 0, Math.round(C.minutes), 900);
+  }, apres);
+}
+
+function fermerMoment(){
+  $("#moment").classList.remove("on");
+  allerA("sorties");
+}
 const enregistrerAimes = () => {
   try { localStorage.setItem(AIMES, JSON.stringify([...S.aimes])); } catch(e) {}
 };
@@ -593,7 +1004,16 @@ const etiquette = p => p.cat === "poi-rando" ? String(p.km).replace(".", ",") + 
 /* ══ ÉCRAN EXPLORER ══ */
 function ecranExplorer(){
   const l = items();
-  return '<div class="liste">' + l.map(carte).join("") + "</div>" +
+  /* Le chiffre est compté sur les données, jamais gonflé pour la promesse.
+     On cherche dans tout le fonds, pas dans la catégorie affichée : les
+     récits sont attachés aux lieux d'histoire, pas aux sentiers. */
+  const lus = new Set(S.journal.map(e => e.cle));
+  const aLire = PLACES.filter(p => RECIT_PAR_ID[p.id] && !lus.has(p.cle));
+  const tete = aLire.length
+    ? appel(aLire[0], aLire.length + " récit" + (aLire.length > 1 ? "s" : "") + " vous attend" + (aLire.length > 1 ? "ent" : ""),
+            "À commencer par " + aLire[0].nom + " · lisible hors ligne")
+    : "";
+  return tete + '<div class="liste">' + l.map(carte).join("") + "</div>" +
     '<div class="fin">' + l.length + " lieu" + (l.length > 1 ? "x" : "") + " · c'est tout</div><div class=\"bas\"></div>";
 }
 function carte(p){
@@ -620,29 +1040,76 @@ function ecranFavoris(){
 }
 
 /* ══ SORTIES ══ */
+const SEMAINE = 7 * 24 * 3600 * 1000;
+const cetteSemaine = () => S.journal.filter(e => Date.now() - e.t < SEMAINE);
+
+/* L'élan, pas la série. La différence tient en une règle : il monte quand
+   vous marchez, il ne descend jamais pour vous punir de ne pas l'avoir fait.
+   C'est l'endroit exact où Uber et Bolt basculent — et où on s'arrête. */
+function blocElan(){
+  if (!S.elanVisible) return "";
+  const n = cetteSemaine().length, but = S.objectif;
+  const part = Math.min(1, but ? n / but : 0), tour = 2 * Math.PI * 26;
+  return '<div class="elan">' +
+    '<div class="elan-r"><svg viewBox="0 0 62 62" aria-hidden="true">' +
+      '<circle class="fond" cx="31" cy="31" r="26"/>' +
+      '<circle class="arc" cx="31" cy="31" r="26" style="--tour:' + tour.toFixed(1) +
+        ';stroke-dashoffset:' + (tour * (1 - part)).toFixed(1) + '"/></svg>' +
+      '<span class="elan-n">' + n + "/" + but + "</span></div>" +
+    '<span class="elan-c"><span class="elan-t">' +
+      (n >= but ? "Objectif tenu" : n ? "En route" : "La semaine commence") + "</span>" +
+      '<span class="elan-p">' +
+      (n >= but ? "Vous avez marché " + n + " fois cette semaine. Rien à tenir, rien à perdre."
+                : "Objectif : " + but + " sorties par semaine. Il ne redescend pas si vous sautez une semaine.") +
+      "</span></span></div>";
+}
+
 function ecranSorties(){
-  const faites = TRAILS.filter(t => S.faits.has(t.cle));
-  const km = faites.reduce((n, t) => n + t.km, 0);
-  const dp = faites.reduce((n, t) => n + t.denivele, 0);
+  /* L'historique et les chiffres lisent la même source : sinon l'écran
+     affiche « 1 sortie » au-dessus de « aucune sortie enregistrée ». */
+  const faites = S.journal.slice().reverse();
+  const km = S.journal.reduce((n, e) => n + e.km, 0);
+  const dp = S.journal.reduce((n, e) => n + e.dp, 0);
+  const suite = TRAILS.find(t => !S.faits.has(t.cle));
   return '<div class="titre"><div class="t-1">Vos sorties</div><div class="t-2">Ce que vous avez marché cette saison</div></div>' +
+    blocElan() +
     '<div class="stat-g" style="margin-top:14px">' +
-      '<div class="st"><div class="st-v">' + faites.length + '</div><div class="st-l">sorties</div></div>' +
-      '<div class="st"><div class="st-v">' + km.toFixed(1).replace(".", ",") + '</div><div class="st-l">kilomètres</div></div>' +
-      '<div class="st"><div class="st-v">' + dp + '</div><div class="st-l">mètres de D+</div></div>' +
-      '<div class="st"><div class="st-v">' + S.aimes.size + '</div><div class="st-l">favoris</div></div></div>' +
+      '<div class="st"><div class="st-v" data-roule="' + S.journal.length + '">0</div><div class="st-l">sorties</div></div>' +
+      '<div class="st"><div class="st-v" data-roule="' + km.toFixed(1) + '" data-dec="1">0</div><div class="st-l">kilomètres</div></div>' +
+      '<div class="st"><div class="st-v" data-roule="' + dp + '">0</div><div class="st-l">mètres de D+</div></div>' +
+      '<div class="st"><div class="st-v" data-roule="' + S.aimes.size + '">0</div><div class="st-l">favoris</div></div></div>' +
+    (suite ? appel(suite, "Et après ?", "Continuez sur " + suite.nom + " · " + vgl(suite.km) + " km") : "") +
     (faites.length
       ? '<div class="titre"><div class="t-1" style="font-size:20px">Historique</div></div>' +
-        faites.map(t => rangee(t, "Terminée")).join("")
+        faites.map(e => {
+          const t = parCle(e.cle);
+          return t ? rangee(t, S.faits.has(e.cle) ? "Bouclée" : "Partielle", e) : "";
+        }).join("")
       : '<div class="vide"><svg viewBox="0 0 24 24"><path d="M5 20 9 9l3.5 4.5L15 8l4 12Z"/><circle cx="17" cy="5" r="2"/></svg>' +
         '<div class="vide-t">Aucune sortie enregistrée</div><div class="vide-p">Ouvrez une randonnée et lancez-la : elle apparaîtra ici avec sa distance et son dénivelé.</div></div>') +
     '<div class="bas"></div>';
 }
-function rangee(p, note){
+
+/* L'incitation — mais elle ne promet que ce qui existe vraiment. */
+function appel(p, titre, sous){
+  return '<button class="appel" data-cle="' + p.cle + '">' +
+    '<span class="appel-i"><svg viewBox="0 0 24 24">' +
+      (p.cat === "poi-monument" ? ICO.monument : p.cat === "poi-evenement" ? ICO.event : ICO.rando) +
+      "</svg></span>" +
+    '<span class="appel-c"><span class="appel-t">' + ech(titre) + "</span>" +
+    '<span class="appel-s">' + ech(sous) + "</span></span>" +
+    '<span class="appel-f"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><path d="m9 5 7 7-7 7"/></svg></span></button>';
+}
+function rangee(p, note, e){
+  /* Quand la sortie est au journal, on affiche ce qui a été marché,
+     pas la longueur théorique du sentier. */
+  const km = e ? e.km : p.km;
   return '<button class="rangee" data-cle="' + p.cle + '">' +
     '<span class="r-i" style="background:' + fondDeCarte(p) + '"></span>' +
     '<span class="r-c"><span class="r-n">' + ech(p.nom) + '</span>' +
     '<span class="r-s">' + ech(sousTitre(p)) + '</span>' +
-    '<span class="r-m">' + (note ? note + " · " : "") + String(p.km ?? "").replace(".", ",") + (p.km ? " km" : "") + "</span></span>" +
+    '<span class="r-m">' + (note ? note + " · " : "") + vgl(String(km ?? "")) + (km ? " km" : "") +
+      (e ? " · " + e.dp + " m D+" : "") + "</span></span>" +
     '<span class="pi-f"><svg class="ico" viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:1.9"><path d="m9 5 7 7-7 7"/></svg></span></button>';
 }
 
@@ -654,8 +1121,14 @@ function ecranCompte(){
       '<button class="btn large">Créer un compte</button>' +
       '<div style="height:10px"></div><button class="btn large creux">Se connecter</button>' +
       '<div class="d-sep"></div>' +
+      '<div class="d-h">Élan</div>' +
+      '<button class="reglage" id="r-elan" aria-pressed="' + (S.elanVisible ? "true" : "false") + '">' +
+        '<span class="reglage-c"><span class="reglage-t">Afficher l\'élan de la semaine</span>' +
+        '<span class="reglage-s">Un objectif que vous choisissez. Il monte quand vous marchez et ne redescend jamais : sauter une semaine ne coûte rien.</span></span>' +
+        '<span class="inter"></span></button>' +
+      '<div class="d-sep"></div>' +
       '<div class="d-h">Ce que l\'application ne fait pas</div>' +
-      '<div class="d-p">Pas de série quotidienne, pas de classement, pas de compteur public. Deux notifications par semaine au maximum, réglables à zéro. Vos traces restent privées. Aucune publicité, aucune revente de données.</div>' +
+      '<div class="d-p">Pas de série quotidienne à ne pas briser, pas de classement, pas de compteur public. Une seule chose clignote dans toute l\'application : le point d\'une sortie réellement en cours. Deux notifications par semaine au maximum, réglables à zéro. Vos traces restent privées. Aucune publicité, aucune revente de données.</div>' +
     "</div><div class=\"bas\"></div>";
 }
 
@@ -665,8 +1138,30 @@ function rendre(){
   $("#e-" + S.onglet).innerHTML = ECRANS[S.onglet]();
   brancher();
   $("#rc-2").textContent = (CATS.find(c => c.id === S.cat)?.l ?? "Tout") + " · Pyrénées-Orientales";
+  /* Le contenu ne se pose pas d'un coup : il arrive. */
+  echelonner("#e-" + S.onglet + " .liste > *");
+  echelonner("#e-" + S.onglet + " .stat-g > *");
+  /* Les compteurs montent depuis zéro à chaque fois qu'on revient : c'est
+     la seconde où l'on voit ce qu'on a gagné. */
+  $$("#e-" + S.onglet + " [data-roule]").forEach(el => {
+    const v = +el.dataset.roule, dec = el.dataset.dec === "1";
+    rouler(el, 0, v, 900, x => dec ? vgl(x.toFixed(1)) : String(Math.round(x)));
+  });
+  /* L'arc de l'élan part de zéro puis se remplit. */
+  const arc = $("#e-" + S.onglet + " .elan-r .arc");
+  if (arc && !SOBRE()){
+    const cible = arc.style.strokeDashoffset;
+    arc.style.strokeDashoffset = arc.style.getPropertyValue("--tour");
+    requestAnimationFrame(() => requestAnimationFrame(() => { arc.style.strokeDashoffset = cible; }));
+  }
 }
 function brancher(){
+  const re = $("#r-elan");
+  if (re) re.onclick = () => {
+    S.elanVisible = !S.elanVisible;
+    localStorage.setItem(ELAN_CLE, S.elanVisible ? "1" : "0");
+    re.setAttribute("aria-pressed", S.elanVisible ? "true" : "false");
+  };
   $$("[data-cle]").forEach(el => el.onclick = e => {
     if (e.target.closest("[data-aime]")) return;
     ouvrir(el.dataset.cle);
@@ -699,7 +1194,7 @@ function profilSvg(profil){
   return '<div class="profil"><svg viewBox="0 0 300 96" preserveAspectRatio="none" role="img" ' +
       'aria-label="Profil altimétrique de ' + mn + ' à ' + mx + ' mètres sur ' + kmax + ' kilomètres">' +
       '<polygon points="0,96 ' + pts.join(" ") + ' 300,96" fill="rgba(166,58,24,.14)"></polygon>' +
-      '<polyline points="' + pts.join(" ") + '" fill="none" stroke="var(--rouille)" stroke-width="2.2" ' +
+      '<polyline class="d-trace" points="' + pts.join(" ") + '" fill="none" stroke="var(--rouille)" stroke-width="2.2" ' +
       'stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline></svg>' +
       '<div class="profil-l"><span>' + mn + ' m</span><span>' + kmax.toFixed(1).replace(".", ",") + ' km</span><span>' + mx + " m</span></div></div>";
 }
@@ -732,23 +1227,34 @@ function ouvrir(cle){
       pratique(p) +
       '<div style="height:26px"></div></div>';
 
-  const action = p.cat === "poi-evenement" ? "Y aller" : "Démarrer";
+  /* Barre d'action : le résumé sur une ligne, puis UNE action pleine
+     largeur — la forme d'Uber et de Bolt. Un seul geste possible, en bas,
+     là où le pouce est déjà. */
+  const action = p.cat === "poi-rando" ? "C'est parti" : p.cat === "poi-evenement" ? "Y aller" : "S'y rendre";
   $("#d-barre").innerHTML =
     '<div class="d-prix"><div class="d-p1">' + (p.cat === "poi-rando" ? p.duree + " · " + p.diff : ech(p.commune ?? p.lieu)) + "</div>" +
     '<div class="d-p2">' + (p.cat === "poi-rando" ? "Départ à " + ech(p.commune) : "Accès libre") + "</div></div>" +
-    '<button class="btn" id="d-go">' + action + "</button>";
+    '<button class="btn large sombre" id="d-go">' + action + "</button>";
 
   $("#detail").classList.add("on");
   $("#d-x").onclick = fermer;
   $("#d-go").onclick = () => {
-    if (p.cat === "poi-rando") S.faits.add(p.cle);
     fermer();
-    allerA("sorties");
+    if (p.cat !== "poi-rando") { allerA("explorer"); entrerCarte(); selectionner(p.cle); return; }
+    lancerSortie(p.cle);
   };
   $$("#detail [data-aime]").forEach(b => b.onclick = () => {
     basculerAime(b.dataset.aime); b.classList.toggle("aime");
   });
   $("#d-corps").scrollTop = 0;
+  /* Le tracé se dessine : chez Uber c'est l'itinéraire qui apparaît, ici
+     c'est la montée. Il faut la longueur réelle du trait, que seul le
+     navigateur connaît une fois l'élément posé. */
+  const tr = $("#d-corps .d-trace");
+  if (tr && !SOBRE()){
+    const L = tr.getTotalLength();
+    tr.style.setProperty("--long", L.toFixed(1));
+  }
 }
 function pratique(p){
   const lignes = p.cat === "poi-rando"
@@ -995,6 +1501,12 @@ function quitterCarte(){
   $("#bascule-l").textContent = "Carte";
   $("#bascule").querySelector("svg").innerHTML = '<path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4v13"/>';
 }
+/* ── sortie en cours ── */
+$("#c-carte").onclick = () => montrerPlein(true);
+$("#p-reduire").onclick = () => montrerPlein(false);
+$("#p-fin").onclick = terminerSortie;
+$("#m-ok").onclick = fermerMoment;
+
 $("#bascule").onclick = () => S.carte ? quitterCarte() : entrerCarte();
 $("#carte-retour").onclick = quitterCarte;
 $("#btn-recherche").onclick = () => { S.cat = "all"; rendreCats(); rendre(); };

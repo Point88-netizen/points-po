@@ -69,11 +69,20 @@ const mesurer = () => p.evaluate(({ CIBLE_MIN, CIBLE_ANNO }) => {
   const nbAnno = toutes.filter(c => c.anno).length;
 
   /* 2 · éléments qui bougent en boucle */
-  const anim = [...document.querySelectorAll("*")].filter(el => {
-    if (!visible(el)) return false;
-    const s = getComputedStyle(el);
-    return s.animationName !== "none" && (s.animationIterationCount === "infinite" || +s.animationIterationCount > 3);
-  }).map(el => ({ nom: nomme(el), animation: getComputedStyle(el).animationName }));
+  /* Les pseudo-éléments comptent : un halo qui pulse vit presque toujours
+     dans un ::after, et l'ignorer laissait passer toutes les boucles de
+     l'application sous la règle du « une seule ». */
+  const boucle = s => s.animationName !== "none" &&
+    (s.animationIterationCount === "infinite" || +s.animationIterationCount > 3);
+  const anim = [];
+  for (const el of document.querySelectorAll("*")){
+    if (!visible(el)) continue;
+    for (const pseudo of [null, "::before", "::after"]){
+      const s = getComputedStyle(el, pseudo);
+      if (pseudo && s.content === "none") continue;
+      if (boucle(s)) anim.push({ nom: nomme(el) + (pseudo || ""), animation: s.animationName });
+    }
+  }
 
   /* 3 · contraste réellement rendu */
   const canal = c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
@@ -145,6 +154,8 @@ const mesurer = () => p.evaluate(({ CIBLE_MIN, CIBLE_ANNO }) => {
    l'écran d'accueil pour compter. */
 const rapport = await mesurer();
 const etapes = [];
+/* Le plus grand nombre de boucles vues SIMULTANÉMENT sur une étape. */
+let maxSimultane = rapport.anim.length;
 for (const sel of parcours){
   try {
     await p.locator(sel).first().click({ timeout: 4000 });
@@ -153,6 +164,7 @@ for (const sel of parcours){
     etapes.push(sel);
     rapport.total += r.total;
     rapport.nbAnno += r.nbAnno;
+    maxSimultane = Math.max(maxSimultane, r.anim.length);
     for (const k of ["petites", "petitesAnno", "anim", "faibles", "accents", "collees"])
       rapport[k] = [...rapport[k], ...r[k]];
     rapport.nbFaibles += r.nbFaibles;
@@ -160,6 +172,13 @@ for (const sel of parcours){
 }
 /* Une même paire collée revue à chaque étape ne compte qu'une fois. */
 rapport.collees = [...new Set(rapport.collees)];
+/* Le quota porte sur ce qui boucle EN MÊME TEMPS à l'écran, pas sur la
+   somme des étapes : sans ça un parcours de sept écrans multiplie par sept
+   le même point du direct et le chiffre ne veut plus rien dire. */
+const vus = new Map();
+for (const a of rapport.anim) vus.set(a.animation + "|" + a.nom, a);
+rapport.anim = [...vus.values()];
+rapport.anim = rapport.anim.slice(0, maxSimultane);
 rapport.accents = [...new Set(rapport.accents)];
 
 await b.close();
