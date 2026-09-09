@@ -2,730 +2,561 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<!-- Pas de maximum-scale : bloquer le zoom est un défaut d'accessibilité (WCAG 1.4.4). -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Camins — prototype · Points P-O</title>
-<meta name="description" content="Prototype interactif de Camins : l'application de randonnée narrative de l'Occitanie. Récits géolocalisés, Veillée hebdomadaire, Cabinet — et les garde-fous anti-dépendance.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Camins — l'Occitanie, sentier après récit</title>
+<meta name="description" content="Interface de Camins : carte plein écran, feuille à trois crans, lecteur d'Éclat, mode Sentier. Application de randonnée narrative en Occitanie.">
+<meta name="theme-color" content="#0E0D0B">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Source+Sans+3:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-<!-- Tokens générés par design/construire.mjs — source : design/tokens/*.json -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,400;1,500;1,600&family=Source+Sans+3:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../design/build/tokens.css">
 <style>
+/* ═════════════════════════════════════════════════════════════
+   CAMINS — SYSTÈME D'INTERFACE
+   Carte d'état-major (direction 01) portée à l'échelle d'une
+   application grand public. Les codes empruntés sont annotés
+   au fil du fichier : Apple Maps, Apple Music, Waze, Instagram,
+   Whatnot, AllTrails.
+   ═════════════════════════════════════════════════════════════ */
 :root{
-  --red:#C8201A; --red-d:#A01812;
-  --green:#1E6B1A; --green-d:#155213;
-  --yellow:#F5D800; --gold:#C49A3C; --amber:#7A5000;
-  --paper:#FAFAF7; --paper2:#F2F0EB; --paper3:#E8E4DC; --stone:#D6D0C4;
-  --ink:#1A1814; --ink-70:rgba(26,24,20,.7); --ink-40:rgba(26,24,20,.4); --ink-15:rgba(26,24,20,.15);
-  --white:#fff;
+  /* fonds */
+  --pap:#F6F2E8; --pap-2:#EDE7D8; --pap-3:#E0D8C4;
+  --surf:rgba(252,250,244,.86); --surf-plein:#FCFAF4; --surf-2:#F2EDE0;
+  /* encres */
+  --ink:#211B12; --ink-2:#5A5142; --ink-3:#736858; --ink-4:#A99E8B;
+  /* accents */
+  --bistre:#8C4A22; --bistre-2:#6E3818; --bistre-soft:rgba(140,74,34,.12);
+  --vert:#2A5A22; --vert-soft:rgba(42,90,34,.14);
+  --or:#8A6524; --alerte:#B8342B;
+  --jaune:#E8C400;                    /* réservé au déverrouillage */
+  --ligne:rgba(33,27,18,.10); --ligne-2:rgba(33,27,18,.06);
+  /* carte */
+  --carte-eau:#A8BFC4; --carte-bas:#E6DCC0; --carte-mid:#CBBF98;
+  --carte-haut:#B9AE8C; --carte-roc:#CFC7B6; --carte-neige:#F2EFE6;
+  --carte-vert:#B3BE92; --carte-trait:rgba(120,96,60,.45);
+  /* ombres — trois niveaux, jamais plus */
+  --o1:0 1px 2px rgba(33,27,18,.06), 0 2px 6px rgba(33,27,18,.05);
+  --o2:0 2px 6px rgba(33,27,18,.08), 0 8px 22px rgba(33,27,18,.10);
+  --o3:0 -2px 10px rgba(33,27,18,.06), 0 -12px 40px rgba(33,27,18,.14);
+  /* formes */
+  --r-feuille:22px; --r-carte:16px; --r-pilule:999px; --r-bouton:14px;
   --fs:'Playfair Display',Georgia,serif;
-  --fb:'Source Sans 3',system-ui,sans-serif;
+  --fb:'Source Sans 3',system-ui,-apple-system,sans-serif;
   --fm:'DM Mono',ui-monospace,monospace;
-  --shell-w:392px; --shell-h:812px;
+  /* mouvement — tokens du système (design/tokens/duree.json) */
+  --ressort:cubic-bezier(.22,1.12,.36,1);
+}
+.nuit{
+  --pap:#12100D; --pap-2:#1A1713; --pap-3:#25211B;
+  --surf:rgba(28,24,19,.88); --surf-plein:#1C1813; --surf-2:#242019;
+  --ink:#F2ECE0; --ink-2:#B5AB99; --ink-3:#877E6E; --ink-4:#5C554A;
+  --bistre:#D08B5E; --bistre-2:#B9744A; --bistre-soft:rgba(208,139,94,.16);
+  --vert:#7FBF77; --vert-soft:rgba(127,191,119,.16);
+  --or:#D2A755; --alerte:#E4665F; --jaune:#F5D800;
+  --ligne:rgba(242,236,224,.12); --ligne-2:rgba(242,236,224,.07);
+  --carte-eau:#2C3E46; --carte-bas:#2A2721; --carte-mid:#3A342A;
+  --carte-haut:#4A4235; --carte-roc:#5A5245; --carte-neige:#6E6656;
+  --carte-vert:#333A2A; --carte-trait:rgba(210,180,130,.28);
+  --o1:0 1px 2px rgba(0,0,0,.30), 0 2px 6px rgba(0,0,0,.24);
+  --o2:0 2px 6px rgba(0,0,0,.36), 0 8px 22px rgba(0,0,0,.42);
+  --o3:0 -2px 10px rgba(0,0,0,.30), 0 -12px 40px rgba(0,0,0,.50);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
-body{
-  font-family:var(--fb);background:var(--ink);color:var(--ink);
-  display:flex;align-items:stretch;justify-content:center;
-}
+body{font-family:var(--fb);background:#0B0A08;color:var(--ink);
+  -webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;}
+button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer;}
 
-/* ═══ STAGE (desktop) ═══ */
-#stage{display:flex;gap:48px;align-items:center;justify-content:center;width:100%;max-width:1340px;padding:32px;}
+/* ── scène ── */
+#scene{display:flex;gap:44px;align-items:center;justify-content:center;width:100%;max-width:1280px;padding:28px;}
+#legende{flex:1;max-width:380px;color:rgba(255,255,255,.8);}
+.lg-t{font-family:var(--fs);font-size:30px;font-style:italic;color:#fff;line-height:1.14;margin-bottom:14px;}
+.lg-p{font-size:14.5px;font-weight:300;line-height:1.7;color:rgba(255,255,255,.56);margin-bottom:22px;}
+.lg-i{display:flex;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.1);font-size:13px;line-height:1.55;color:rgba(255,255,255,.55);}
+.lg-i b{color:#fff;font-weight:600;display:block;font-size:12px;letter-spacing:.02em;}
+.lg-s{font-family:var(--fm);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--jaune);flex:none;width:76px;padding-top:2px;}
+.lg-l{margin-top:20px;display:flex;gap:8px;flex-wrap:wrap;}
+.lg-l a{font-family:var(--fm);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.55);
+  text-decoration:none;border:1px solid rgba(255,255,255,.2);padding:9px 13px;border-radius:var(--r-pilule);}
+.lg-l a:hover{color:#fff;border-color:rgba(255,255,255,.55);}
 
-/* ─ colonne gauche : notes de conception ─ */
-#notes{flex:1;max-width:430px;color:rgba(255,255,255,.86);}
-.n-logo{display:flex;align-items:center;gap:12px;margin-bottom:26px;}
-.n-logo svg{flex:none;}
-.n-logo-t{font-family:var(--fs);font-size:24px;font-style:italic;color:#fff;}
-.n-logo-s{font-family:var(--fm);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);display:block;margin-top:2px;}
-.n-title{font-family:var(--fs);font-size:31px;font-style:italic;line-height:1.2;color:#fff;margin-bottom:14px;}
-.n-lede{font-size:14.5px;font-weight:300;line-height:1.72;color:rgba(255,255,255,.62);margin-bottom:26px;}
-.n-panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-left:2px solid var(--yellow);border-radius:3px;padding:18px 20px;margin-bottom:14px;}
-.n-eyebrow{font-family:var(--fm);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--yellow);margin-bottom:9px;}
-.n-h{font-family:var(--fs);font-size:19px;font-style:italic;color:#fff;margin-bottom:8px;line-height:1.25;}
-.n-p{font-size:13.5px;font-weight:300;line-height:1.68;color:rgba(255,255,255,.6);}
-.n-p + .n-p{margin-top:9px;}
-.n-p b{color:rgba(255,255,255,.92);font-weight:500;}
-.n-guard{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);font-size:12.5px;font-weight:300;line-height:1.6;color:rgba(255,255,255,.5);}
-.n-guard strong{color:var(--green);font-weight:600;filter:brightness(1.9);}
-.n-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;}
-.n-link{font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.55);text-decoration:none;border:1px solid rgba(255,255,255,.2);padding:8px 13px;border-radius:2px;transition:var(--duree-toucher);}
-.n-link:hover{color:#fff;border-color:rgba(255,255,255,.6);}
-.n-warn{margin-top:18px;font-size:12px;font-weight:300;line-height:1.6;color:rgba(255,255,255,.38);border-left:2px solid rgba(255,255,255,.2);padding-left:12px;}
+/* ── coque ── */
+#phone{flex:none;width:394px;height:830px;border-radius:46px;position:relative;overflow:hidden;
+  background:var(--pap);color:var(--ink);
+  box-shadow:0 0 0 11px #0A0907,0 0 0 13px #2C2721,0 44px 100px rgba(0,0,0,.66);}
+#ile{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:106px;height:30px;
+  background:#0A0907;border-radius:999px;z-index:95;pointer-events:none;}
+#statut{position:absolute;top:0;left:0;right:0;height:50px;z-index:90;display:flex;align-items:flex-end;
+  justify-content:space-between;padding:0 26px 7px;font-family:var(--fm);font-size:11.5px;pointer-events:none;
+  color:var(--ink);text-shadow:0 1px 3px rgba(255,255,255,.5);}
+.nuit #statut{text-shadow:0 1px 3px rgba(0,0,0,.6);}
+#statut .d{display:flex;gap:5px;align-items:center;font-size:10px;}
 
-/* ═══ PHONE ═══ */
-#phone{
-  flex:none;width:var(--shell-w);height:var(--shell-h);
-  background:var(--paper);border-radius:42px;position:relative;
-  box-shadow:0 0 0 11px #0c0b09, 0 0 0 13px #2a2724, 0 40px 90px rgba(0,0,0,.6);
-  overflow:hidden;display:flex;flex-direction:column;
-}
-#notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:132px;height:26px;background:#0c0b09;border-radius:0 0 16px 16px;z-index:60;}
-#statusbar{
-  flex:none;height:44px;display:flex;align-items:flex-end;justify-content:space-between;
-  padding:0 24px 5px;font-family:var(--fm);font-size:11px;color:var(--ink);z-index:55;position:relative;
-}
-#statusbar .sb-r{display:flex;gap:5px;align-items:center;font-size:10px;}
+/* ═══ CARTE — rendu maison sur canvas, aucune dépendance ═══ */
+#carte{position:absolute;inset:0;touch-action:none;cursor:grab;}
+#carte:active{cursor:grabbing;}
+#calque{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+#calque.inerte .epingle{pointer-events:none;}
+.epingle{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;
+  transition:transform var(--duree-toucher) var(--ressort);}
+.epingle:active{transform:translate(-50%,-100%) scale(.92);}
+.ep-c{width:30px;height:30px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);
+  display:flex;align-items:center;justify-content:center;box-shadow:var(--o2);border:2px solid var(--surf-plein);}
+.ep-c i{transform:rotate(45deg);font-style:normal;font-size:12px;line-height:1;}
+.epingle.mini .ep-c{width:22px;height:22px;border-radius:50%;transform:none;}
+.epingle.mini .ep-c i{transform:none;font-size:11px;}
+.ep-l{position:absolute;left:50%;top:38px;transform:translateX(-50%);white-space:nowrap;
+  font-family:var(--fm);font-size:9.5px;padding:3px 7px;border-radius:var(--r-pilule);
+  background:var(--surf);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:var(--o1);color:var(--ink-2);}
+#trace-svg{position:absolute;inset:0;pointer-events:none;}
 
-/* ─ header app ─ */
-#appbar{
-  flex:none;height:64px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 18px;border-bottom:1px solid var(--paper3);background:var(--paper);z-index:50;
-}
-.ab-title{font-family:var(--fs);font-size:19px;font-style:italic;}
-.ab-sub{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-40);}
-.ab-btn{width:var(--cible-minimum);height:var(--cible-minimum);border:1px solid var(--paper3);background:var(--white);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:var(--duree-toucher);}
-.ab-btn:hover{border-color:var(--ink-40);}
-.ab-btn.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+/* ── barre flottante haute (Apple Maps : la recherche flotte) ── */
+#haut{position:absolute;top:54px;left:14px;right:14px;z-index:60;display:flex;gap:9px;align-items:center;}
+.recherche{flex:1;min-height:var(--cible-minimum);display:flex;align-items:center;gap:10px;padding:0 16px;
+  background:var(--surf);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border-radius:var(--r-pilule);box-shadow:var(--o2);font-size:15px;color:var(--ink-3);
+  border:1px solid var(--ligne-2);}
+.rond{width:var(--cible-minimum);height:var(--cible-minimum);border-radius:50%;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+  background:var(--surf);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);
+  box-shadow:var(--o2);border:1px solid var(--ligne-2);
+  transition:transform var(--duree-toucher) var(--ressort);}
+.rond:active{transform:scale(.9);}
+.rond.avatar{background:var(--surf-2);color:var(--ink);font-family:var(--fs);font-style:italic;font-size:17px;}
 
-/* ─ viewport ─ */
-#view{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-#view::-webkit-scrollbar{display:none;}
-.screen{display:none;padding-bottom:20px;}
-.screen.on{display:block;animation:fade var(--duree-transition) ease;}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* ── commandes de carte à droite (Apple Maps / Waze) ── */
+#ctrl{position:absolute;right:14px;z-index:55;display:flex;flex-direction:column;gap:8px;
+  transition:bottom var(--duree-transition) var(--ressort);}
+.ctrl-b{width:var(--cible-minimum);height:var(--cible-minimum);border-radius:var(--r-bouton);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  background:var(--surf);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);
+  box-shadow:var(--o2);border:1px solid var(--ligne-2);
+  transition:transform var(--duree-toucher) var(--ressort),background var(--duree-toucher);}
+.ctrl-b:active{transform:scale(.9);}
+.ctrl-b.on{background:var(--ink);color:var(--pap);border-color:transparent;}
 
-/* ─ tabbar ─ */
-#tabbar{
-  flex:none;height:66px;border-top:1px solid var(--paper3);background:rgba(250,250,247,.97);
-  backdrop-filter:blur(12px);display:flex;padding-bottom:6px;z-index:50;
-}
-.tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border:none;background:none;font-family:inherit;position:relative;}
-.tab-i{font-size:18px;filter:grayscale(1);opacity:.42;transition:var(--duree-toucher);}
-.tab-l{font-family:var(--fm);font-size:8px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-40);transition:color var(--duree-toucher);white-space:nowrap;}
-.tab.on .tab-i{filter:grayscale(0);opacity:1;}
-.tab.on .tab-l{color:var(--ink);}
-.tab-badge{position:absolute;top:8px;right:calc(50% - 20px);min-width:16px;height:16px;padding:0 4px;background:var(--red);color:#fff;border-radius:8px;font-family:var(--fm);font-size:9px;display:flex;align-items:center;justify-content:center;}
+/* ── pastille direct (Whatnot) ── */
+#direct{position:absolute;left:14px;z-index:55;display:flex;align-items:center;gap:7px;
+  min-height:var(--cible-minimum);padding:0 16px 0 13px;border-radius:var(--r-pilule);
+  background:var(--alerte);color:#fff;box-shadow:var(--o2);
+  font-family:var(--fm);font-size:10px;letter-spacing:.1em;
+  transition:bottom var(--duree-transition) var(--ressort),transform var(--duree-toucher) var(--ressort);}
+#direct:active{transform:scale(.94);}
+#direct i{width:7px;height:7px;border-radius:50%;background:#fff;animation:battement var(--duree-clignotement-direct) infinite;}
+@keyframes battement{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
 
-/* ═══ COMPOSANTS ═══ */
-.sec{padding:18px 18px 0;}
-.sec-eb{font-family:var(--fm);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
-.sec-eb::after{content:'';flex:1;height:1px;background:var(--paper3);}
-.sec-t{font-family:var(--fs);font-size:23px;font-style:italic;line-height:1.2;margin-bottom:7px;}
-.sec-d{font-size:13px;font-weight:300;line-height:1.62;color:var(--ink-70);}
+/* ═══ FEUILLE À TROIS CRANS (Apple Maps) ═══ */
+#feuille{position:absolute;left:0;right:0;bottom:0;height:94%;z-index:70;
+  background:var(--surf);backdrop-filter:blur(26px) saturate(1.8);-webkit-backdrop-filter:blur(26px) saturate(1.8);
+  border-radius:var(--r-feuille) var(--r-feuille) 0 0;box-shadow:var(--o3);
+  border-top:1px solid var(--ligne-2);display:flex;flex-direction:column;
+  will-change:transform;touch-action:none;}
+#poignee{flex:none;padding:9px 0 4px;display:flex;justify-content:center;cursor:grab;}
+#poignee::before{content:'';width:38px;height:5px;border-radius:3px;background:var(--ink-4);opacity:.55;}
+#feuille-corps{flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+#feuille-corps::-webkit-scrollbar{display:none;}
+.f-bas{height:118px;}
 
-#map{height:230px;width:100%;background:var(--paper2);}
-.map-wrap{position:relative;z-index:1;isolation:isolate;}
-.map-hint{position:absolute;bottom:9px;left:9px;z-index:500;background:rgba(26,24,20,.86);color:#fff;font-family:var(--fm);font-size:9px;letter-spacing:.05em;padding:5px 9px;border-radius:2px;}
-.pin{width:26px;height:26px;border-radius:50% 50% 50% 2px;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3);border:1.5px solid #fff;}
-.pin span{transform:rotate(45deg);font-size:11px;}
-.pin.p-f{background:var(--green);} .pin.p-m{background:var(--amber);} .pin.p-d{background:var(--red);}
-.pin.done{background:var(--ink);}
+/* ── rail de stories (Instagram) ── */
+.stories{display:flex;gap:13px;overflow-x:auto;padding:6px 18px 16px;scrollbar-width:none;}
+.stories::-webkit-scrollbar{display:none;}
+.story{flex:none;width:62px;text-align:center;background:none;}
+.story-r{width:58px;height:58px;border-radius:50%;padding:2.5px;margin:0 auto 6px;
+  background:conic-gradient(from 210deg,var(--bistre),var(--or),var(--vert),var(--bistre));
+  transition:transform var(--duree-toucher) var(--ressort);}
+.story:active .story-r{transform:scale(.93);}
+.story-r.vu{background:var(--ligne);}
+.story-i{width:100%;height:100%;border-radius:50%;border:2.5px solid var(--surf-plein);
+  display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-style:italic;
+  font-size:19px;color:#fff;overflow:hidden;}
+.story-n{font-size:11px;font-weight:500;color:var(--ink-2);line-height:1.2;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
-.chips{display:flex;gap:6px;overflow-x:auto;padding:12px 18px;scrollbar-width:none;}
-.chips::-webkit-scrollbar{display:none;}
-.chip{flex:none;display:flex;align-items:center;min-height:var(--cible-minimum);font-family:var(--fm);font-size:11px;letter-spacing:.05em;padding:0 16px;border:1px solid var(--paper3);background:var(--white);border-radius:14px;cursor:pointer;color:var(--ink-70);transition:var(--duree-toucher);white-space:nowrap;}
-.chip.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+/* ── segments (Apple Music : le sélecteur segmenté) ── */
+.segments{display:flex;gap:3px;margin:0 18px 14px;padding:3px;background:var(--surf-2);border-radius:var(--r-pilule);}
+.seg{flex:1;min-height:var(--cible-minimum);border-radius:var(--r-pilule);font-size:13px;font-weight:500;color:var(--ink-3);
+  transition:background var(--duree-toucher),color var(--duree-toucher);}
+.seg.on{background:var(--surf-plein);color:var(--ink);box-shadow:var(--o1);}
 
-.tcard{display:flex;gap:12px;padding:13px 18px;border-bottom:1px solid var(--paper3);cursor:pointer;transition:background var(--duree-toucher);align-items:flex-start;}
-.tcard:hover{background:var(--paper2);}
-.tc-th{flex:none;width:62px;height:62px;border-radius:3px;position:relative;overflow:hidden;}
-.tc-th .tc-dept{position:absolute;bottom:0;left:0;right:0;background:rgba(26,24,20,.75);color:#fff;font-family:var(--fm);font-size:8.5px;text-align:center;padding:2px 0;}
-.tc-b{flex:1;min-width:0;}
-.tc-n{font-family:var(--fs);font-size:16px;font-style:italic;line-height:1.2;margin-bottom:3px;}
-.tc-m{font-family:var(--fm);font-size:9.5px;color:var(--ink-40);letter-spacing:.03em;margin-bottom:5px;}
-.tc-th2{font-size:12px;font-weight:300;color:var(--ink-70);line-height:1.5;}
-.tc-prog{margin-top:7px;display:flex;align-items:center;gap:6px;}
-.tc-bar{flex:1;height:3px;background:var(--paper3);border-radius:2px;overflow:hidden;}
-.tc-bar i{display:block;height:100%;background:var(--green);transition:width var(--duree-transition);}
-.tc-pn{font-family:var(--fm);font-size:9px;color:var(--ink-40);}
+.titre-sec{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:2px 18px 10px;}
+.ts-t{font-family:var(--fs);font-size:21px;font-style:italic;letter-spacing:-.01em;}
+.ts-a{font-size:13px;font-weight:500;color:var(--bistre);}
 
-.badge{display:inline-block;font-family:var(--fm);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;border-radius:2px;}
-.b-f{background:rgba(30,107,26,.12);color:var(--green);}
-.b-m{background:rgba(184,122,0,.14);color:var(--amber);}
-.b-d{background:rgba(200,32,26,.11);color:var(--red);}
-.b-ink{background:var(--paper3);color:var(--ink-70);}
+/* ── filtres ── */
+.puces{display:flex;gap:7px;overflow-x:auto;padding:0 18px 14px;scrollbar-width:none;}
+.puces::-webkit-scrollbar{display:none;}
+.puce{flex:none;min-height:var(--cible-minimum);display:flex;align-items:center;gap:6px;padding:0 15px;
+  border-radius:var(--r-pilule);background:var(--surf-2);font-size:13.5px;font-weight:500;color:var(--ink-2);
+  white-space:nowrap;transition:background var(--duree-toucher),color var(--duree-toucher),transform var(--duree-toucher);}
+.puce:active{transform:scale(.95);}
+.puce.on{background:var(--ink);color:var(--pap);}
 
-/* ─ détail sentier ─ */
-#detail{position:absolute;top:0;left:0;right:0;bottom:66px;background:var(--paper);z-index:70;overflow-y:auto;display:none;scrollbar-width:none;}
-#detail::-webkit-scrollbar{display:none;}
-#detail.on{display:block;animation:slideup var(--duree-transition) cubic-bezier(.2,.8,.3,1);}
-@keyframes slideup{from{transform:translateY(22px);opacity:0}to{transform:none;opacity:1}}
-.d-hero{height:168px;position:relative;display:flex;align-items:flex-end;padding:16px;}
-.d-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(13,12,10,.85),rgba(13,12,10,.1));}
-.d-back{position:absolute;top:14px;left:14px;z-index:3;width:var(--cible-minimum);height:var(--cible-minimum);border-radius:50%;background:rgba(255,255,255,.9);border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
-.d-hero-t{position:relative;z-index:2;color:#fff;}
-.d-dept{font-family:var(--fm);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--yellow);margin-bottom:5px;}
-.d-n{font-family:var(--fs);font-size:26px;font-style:italic;line-height:1.12;}
-.d-meta{display:flex;gap:0;border-bottom:1px solid var(--paper3);}
-.d-mi{flex:1;padding:12px 6px;text-align:center;border-right:1px solid var(--paper3);}
-.d-mi:last-child{border:none;}
-.d-mv{font-family:var(--fs);font-size:17px;font-style:italic;}
-.d-ml{font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-40);margin-top:2px;}
-.d-body{padding:16px 18px;}
-.d-res{font-size:13.5px;font-weight:300;line-height:1.68;color:var(--ink-70);margin-bottom:14px;}
-.d-cyc{background:var(--paper2);border-left:2px solid var(--gold);padding:11px 13px;margin-bottom:16px;}
-.d-cyc-l{font-family:var(--fm);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:3px;}
-.d-cyc-t{font-family:var(--fs);font-size:15px;font-style:italic;}
+/* ── carte de sentier (AllTrails) ── */
+.liste{padding:0 18px;display:flex;flex-direction:column;gap:12px;}
+.cs{display:flex;gap:13px;padding:11px;background:var(--surf-plein);border-radius:var(--r-carte);
+  box-shadow:var(--o1);text-align:left;width:100%;align-items:center;
+  transition:transform var(--duree-toucher) var(--ressort),box-shadow var(--duree-toucher);}
+.cs:active{transform:scale(.98);box-shadow:var(--o1);}
+.cs-v{flex:none;width:78px;height:78px;border-radius:12px;position:relative;overflow:hidden;}
+.cs-b{position:absolute;left:6px;bottom:6px;font-family:var(--fm);font-size:9px;color:#fff;
+  background:rgba(20,16,12,.62);backdrop-filter:blur(6px);padding:2px 6px;border-radius:5px;}
+.cs-c{flex:1;min-width:0;}
+.cs-n{font-family:var(--fs);font-size:16.5px;font-style:italic;line-height:1.18;margin-bottom:4px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.cs-m{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-3);}
+.diff{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;}
+.diff::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;}
+.d-f{color:var(--vert);} .d-m{color:var(--or);} .d-d{color:var(--alerte);}
+.cs-p{margin-top:7px;display:flex;align-items:center;gap:7px;}
+.jauge{flex:1;height:4px;border-radius:2px;background:var(--pap-3);overflow:hidden;}
+.jauge i{display:block;height:100%;border-radius:2px;background:var(--vert);transition:width var(--duree-transition);}
+.cs-e{font-family:var(--fm);font-size:10px;color:var(--ink-3);}
 
-.stn{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--paper3);align-items:flex-start;}
-.stn:last-child{border:none;}
-.stn-dot{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px dashed var(--stone);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:10px;color:var(--ink-40);background:var(--white);}
-.stn.un .stn-dot{border:1.5px solid var(--green);background:var(--green);color:#fff;}
-.stn-b{flex:1;min-width:0;}
-.stn-km{font-family:var(--fm);font-size:9px;color:var(--ink-40);letter-spacing:.05em;}
-.stn-t{font-family:var(--fs);font-size:15px;font-style:italic;line-height:1.25;margin:2px 0 3px;}
-.stn.lock .stn-t{color:var(--ink-40);}
-.stn-s{font-size:11.5px;font-weight:300;color:var(--ink-40);line-height:1.5;}
-.stn-play{flex:none;align-self:center;font-size:12px;color:var(--green);cursor:pointer;font-family:var(--fm);}
+/* ── ligne de point d'intérêt ── */
+.pi{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:11px 18px;
+  transition:background var(--duree-toucher);}
+.pi:active{background:var(--surf-2);}
+.pi-i{flex:none;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;
+  justify-content:center;font-size:17px;color:#fff;}
+.pi-c{flex:1;min-width:0;}
+.pi-n{font-size:14.5px;font-weight:600;line-height:1.25;}
+.pi-m{font-size:12px;color:var(--ink-3);margin-top:2px;}
+.pi-r{font-size:12.5px;color:var(--ink-2);line-height:1.45;margin-top:3px;}
+.pi-f{font-size:16px;color:var(--ink-4);flex:none;}
 
-.btn{display:block;width:100%;min-height:var(--cible-minimum);padding:14px;background:var(--red);color:#fff;border:none;border-radius:2px;font-family:var(--fb);font-size:13px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:var(--duree-toucher);text-align:center;}
-.btn:hover{background:var(--red-d);}
-.btn:disabled{background:var(--stone);cursor:default;}
-.btn-o{background:none;border:1.5px solid var(--ink);color:var(--ink);}
-.btn-o:hover{background:var(--ink);color:#fff;}
-.btn-g{background:var(--green);} .btn-g:hover{background:var(--green-d);}
-.btn-s{padding:10px 16px;font-size:11px;}
+/* ═══ BARRE D'ONGLETS FLOTTANTE ═══ */
+#onglets{position:absolute;left:12px;right:12px;bottom:14px;z-index:88;height:66px;display:flex;
+  background:var(--surf);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);
+  border-radius:24px;box-shadow:var(--o2);border:1px solid var(--ligne-2);padding:5px;}
+.og{flex:1;min-width:0;border-radius:19px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;transition:background var(--duree-toucher),transform var(--duree-toucher) var(--ressort);}
+.og:active{transform:scale(.94);}
+.og-i{font-size:19px;line-height:1;opacity:.42;filter:grayscale(1);transition:opacity var(--duree-toucher),filter var(--duree-toucher);}
+.og-l{font-size:9.5px;font-weight:600;letter-spacing:.01em;color:var(--ink-3);white-space:nowrap;}
+.og.on{background:var(--surf-2);}
+.og.on .og-i{opacity:1;filter:none;}
+.og.on .og-l{color:var(--ink);}
 
-/* ─ mode sentier ─ */
-#walk{position:absolute;inset:0;background:#0c0b09;z-index:85;display:none;flex-direction:column;color:#fff;padding:26px 22px;}
-#walk.on{display:flex;animation:fade var(--duree-transition);}
-.w-eb{font-family:var(--fm);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.35);}
-.w-n{font-family:var(--fs);font-size:24px;font-style:italic;margin:6px 0 26px;}
-.w-screen{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;}
-.w-km{font-family:var(--fs);font-size:64px;font-style:italic;line-height:1;}
-.w-kml{font-family:var(--fm);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:6px;}
-.w-track{width:100%;height:2px;background:rgba(255,255,255,.14);margin:34px 0 8px;position:relative;}
-.w-track i{position:absolute;left:0;top:0;height:100%;background:var(--yellow);transition:width var(--duree-transition) linear;}
-.w-tick{position:absolute;top:-3px;width:8px;height:8px;border-radius:50%;background:#3a3733;transform:translateX(-50%);transition:var(--duree-transition);}
-.w-tick.un{background:var(--yellow);box-shadow:0 0 10px rgba(245,216,0,.7);}
-.w-st{font-family:var(--fm);font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.05em;line-height:1.8;}
-.w-gps{margin-top:26px;border:1px solid rgba(255,255,255,.14);border-radius:3px;padding:13px 15px;width:100%;text-align:left;}
-.w-gps-h{font-family:var(--fm);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:9px;}
-.w-cond{display:flex;justify-content:space-between;font-family:var(--fm);font-size:10.5px;color:rgba(255,255,255,.45);padding:3px 0;}
-.w-cond.ok{color:#6FCF6A;}
-.w-foot{font-size:11.5px;font-weight:300;color:rgba(255,255,255,.32);line-height:1.6;text-align:center;margin-top:auto;padding-top:18px;}
-.w-quit{background:none;border:1px solid rgba(255,255,255,.24);color:rgba(255,255,255,.6);font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;min-height:var(--cible-minimum);padding:11px;border-radius:2px;cursor:pointer;margin-top:12px;width:100%;}
+/* ═══ MINI-LECTEUR (Apple Music) ═══ */
+#mini{position:absolute;left:12px;right:12px;bottom:86px;z-index:87;height:60px;display:none;
+  align-items:center;gap:11px;padding:0 12px 0 10px;border-radius:18px;
+  background:var(--surf);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);
+  box-shadow:var(--o2);border:1px solid var(--ligne-2);
+  transition:transform var(--duree-transition) var(--ressort),opacity var(--duree-transition);}
+#mini.on{display:flex;animation:monte var(--duree-transition) var(--ressort);}
+@keyframes monte{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+#mini-v{width:42px;height:42px;border-radius:9px;flex:none;}
+#mini-c{flex:1;min-width:0;}
+#mini-t{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#mini-s{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mini-b{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;}
+#mini-j{position:absolute;left:12px;right:12px;bottom:0;height:2px;border-radius:2px;background:var(--ligne);overflow:hidden;}
+#mini-j i{display:block;height:100%;width:0;background:var(--bistre);}
 
-/* ─ lecteur Éclat ─ */
-#eclat{position:absolute;inset:0;background:#100e0c;z-index:95;display:none;flex-direction:column;color:#fff;}
-#eclat.on{display:flex;animation:fade var(--duree-transition);}
-.e-bars{display:flex;gap:3px;padding:14px 14px 0;}
-.e-bar{flex:1;height:2.5px;background:rgba(255,255,255,.22);border-radius:2px;overflow:hidden;}
-.e-bar i{display:block;height:100%;width:0;background:#fff;}
-.e-head{display:flex;align-items:center;gap:9px;padding:13px 16px;}
-.e-av{width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:12px;font-style:italic;color:#fff;}
-.e-au{font-size:12px;font-weight:500;}
-.e-ro{font-family:var(--fm);font-size:8.5px;color:rgba(255,255,255,.42);letter-spacing:.05em;}
-.e-x{margin-left:auto;width:var(--cible-minimum);height:var(--cible-minimum);background:none;border:none;color:rgba(255,255,255,.6);font-size:19px;cursor:pointer;}
-.e-art{flex:1;position:relative;overflow:hidden;display:flex;align-items:flex-end;}
-.e-art::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(16,14,12,.96) 4%,rgba(16,14,12,.25) 55%,rgba(16,14,12,.5));}
-.e-txt{position:relative;z-index:2;padding:22px 20px;width:100%;}
-.e-kind{font-family:var(--fm);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--yellow);margin-bottom:8px;}
-.e-t{font-family:var(--fs);font-size:25px;font-style:italic;line-height:1.16;margin-bottom:11px;}
-.e-p{font-size:13.5px;font-weight:300;line-height:1.72;color:rgba(255,255,255,.8);}
-.e-src{margin-top:13px;font-family:var(--fm);font-size:9px;color:rgba(255,255,255,.36);line-height:1.6;border-top:1px solid rgba(255,255,255,.14);padding-top:9px;}
-.e-audio{display:flex;align-items:center;gap:11px;padding:12px 18px 18px;}
-.e-wave{flex:1;display:flex;align-items:center;gap:2px;height:22px;}
-.e-wave i{flex:1;background:rgba(255,255,255,.3);border-radius:1px;min-height:2px;}
-.e-time{font-family:var(--fm);font-size:9.5px;color:rgba(255,255,255,.42);}
-.e-toast{position:absolute;left:50%;bottom:88px;transform:translateX(-50%) translateY(10px);opacity:0;background:var(--green);color:#fff;font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;padding:9px 16px;border-radius:2px;transition:var(--duree-transition);pointer-events:none;white-space:nowrap;}
-.e-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+/* ═══ LECTEUR PLEIN ÉCRAN (Apple Music : le mini se déplie) ═══ */
+#lecteur{position:absolute;inset:0;z-index:96;display:none;flex-direction:column;
+  background:var(--fond-lecteur,#1A1512);color:#fff;overflow:hidden;}
+#lecteur.on{display:flex;animation:deplie var(--duree-transition) var(--ressort);}
+@keyframes deplie{from{transform:translateY(100%);border-radius:22px 22px 0 0}to{transform:none;border-radius:0}}
+#lecteur::before{content:'';position:absolute;inset:-30%;background:var(--halo);filter:blur(76px);opacity:.55;}
+/* Voile sombre : le halo seul ne garantit pas le contraste du texte. */
+#lecteur::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,6,.34),rgba(10,8,6,.72));pointer-events:none;}
+.lc-h{position:relative;z-index:3;padding:52px 22px 0;display:flex;align-items:center;gap:12px;}
+.lc-x{width:var(--cible-minimum);height:var(--cible-minimum);border-radius:50%;
+  background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.lc-eb{flex:1;font-family:var(--fm);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.72);text-align:center;}
+.lc-art{position:relative;z-index:3;margin:26px auto 0;width:74%;aspect-ratio:1;border-radius:18px;
+  box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden;display:flex;align-items:flex-end;
+  animation:pochette 620ms var(--ressort);}
+@keyframes pochette{from{transform:scale(.82) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.lc-art-k{padding:14px;font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.8);text-shadow:0 1px 6px rgba(0,0,0,.6);}
+.lc-txt{position:relative;z-index:3;padding:22px 26px 0;}
+.lc-t{font-family:var(--fs);font-size:26px;font-style:italic;line-height:1.14;}
+.lc-s{font-size:13.5px;color:rgba(255,255,255,.78);margin-top:5px;}
+.lc-scrub{position:relative;z-index:3;padding:20px 26px 0;}
+.lc-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.2);overflow:hidden;}
+.lc-bar i{display:block;height:100%;width:0;background:#fff;border-radius:3px;}
+.lc-tm{display:flex;justify-content:space-between;font-family:var(--fm);font-size:10px;
+  color:rgba(255,255,255,.7);margin-top:7px;}
+.lc-cmd{position:relative;z-index:3;display:flex;align-items:center;justify-content:center;gap:26px;padding:16px 0 0;}
+.lc-b{width:var(--cible-minimum);height:var(--cible-minimum);border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:20px;color:rgba(255,255,255,.92);transition:transform var(--duree-toucher) var(--ressort);}
+.lc-b:active{transform:scale(.88);}
+.lc-b.gros{width:68px;height:68px;background:rgba(255,255,255,.16);font-size:24px;color:#fff;}
+.lc-corps{position:relative;z-index:3;flex:1;overflow-y:auto;padding:20px 26px 34px;scrollbar-width:none;}
+.lc-corps::-webkit-scrollbar{display:none;}
+.lc-p{font-size:15px;font-weight:300;line-height:1.72;color:rgba(255,255,255,.92);}
+.lc-src{margin-top:16px;padding-top:13px;border-top:1px solid rgba(255,255,255,.2);
+  font-family:var(--fm);font-size:9.5px;line-height:1.7;color:rgba(255,255,255,.6);}
 
-/* ─ Veillée ─ */
-.v-count{background:var(--ink);color:#fff;padding:22px 18px;text-align:center;}
-.v-eb{font-family:var(--fm);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--yellow);margin-bottom:9px;}
-.v-h{font-family:var(--fs);font-size:24px;font-style:italic;line-height:1.2;margin-bottom:5px;}
-.v-s{font-size:12.5px;font-weight:300;color:rgba(255,255,255,.55);line-height:1.6;}
-.v-clock{font-family:var(--fm);font-size:31px;letter-spacing:.05em;margin:16px 0 4px;color:var(--yellow);}
-.v-cl{font-family:var(--fm);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.35);}
-.v-stage{height:186px;background:linear-gradient(150deg,#1d2a3a,#3d3020 60%,#5a3a20);position:relative;display:flex;align-items:flex-end;padding:12px;}
-.v-live{position:absolute;top:11px;left:11px;background:var(--red);color:#fff;font-family:var(--fm);font-size:9px;letter-spacing:.1em;padding:4px 8px;border-radius:2px;display:flex;align-items:center;gap:5px;}
-.v-live i{width:5px;height:5px;background:#fff;border-radius:50%;animation:blink var(--duree-clignotement-direct) infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
-.v-watch{position:absolute;top:11px;right:11px;background:rgba(0,0,0,.5);color:#fff;font-family:var(--fm);font-size:9px;padding:4px 8px;border-radius:2px;}
-.v-host{position:relative;z-index:2;color:#fff;}
-.v-host-n{font-family:var(--fs);font-size:17px;font-style:italic;}
-.v-host-r{font-family:var(--fm);font-size:9px;color:rgba(255,255,255,.6);}
-.v-chat{height:154px;overflow-y:auto;padding:10px 16px;background:var(--paper2);display:flex;flex-direction:column;justify-content:flex-end;gap:6px;}
-.v-msg{font-size:12px;line-height:1.45;animation:fade var(--duree-transition);}
-.v-msg b{font-weight:600;color:var(--ink);}
-.v-msg span{color:var(--ink-70);font-weight:300;}
-.v-msg.host{background:rgba(245,216,0,.18);border-left:2px solid var(--gold);padding:6px 9px;border-radius:0 2px 2px 0;}
-.v-msg.sys{font-family:var(--fm);font-size:9.5px;color:var(--green);letter-spacing:.03em;}
-.v-input{display:flex;gap:7px;padding:10px 16px;border-top:1px solid var(--paper3);}
-.v-input input{flex:1;min-height:var(--cible-minimum);border:1px solid var(--paper3);background:var(--white);border-radius:24px;padding:8px 16px;font-family:var(--fb);font-size:12.5px;outline:none;}
-.v-input input:focus{border-color:var(--ink-40);}
-.v-input button{border:none;min-height:var(--cible-minimum);background:var(--ink);color:#fff;border-radius:24px;padding:0 18px;font-family:var(--fm);font-size:11px;cursor:pointer;}
-.drop{margin:14px 18px;border:1px solid var(--paper3);border-radius:3px;overflow:hidden;background:var(--white);animation:pop var(--duree-transition) cubic-bezier(.2,1.2,.4,1);}
-@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
-.drop-h{background:var(--ink);color:#fff;padding:9px 13px;font-family:var(--fm);font-size:9px;letter-spacing:.16em;text-transform:uppercase;display:flex;justify-content:space-between;}
-.drop-h .rem{color:var(--yellow);}
-.drop-b{padding:14px 15px;}
-.drop-n{font-family:var(--fs);font-size:18px;font-style:italic;line-height:1.2;margin-bottom:5px;}
-.drop-d{font-size:12px;font-weight:300;color:var(--ink-70);line-height:1.55;margin-bottom:11px;}
-.drop-f{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-.drop-p{font-family:var(--fs);font-size:22px;font-style:italic;color:var(--red);}
-.drop-p small{font-family:var(--fm);font-size:9px;color:var(--ink-40);display:block;font-style:normal;}
-.drop-note{margin-top:11px;padding-top:10px;border-top:1px solid var(--paper3);font-size:11px;font-weight:300;color:var(--ink-40);line-height:1.55;}
-.drop-note b{color:var(--green);font-weight:600;}
+/* ═══ MODE SENTIER (Waze : guidage) ═══ */
+#guide{position:absolute;inset:0;z-index:97;display:none;flex-direction:column;background:#0A0C0B;color:#fff;}
+#guide.on{display:flex;animation:fondu var(--duree-transition);}
+@keyframes fondu{from{opacity:0}to{opacity:1}}
+#guide-carte{position:absolute;inset:0;width:100%;height:100%;opacity:.22;filter:grayscale(.4);}
+.g-instr{position:relative;z-index:2;margin:56px 12px 0;padding:16px 18px;border-radius:20px;
+  background:rgba(20,26,22,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  display:flex;gap:15px;align-items:center;box-shadow:var(--o2);}
+.g-fleche{flex:none;width:52px;height:52px;border-radius:15px;background:var(--jaune);color:#14100A;
+  display:flex;align-items:center;justify-content:center;font-size:26px;}
+.g-d{font-family:var(--fm);font-size:26px;letter-spacing:-.02em;line-height:1;}
+.g-l{font-size:13.5px;color:rgba(255,255,255,.72);margin-top:4px;line-height:1.3;}
+.g-libre{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:5px;}
+.g-km{font-family:var(--fs);font-size:82px;font-style:italic;line-height:.9;letter-spacing:-.03em;}
+.g-km-l{font-family:var(--fm);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.35);}
+.g-cond{margin-top:26px;display:flex;gap:9px;}
+.g-c{padding:9px 14px;border-radius:var(--r-pilule);background:rgba(255,255,255,.09);
+  font-family:var(--fm);font-size:10.5px;color:rgba(255,255,255,.55);transition:all var(--duree-toucher);}
+.g-c.ok{background:rgba(127,191,119,.2);color:#9FE096;}
+.g-eta{position:relative;z-index:2;margin:0 12px 14px;padding:14px 18px;border-radius:20px;
+  background:rgba(20,26,22,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:var(--o2);}
+.g-eta-v{font-family:var(--fs);font-size:22px;font-style:italic;}
+.g-eta-l{font-family:var(--fm);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.4);margin-top:2px;}
+.g-stop{min-height:var(--cible-minimum);padding:0 20px;border-radius:var(--r-pilule);background:var(--alerte);
+  color:#fff;font-size:13.5px;font-weight:600;}
+.g-note{position:relative;z-index:2;text-align:center;font-size:11.5px;color:rgba(255,255,255,.3);
+  padding:0 34px 10px;line-height:1.5;}
 
-/* ─ Cabinet ─ */
-.cab-head{padding:20px 18px 14px;background:var(--ink);color:#fff;}
-.cab-n{font-family:var(--fs);font-size:23px;font-style:italic;}
-.cab-s{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:3px;}
-.cab-stats{display:flex;margin-top:16px;gap:1px;background:rgba(255,255,255,.1);}
-.cab-si{flex:1;background:var(--ink);padding:9px 4px;text-align:center;}
-.cab-sv{font-family:var(--fs);font-size:20px;font-style:italic;color:var(--yellow);}
-.cab-sl{font-family:var(--fm);font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:2px;}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:14px 18px;}
-.gi{aspect-ratio:3/4;border-radius:2px;position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:7px;cursor:pointer;}
-.gi.lock{background:var(--paper2);border:1px dashed var(--stone);align-items:center;justify-content:center;}
-.gi.lock span{font-size:15px;opacity:.24;position:relative;z-index:2;}
-.gi.lock::after{display:none;}
-.gi::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(16,14,12,.9),transparent 62%);}
-.gi-t{position:relative;z-index:2;font-family:var(--fs);font-size:10.5px;font-style:italic;color:#fff;line-height:1.2;}
-.cyc{margin:0 18px 12px;border:1px solid var(--paper3);border-radius:3px;padding:13px 14px;background:var(--white);}
-.cyc-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
-.cyc-n{font-family:var(--fs);font-size:15px;font-style:italic;}
-.cyc-c{font-family:var(--fm);font-size:9.5px;color:var(--ink-40);}
-.cyc-bar{height:4px;background:var(--paper3);border-radius:2px;overflow:hidden;}
-.cyc-bar i{display:block;height:100%;background:var(--gold);transition:width var(--duree-transition);}
-.cyc-d{font-size:11.5px;font-weight:300;color:var(--ink-40);line-height:1.5;margin-top:8px;}
+/* ═══ FICHE (point d'intérêt / sentier) ═══ */
+#fiche{position:absolute;inset:0;z-index:92;display:none;background:rgba(12,10,8,.5);}
+#fiche.on{display:block;animation:fondu var(--duree-transition);}
+.fi-c{position:absolute;left:0;right:0;bottom:0;max-height:90%;overflow-y:auto;background:var(--surf-plein);
+  border-radius:var(--r-feuille) var(--r-feuille) 0 0;animation:monte-f var(--duree-transition) var(--ressort);
+  scrollbar-width:none;}
+.fi-c::-webkit-scrollbar{display:none;}
+@keyframes monte-f{from{transform:translateY(100%)}to{transform:none}}
+.fi-v{height:198px;position:relative;display:flex;align-items:flex-end;
+  border-radius:var(--r-feuille) var(--r-feuille) 0 0;overflow:hidden;}
+.fi-v::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(14,12,9,.86),transparent 58%);}
+.fi-x{position:absolute;top:12px;right:12px;z-index:3;width:var(--cible-minimum);height:var(--cible-minimum);
+  border-radius:50%;background:rgba(252,250,244,.92);color:#211B12;display:flex;align-items:center;
+  justify-content:center;font-size:17px;}
+.fi-leg{position:relative;z-index:2;padding:12px 18px;font-family:var(--fm);font-size:9px;line-height:1.6;
+  color:rgba(255,255,255,.72);}
+.fi-leg b{display:block;color:#fff;font-size:10px;font-weight:500;margin-bottom:2px;}
+.fi-b{padding:18px;}
+.fi-k{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:var(--r-pilule);
+  font-family:var(--fm);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#fff;}
+.fi-n{font-family:var(--fs);font-size:25px;font-style:italic;line-height:1.14;margin:11px 0 6px;}
+.fi-m{font-family:var(--fm);font-size:10.5px;color:var(--ink-3);margin-bottom:15px;}
+.fi-d{font-size:14.5px;font-weight:300;line-height:1.7;color:var(--ink-2);margin-bottom:15px;}
+.fi-prat{border-radius:var(--r-carte);padding:13px 15px;background:var(--vert-soft);
+  font-size:13px;line-height:1.55;color:var(--ink-2);}
+.fi-prat.risque{background:rgba(184,52,43,.12);}
+.fi-prat b{display:block;font-family:var(--fm);font-size:8.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:5px;}
+.fi-cta{display:flex;gap:9px;margin-top:16px;}
+.btn{flex:1;min-height:var(--cible-minimum);border-radius:var(--r-bouton);background:var(--bistre);color:#fff;
+  font-size:14.5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform var(--duree-toucher) var(--ressort),background var(--duree-toucher);}
+.btn:active{transform:scale(.97);background:var(--bistre-2);}
+.btn.creux{background:var(--surf-2);color:var(--ink);}
+.btn.plein-vert{background:var(--vert);}
 
-/* ─ éthique ─ */
-.eth{margin:0 18px 12px;border:1px solid var(--paper3);border-radius:3px;background:var(--white);overflow:hidden;}
-.eth-h{padding:11px 14px;border-bottom:1px solid var(--paper3);font-family:var(--fm);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-40);}
-.eth-b{padding:14px;}
-.ratio{display:flex;align-items:baseline;gap:9px;margin-bottom:9px;}
-.ratio-v{font-family:var(--fs);font-size:38px;font-style:italic;color:var(--green);line-height:1;}
-.ratio-l{font-size:12px;font-weight:300;color:var(--ink-70);line-height:1.45;}
-.ratio-bar{height:22px;display:flex;border-radius:2px;overflow:hidden;margin:10px 0 7px;}
-.ratio-bar .out{background:var(--green);} .ratio-bar .scr{background:var(--stone);}
-.ratio-bar div{display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-family:var(--fm);font-size:9px;color:#fff;transition:width var(--duree-transition);}
-.ratio-bar .scr{color:var(--ink-70);}
-.ratio-n{font-size:11.5px;font-weight:300;color:var(--ink-40);line-height:1.55;}
-.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-bottom:1px solid var(--paper3);}
-.row:last-child{border:none;}
-.row-t{font-size:13px;font-weight:500;}
-.row-d{font-size:11.5px;font-weight:300;color:var(--ink-40);line-height:1.5;margin-top:2px;}
-/* Surface tactile de 48 px, piste visuelle de 42×24 : la cible dépasse le dessin. */
-.sw{flex:none;width:56px;height:var(--cible-minimum);background:none;border:none;padding:0;position:relative;cursor:pointer;}
-.sw::before{content:'';position:absolute;top:50%;left:7px;width:42px;height:24px;margin-top:-12px;border-radius:12px;background:var(--stone);transition:background var(--duree-transition);}
-.sw::after{content:'';position:absolute;top:50%;left:10px;width:18px;height:18px;margin-top:-9px;border-radius:50%;background:#fff;transition:transform var(--duree-transition);}
-.sw.on::before{background:var(--green);}
-.sw.on::after{transform:translateX(18px);}
-.charte{padding:2px 18px 18px;}
-.ch-i{display:flex;gap:9px;font-size:12px;font-weight:300;line-height:1.6;color:var(--ink-70);padding:7px 0;border-bottom:1px solid var(--paper3);}
-.ch-i:last-child{border:none;}
-.ch-i b{color:var(--ink);font-weight:600;}
-.ch-n{flex:none;font-family:var(--fm);font-size:9px;color:var(--red);padding-top:3px;}
-.end{text-align:center;font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-40);padding:26px 18px 16px;}
-.end::before{content:'';display:block;width:26px;height:1px;background:var(--stone);margin:0 auto 12px;}
+/* ── stations d'un Récit ── */
+.stn{display:flex;gap:13px;align-items:flex-start;width:100%;text-align:left;padding:12px 0;
+  border-top:1px solid var(--ligne-2);}
+.stn-p{flex:none;width:30px;height:30px;border-radius:50%;border:1.5px dashed var(--ink-4);
+  display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;color:var(--ink-3);}
+.stn.ouvert .stn-p{border:none;background:var(--vert);color:#fff;}
+.stn-c{flex:1;min-width:0;}
+.stn-k{font-family:var(--fm);font-size:9.5px;color:var(--ink-3);}
+.stn-t{font-family:var(--fs);font-size:15.5px;font-style:italic;line-height:1.2;margin-top:2px;}
+.stn.ferme .stn-t{color:var(--ink-3);}
+.stn-x{font-size:12px;color:var(--ink-3);margin-top:3px;line-height:1.4;}
 
-.callout{margin:14px 18px;padding:12px 14px;background:var(--paper2);border-left:2px solid var(--red);font-size:12px;font-weight:300;line-height:1.62;color:var(--ink-70);}
-.callout b{color:var(--ink);font-weight:600;}
+/* ── notes ── */
+.note{margin:14px 18px;padding:12px 14px;border-radius:var(--r-carte);background:var(--surf-2);
+  font-size:12.5px;line-height:1.6;color:var(--ink-2);}
+.note b{color:var(--ink);font-weight:600;}
+.fin{text-align:center;font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);padding:22px 18px 8px;}
+.fin::before{content:'';display:block;width:24px;height:1px;background:var(--ligne);margin:0 auto 11px;}
 
+/* ── écrans secondaires dans la feuille ── */
+.vide{padding:40px 26px;text-align:center;color:var(--ink-3);font-size:13.5px;line-height:1.6;}
+.outil{display:flex;gap:8px;padding:0 18px 14px;}
+.ou{flex:1;min-height:var(--cible-minimum);border-radius:var(--r-bouton);background:var(--surf-2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  transition:transform var(--duree-toucher) var(--ressort),background var(--duree-toucher);}
+.ou:active{transform:scale(.95);}
+.ou.on{background:var(--ink);color:var(--pap);}
+.ou-i{font-size:16px;line-height:1;}
+.ou-l{font-size:10.5px;font-weight:600;}
+.stat3{display:flex;gap:9px;padding:0 18px 14px;}
+.st{flex:1;padding:12px 8px;border-radius:var(--r-carte);background:var(--surf-2);text-align:center;}
+.st-v{font-family:var(--fs);font-size:21px;font-style:italic;line-height:1;}
+.st-l{font-family:var(--fm);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:4px;}
+.profil{margin:0 18px 16px;height:58px;border-radius:var(--r-carte);background:var(--surf-2);overflow:hidden;}
+.profil svg{width:100%;height:100%;display:block;}
 
-/* ══ POINTS D'INTÉRÊT ══ */
-.poi-pin{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.32);font-size:12px;}
-.poi-row{display:flex;gap:11px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--paper3);cursor:pointer;}
-.poi-row:hover{background:var(--paper2);}
-.poi-ic{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;}
-.poi-b{flex:1;min-width:0;}
-.poi-t{font-family:var(--fs);font-size:15px;font-style:italic;line-height:1.2;}
-.poi-m{font-family:var(--fm);font-size:9px;color:var(--ink-40);letter-spacing:.04em;margin-top:2px;}
-.poi-r{font-size:12px;font-weight:300;color:var(--ink-70);line-height:1.5;margin-top:4px;}
+/* ── grille du Cabinet ── */
+.grille{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:0 18px;}
+.gi{aspect-ratio:3/4;border-radius:12px;position:relative;overflow:hidden;display:flex;align-items:flex-end;
+  padding:8px;text-align:left;transition:transform var(--duree-toucher) var(--ressort);}
+.gi:active{transform:scale(.95);}
+.gi::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(14,12,9,.9),transparent 58%);}
+.gi.ferme{background:var(--surf-2);border:1px dashed var(--ligne);align-items:center;justify-content:center;}
+.gi.ferme::after{display:none;}
+.gi-t{position:relative;z-index:2;font-family:var(--fs);font-size:11px;font-style:italic;color:#fff;line-height:1.2;}
 
-/* fiche point d'intérêt */
-#poisheet{position:absolute;inset:0;background:rgba(26,24,20,.5);z-index:80;display:none;}
-#poisheet.on{display:block;animation:fade var(--duree-transition);}
-.ps-card{position:absolute;left:0;right:0;bottom:0;max-height:88%;overflow-y:auto;background:var(--paper);border-radius:12px 12px 0 0;animation:slideup var(--duree-transition) cubic-bezier(.2,.8,.3,1);scrollbar-width:none;}
-.ps-card::-webkit-scrollbar{display:none;}
-.ps-photo{height:172px;position:relative;border-radius:12px 12px 0 0;overflow:hidden;display:flex;align-items:flex-end;}
-.ps-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(16,14,12,.8),transparent 62%);}
-.ps-sub{position:relative;z-index:2;padding:10px 16px;font-family:var(--fm);font-size:9px;line-height:1.6;color:rgba(255,255,255,.82);}
-.ps-sub b{display:block;color:#fff;font-weight:500;font-size:10px;margin-bottom:2px;}
-.ps-close{position:absolute;top:10px;right:10px;z-index:3;width:var(--cible-minimum);height:var(--cible-minimum);border-radius:50%;background:rgba(255,255,255,.92);border:none;cursor:pointer;font-size:15px;}
-.ps-body{padding:16px 18px 24px;}
-.ps-kind{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:4px 9px;border-radius:2px;color:#fff;}
-.ps-n{font-family:var(--fs);font-size:24px;font-style:italic;line-height:1.14;margin:10px 0 6px;}
-.ps-meta{font-family:var(--fm);font-size:10px;color:var(--ink-40);letter-spacing:.04em;margin-bottom:14px;}
-.ps-d{font-size:14px;font-weight:300;line-height:1.68;color:var(--ink-70);margin-bottom:14px;}
-.ps-prat{background:var(--paper2);border-left:2px solid var(--green);padding:11px 13px;font-size:12.5px;line-height:1.55;color:var(--ink-70);}
-.ps-prat.risque{border-color:var(--red);}
-.ps-prat b{display:block;font-family:var(--fm);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-40);margin-bottom:5px;}
+/* ── cartes de la Cordée ── */
+.tc{margin:0 18px 14px;border-radius:var(--r-carte);background:var(--surf-plein);box-shadow:var(--o1);overflow:hidden;}
+.tc-h{display:flex;gap:10px;align-items:center;padding:12px 13px 10px;}
+.tc-a{width:36px;height:36px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  font-family:var(--fs);font-size:14px;font-style:italic;color:#fff;}
+.tc-nm{font-size:13.5px;font-weight:600;}
+.tc-q{font-size:11.5px;color:var(--ink-3);}
+.tc-v{height:110px;position:relative;}
+.tc-b{padding:12px 13px;}
+.tc-t{font-family:var(--fs);font-size:17px;font-style:italic;line-height:1.2;margin-bottom:5px;}
+.tc-m{font-family:var(--fm);font-size:10px;color:var(--ink-3);margin-bottom:9px;}
+.tc-w{font-size:13px;line-height:1.55;color:var(--ink-2);}
+.tc-r{display:flex;gap:8px;padding:0 13px 13px;}
+.tc-x{flex:1;min-height:var(--cible-minimum);border-radius:var(--r-bouton);background:var(--surf-2);
+  font-size:12.5px;font-weight:600;transition:transform var(--duree-toucher) var(--ressort);}
+.tc-x:active{transform:scale(.96);}
 
-/* ══ TRACÉ ══ */
-#s-trace{position:relative;height:100%;}
-.tr-wrap{position:absolute;inset:0;}
-#trace-map{position:absolute;inset:0;background:var(--paper2);}
-.tr-empty{position:absolute;top:16px;left:16px;right:16px;z-index:500;background:rgba(26,24,20,.9);color:#fff;padding:12px 14px;border-radius:3px;font-size:12.5px;line-height:1.5;}
-.tr-empty b{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--yellow);display:block;margin-bottom:4px;}
-.tr-panel{position:absolute;left:0;right:0;bottom:0;z-index:600;background:var(--paper);border-top:1px solid var(--paper3);box-shadow:0 -6px 20px rgba(0,0,0,.12);transition:transform var(--duree-transition) cubic-bezier(.2,.8,.3,1);}
-.tr-panel.reduit{transform:translateY(calc(100% - 96px));}
-.tr-grip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 14px;min-height:48px;cursor:pointer;border-bottom:1px solid var(--paper3);background:none;border-left:none;border-right:none;border-top:none;width:100%;font-family:inherit;text-align:left;}
-.tr-grip-t{font-family:var(--fs);font-size:16px;font-style:italic;}
-.tr-grip-c{font-family:var(--fm);font-size:10px;color:var(--ink-40);}
-.tr-stats{display:flex;border-bottom:1px solid var(--paper3);}
-.tr-si{flex:1;padding:9px 4px;text-align:center;border-right:1px solid var(--paper3);}
-.tr-si:last-child{border-right:none;}
-.tr-sv{font-family:var(--fs);font-size:18px;font-style:italic;line-height:1;}
-.tr-sl{font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-40);margin-top:3px;}
-.tr-prof{height:62px;padding:8px 14px 0;border-bottom:1px solid var(--paper3);}
-.tr-prof svg{width:100%;height:46px;display:block;}
-.tr-tools{padding:12px 14px;}
-.tr-lab{font-family:var(--fm);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-40);margin:0 0 7px;}
-.tr-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px;}
-.tr-btn{flex:1;min-width:74px;min-height:var(--cible-minimum);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid var(--paper3);background:var(--white);border-radius:3px;cursor:pointer;font-family:var(--fb);transition:border-color var(--duree-toucher),background var(--duree-toucher);}
-.tr-btn:hover{border-color:var(--ink-40);}
-.tr-btn.on{background:var(--ink);border-color:var(--ink);color:#fff;}
-.tr-btn:disabled{opacity:.38;cursor:default;}
-.tr-bi{font-size:15px;line-height:1;}
-.tr-bl{font-family:var(--fm);font-size:8.5px;letter-spacing:.05em;}
-.tr-types{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px;}
-.tr-type{flex:1;min-width:52px;min-height:var(--cible-minimum);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1px solid var(--paper3);background:var(--white);border-radius:3px;cursor:pointer;font-size:14px;transition:border-color var(--duree-toucher);}
-.tr-type span{font-family:var(--fm);font-size:7.5px;letter-spacing:.03em;color:var(--ink-40);}
-.tr-type.on{border-color:var(--ink);border-width:2px;}
-.tr-note{font-size:11.5px;font-weight:300;line-height:1.5;color:var(--ink-40);margin-top:10px;padding-top:10px;border-top:1px solid var(--paper3);}
-.tr-marker{width:14px;height:14px;border-radius:50%;background:var(--red);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);}
-.tr-marker.depart{background:var(--green);}
-.tr-marker.arrivee{background:var(--ink);}
-
-/* ══ COMMUNAUTÉ ══ */
-.cor-head{padding:18px;background:var(--ink);color:#fff;}
-.cor-n{font-family:var(--fs);font-size:22px;font-style:italic;}
-.cor-s{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.42);margin-top:3px;}
-.cor-people{display:flex;gap:8px;overflow-x:auto;padding:14px 18px;scrollbar-width:none;}
-.cor-people::-webkit-scrollbar{display:none;}
-.cor-p{flex:none;width:62px;text-align:center;}
-.cor-av{width:46px;height:46px;border-radius:50%;margin:0 auto 5px;display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:17px;font-style:italic;color:#fff;}
-.cor-pn{font-size:11.5px;font-weight:500;line-height:1.2;min-height:2.4em;}
-.cor-pl{font-family:var(--fm);font-size:8px;color:var(--ink-40);margin-top:1px;}
-.cor-add{width:var(--cible-minimum);height:var(--cible-minimum);border-radius:50%;margin:0 auto 5px;border:1px dashed var(--stone);background:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink-40);cursor:pointer;}
-.tp{border-top:1px solid var(--paper3);padding:14px 18px;}
-.tp-h{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
-.tp-av{width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:13px;font-style:italic;color:#fff;}
-.tp-a{font-size:13px;font-weight:500;}
-.tp-q{font-family:var(--fm);font-size:9px;color:var(--ink-40);}
-.tp-card{border:1px solid var(--paper3);border-radius:3px;overflow:hidden;background:var(--white);}
-.tp-img{height:96px;position:relative;}
-.tp-dept{position:absolute;bottom:0;left:0;background:rgba(26,24,20,.78);color:#fff;font-family:var(--fm);font-size:9px;padding:3px 8px;}
-.tp-body{padding:12px 13px;}
-.tp-n{font-family:var(--fs);font-size:16px;font-style:italic;line-height:1.2;margin-bottom:5px;}
-.tp-meta{font-family:var(--fm);font-size:9.5px;color:var(--ink-40);letter-spacing:.03em;margin-bottom:8px;}
-.tp-mot{font-size:12.5px;font-weight:300;line-height:1.55;color:var(--ink-70);border-left:2px solid var(--paper3);padding-left:10px;}
-.tp-acts{display:flex;gap:7px;margin-top:11px;}
-.tp-act{flex:1;min-height:var(--cible-minimum);border:1px solid var(--paper3);background:var(--white);border-radius:3px;font-family:var(--fm);font-size:10px;letter-spacing:.05em;cursor:pointer;transition:border-color var(--duree-toucher);}
-.tp-act:hover{border-color:var(--ink-40);}
-
-/* ═══ RESPONSIVE ═══ */
 @media (max-width:1080px){
-  body{background:var(--paper);align-items:flex-start;}
-  #stage{flex-direction:column;gap:0;padding:0;max-width:100%;}
-  #notes{display:none;}
-  #phone{width:100%;height:100dvh;border-radius:0;box-shadow:none;max-width:520px;margin:0 auto;}
-  #notch{display:none;}
-  #statusbar{height:34px;}
+  body{align-items:stretch;background:var(--pap);}
+  #scene{flex-direction:column;gap:0;padding:0;}
+  #legende{display:none;}
+  #phone{width:100%;max-width:520px;height:100dvh;border-radius:0;box-shadow:none;margin:0 auto;}
+  #ile{display:none;}
+  #statut{height:34px;}
+  #haut{top:40px;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:1ms!important;transition-duration:1ms!important;}
 }
 </style>
 </head>
 <body>
-<div id="stage">
+<div id="scene">
 
-<!-- ══════════ NOTES DE CONCEPTION (desktop) ══════════ -->
-<aside id="notes">
-  <div class="n-logo">
-    <svg width="34" height="38" viewBox="0 0 36 40" fill="none">
-      <path d="M18 2 L34 10 L34 26 C34 33 18 39 18 39 C18 39 2 33 2 26 L2 10 Z" fill="#1E6B1A" stroke="#C8201A" stroke-width="2"/>
-      <path d="M8 20 L12 13 L15 17 L18 11 L21 17 L24 14 L28 20 Z" fill="#F5D800" opacity=".9"/>
-    </svg>
-    <div>
-      <span class="n-logo-t">Camins</span>
-      <span class="n-logo-s">Prototype · Points P-O</span>
+  <aside id="legende">
+    <div class="lg-t">Camins</div>
+    <p class="lg-p">Interface d'application : carte plein écran, feuille à trois crans, lecteur qui se déplie, mode guidage. Les codes empruntés sont annotés ci-dessous — chacun est repris pour ce qu'il fait bien, et borné par les règles du document 03.</p>
+    <div class="lg-i"><span class="lg-s">Apple Maps</span><span><b>La feuille à trois crans</b>Recherche dans la feuille, poignée, matières translucides, commandes empilées à droite. Glissez la poignée.</span></div>
+    <div class="lg-i"><span class="lg-s">Apple Music</span><span><b>Le mini-lecteur qui se déplie</b>Il se dépose au-dessus des onglets, puis s'ouvre en plein écran avec une pochette et un fond teinté par elle.</span></div>
+    <div class="lg-i"><span class="lg-s">Waze</span><span><b>Le mode guidage</b>Carte sombre, carte d'instruction en haut, bandeau d'arrivée en bas, chiffres surdimensionnés.</span></div>
+    <div class="lg-i"><span class="lg-s">Instagram</span><span><b>Le rail de stories</b>Anneaux circulaires pour la Cordée, format vertical segmenté pour les Éclats.</span></div>
+    <div class="lg-i"><span class="lg-s">Whatnot</span><span><b>La pastille du direct</b>Un point qui bat, une seule fois dans toute l'application, et seulement quand la Veillée est ouverte.</span></div>
+    <div class="lg-i"><span class="lg-s">AllTrails</span><span><b>La carte de sentier</b>Vignette, difficulté en pastille, distance et dénivelé sur une ligne, progression du Récit.</span></div>
+    <div class="lg-l">
+      <a href="../docs/03-design-attention.md">Design de l'attention</a>
+      <a href="../docs/04-directions-visuelles.md">Directions visuelles</a>
+      <a href="v1-etude.html">Prototype d'étude</a>
+    </div>
+  </aside>
+
+  <div id="phone">
+    <div id="ile"></div>
+    <div id="statut"><span id="heure">08:12</span><span class="d"><span id="mode-gps">GPS</span> · 78 % ▮</span></div>
+
+    <!-- Carte : rendu maison sur canvas, sans dépendance externe -->
+    <canvas id="carte"></canvas>
+    <div id="calque"><svg id="trace-svg"></svg></div>
+
+    <!-- Barre haute flottante -->
+    <div id="haut">
+      <button class="recherche" id="btn-recherche">
+        <span aria-hidden="true">🔍</span><span id="recherche-t">Chercher un sentier, un lieu…</span>
+      </button>
+      <button class="rond avatar" id="btn-profil" aria-label="Votre profil">V</button>
+    </div>
+
+    <!-- Commandes de carte -->
+    <div id="ctrl">
+      <button class="ctrl-b" id="c-relief" aria-label="Relief" title="Relief">⛰</button>
+      <button class="ctrl-b" id="c-pi" aria-label="Points d'intérêt" title="Points d'intérêt">📍</button>
+      <button class="ctrl-b" id="c-pos" aria-label="Me localiser" title="Me localiser">◎</button>
+      <button class="ctrl-b" id="c-nuit" aria-label="Basculer jour et nuit" title="Jour / nuit">🌗</button>
+    </div>
+
+    <button id="direct"><i></i>VEILLÉE EN DIRECT</button>
+
+    <!-- Feuille à trois crans -->
+    <div id="feuille">
+      <div id="poignee" role="separator" aria-label="Glisser pour redimensionner"></div>
+      <div id="feuille-corps"></div>
+    </div>
+
+    <!-- Mini-lecteur -->
+    <div id="mini">
+      <div id="mini-v"></div>
+      <div id="mini-c"><div id="mini-t"></div><div id="mini-s"></div></div>
+      <button class="mini-b" id="mini-pp" aria-label="Pause">⏸</button>
+      <button class="mini-b" id="mini-x" aria-label="Fermer">✕</button>
+      <div id="mini-j"><i></i></div>
+    </div>
+
+    <!-- Onglets -->
+    <div id="onglets">
+      <button class="og on" data-o="carte" aria-current="page"><span class="og-i">🗺</span><span class="og-l">Carte</span></button>
+      <button class="og" data-o="trace"><span class="og-i">✏️</span><span class="og-l">Tracé</span></button>
+      <button class="og" data-o="cordee"><span class="og-i">🤝</span><span class="og-l">Cordée</span></button>
+      <button class="og" data-o="veillee"><span class="og-i">🔥</span><span class="og-l">Veillée</span></button>
+      <button class="og" data-o="cabinet"><span class="og-i">📖</span><span class="og-l">Cabinet</span></button>
+    </div>
+
+    <!-- Fiche superposée -->
+    <div id="fiche" role="dialog" aria-modal="true" aria-label="Fiche"><div class="fi-c" id="fiche-c"></div></div>
+
+    <!-- Lecteur plein écran -->
+    <div id="lecteur" role="dialog" aria-modal="true" aria-label="Éclat">
+      <div class="lc-h">
+        <button class="lc-x" id="lc-x" aria-label="Réduire">⌄</button>
+        <span class="lc-eb" id="lc-eb">Éclat</span>
+        <span style="width:var(--cible-minimum)"></span>
+      </div>
+      <div class="lc-art" id="lc-art"><div class="lc-art-k" id="lc-art-k"></div></div>
+      <div class="lc-txt"><div class="lc-t" id="lc-t"></div><div class="lc-s" id="lc-s"></div></div>
+      <div class="lc-scrub">
+        <div class="lc-bar"><i id="lc-fill"></i></div>
+        <div class="lc-tm"><span id="lc-t1">0:00</span><span id="lc-t2">1:30</span></div>
+      </div>
+      <div class="lc-cmd">
+        <button class="lc-b" id="lc-prev" aria-label="Éclat précédent">⏮</button>
+        <button class="lc-b gros" id="lc-pp" aria-label="Pause">⏸</button>
+        <button class="lc-b" id="lc-next" aria-label="Éclat suivant">⏭</button>
+      </div>
+      <div class="lc-corps"><p class="lc-p" id="lc-p"></p><div class="lc-src" id="lc-src"></div></div>
+    </div>
+
+    <!-- Mode Sentier -->
+    <div id="guide">
+      <canvas id="guide-carte"></canvas>
+      <div class="g-instr">
+        <div class="g-fleche" id="g-fleche">↑</div>
+        <div><div class="g-d" id="g-d">800 m</div><div class="g-l" id="g-l">Prochaine station · Le champ des cramats</div></div>
+      </div>
+      <div class="g-libre">
+        <div class="g-km" id="g-km">0,0</div>
+        <div class="g-km-l">kilomètres parcourus</div>
+        <div class="g-cond">
+          <span class="g-c" id="g-c1">80 m</span>
+          <span class="g-c" id="g-c2">45 s</span>
+          <span class="g-c" id="g-c3">&lt; 8 km/h</span>
+        </div>
+      </div>
+      <div class="g-eta">
+        <div><div class="g-eta-v" id="g-eta">11h40</div><div class="g-eta-l">arrivée estimée</div></div>
+        <div><div class="g-eta-v" id="g-rest">6,2 km</div><div class="g-eta-l">restant</div></div>
+        <button class="g-stop" id="g-stop">Terminer</button>
+      </div>
+      <p class="g-note">L'écran reste noir en marche. Il ne s'allume qu'à l'approche d'une station, le temps d'une vibration.</p>
     </div>
   </div>
-  <h1 class="n-title">La randonnée narrative<br>d'Occitanie</h1>
-  <p class="n-lede">Prototype cliquable. Chaque écran met en scène une mécanique de rétention empruntée à Instagram ou à Whatnot — et le garde-fou qui l'empêche de devenir une machine à dépendance. Le panneau ci-dessous suit ce que vous faites dans le téléphone.</p>
-
-  <div class="n-panel" id="np">
-    <div class="n-eyebrow" id="np-eb">Écran · Sentiers</div>
-    <div class="n-h" id="np-h">La carte, pas le fil</div>
-    <div class="n-p" id="np-p"></div>
-    <div class="n-guard" id="np-g"></div>
-  </div>
-
-  <div class="n-links">
-    <a class="n-link" href="../docs/01-produit-camins.md">Spec produit</a>
-    <a class="n-link" href="../docs/02-retention-ethique.md">Étude rétention</a>
-    <a class="n-link" href="../points-po-accueil.html">Site Points P-O</a>
-  </div>
-  <p class="n-warn">Prototype de démonstration : données de parcours et de communauté simulées, contenus historiques rédigés à titre d'exemple et à re-sourcer en production. La vidéo YouTube de référence n'a pas pu être consultée depuis cet environnement (accès réseau bloqué).</p>
-</aside>
-
-<!-- ══════════ TÉLÉPHONE ══════════ -->
-<div id="phone">
-  <div id="notch"></div>
-  <div id="statusbar">
-    <span id="sb-time">08:12</span>
-    <span class="sb-r"><span id="sb-mode">GPS</span> · <span>78 %</span> ▮</span>
-  </div>
-
-  <div id="appbar">
-    <div>
-      <div class="ab-title">Camins</div>
-      <div class="ab-sub" id="ab-sub">Occitanie · 13 sentiers</div>
-    </div>
-    <button class="ab-btn" id="btn-reset" title="Réinitialiser la démo">↺</button>
-  </div>
-
-  <div id="view">
-
-    <!-- ─────── ÉCRAN 1 · SENTIERS ─────── -->
-    <section class="screen on" id="s-sentiers">
-      <div class="map-wrap">
-        <div id="map"></div>
-        <div class="map-hint">13 départements · 13 récits</div>
-      </div>
-      <div class="chips" id="chips"></div>
-      <div id="tlist"></div>
-      <div class="sec">
-        <div class="sec-eb">Éclats</div>
-        <h2 class="sec-t">Ce qui vous attend<br><em>dehors</em></h2>
-        <p class="sec-d">Un Éclat est un fragment d'histoire attaché à un point GPS. Il ne se déverrouille pas ici : il se déverrouille sur place, à pied. Cet écran ne sert qu'à savoir ce qu'il y a à aller chercher.</p>
-      </div>
-      <div class="callout"><b>Emprunt Instagram — le format Stories.</b> Vertical, 60 à 120 secondes, audio dominant, tap pour avancer. <b>Refus :</b> l'éphémère. Un Éclat obtenu est gardé à vie et exportable.</div>
-      <div id="teaselist"></div>
-      <div class="callout" style="border-color:var(--green)"><b>La règle d'or.</b> 80 m du point · 45 s sur place · moins de 8 km/h de moyenne. Trois conditions, une conséquence : la récompense variable est branchée sur les jambes, pas sur le pouce.</div>
-      <div class="end">Fin de la liste</div>
-      <div class="end">C'est tout. 13 sentiers, pas de fil infini.</div>
-    </section>
-
-
-    <!-- ─────── ÉCRAN · TRACÉ ─────── -->
-    <section class="screen" id="s-trace">
-      <div class="tr-wrap">
-        <div id="trace-map"></div>
-
-        <div class="tr-empty" id="tr-empty">
-          <b>Tracer un itinéraire</b>
-          Touchez la carte pour poser vos points. Les outils s'ouvrent par-dessus la carte, en bas.
-        </div>
-
-        <div class="tr-panel" id="tr-panel">
-          <button class="tr-grip" id="tr-grip" aria-expanded="true" aria-controls="tr-corps">
-            <span class="tr-grip-t" id="tr-nom">Nouveau tracé</span>
-            <span class="tr-grip-c" id="tr-etat">outils ouverts · toucher pour replier</span>
-          </button>
-
-          <div id="tr-corps">
-            <div class="tr-stats">
-              <div class="tr-si"><div class="tr-sv" id="tr-dist">0,0</div><div class="tr-sl">km</div></div>
-              <div class="tr-si"><div class="tr-sv" id="tr-deni">0</div><div class="tr-sl">D+ m</div></div>
-              <div class="tr-si"><div class="tr-sv" id="tr-duree">—</div><div class="tr-sl">durée</div></div>
-              <div class="tr-si"><div class="tr-sv" id="tr-pts">0</div><div class="tr-sl">points</div></div>
-            </div>
-
-            <div class="tr-prof" id="tr-prof"></div>
-
-            <div class="tr-tools">
-              <p class="tr-lab">Outils de tracé</p>
-              <div class="tr-row">
-                <button class="tr-btn on" id="tr-m-ajout" data-mode="ajout"><span class="tr-bi">✚</span><span class="tr-bl">Ajouter</span></button>
-                <button class="tr-btn" id="tr-m-poi" data-mode="poi"><span class="tr-bi">📍</span><span class="tr-bl">Point</span></button>
-                <button class="tr-btn" id="tr-undo"><span class="tr-bi">↶</span><span class="tr-bl">Annuler</span></button>
-                <button class="tr-btn" id="tr-clear"><span class="tr-bi">⌫</span><span class="tr-bl">Effacer</span></button>
-              </div>
-
-              <div id="tr-poi-choix" hidden>
-                <p class="tr-lab">Type de point à poser</p>
-                <div class="tr-types" id="tr-types"></div>
-              </div>
-
-              <p class="tr-lab">Enregistrer</p>
-              <div class="tr-row">
-                <button class="tr-btn" id="tr-save"><span class="tr-bi">📖</span><span class="tr-bl">Au Cabinet</span></button>
-                <button class="tr-btn" id="tr-share"><span class="tr-bi">🤝</span><span class="tr-bl">À la Cordée</span></button>
-                <button class="tr-btn" id="tr-gpx"><span class="tr-bi">↓</span><span class="tr-bl">GPX</span></button>
-              </div>
-
-              <p class="tr-note" id="tr-note">Le dénivelé est une estimation de démonstration, calculée à partir des coordonnées. En production, il vient du modèle numérique de terrain de l'IGN. La durée suit la règle de Naismith : 1 h pour 4 km, plus 1 h pour 600 m de montée.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ─────── ÉCRAN · COMMUNAUTÉ ─────── -->
-    <section class="screen" id="s-communaute">
-      <div class="cor-head">
-        <div class="cor-n">Votre Cordée</div>
-        <div class="cor-s"><span id="cor-nb">6</span> personnes sur 8 · sur invitation</div>
-      </div>
-      <div class="cor-people" id="cor-people"></div>
-
-      <div class="callout"><b>Emprunt Instagram — le cercle restreint.</b> Huit personnes maximum, sur invitation. <b>Refus :</b> les abonnés, la portée, le classement. Personne ici n'a de score, et aucune trace n'est publique.</div>
-
-      <div class="sec"><div class="sec-eb">Traces partagées</div></div>
-      <div id="cor-traces"></div>
-
-      <div class="end">Fin des partages de la semaine</div>
-    </section>
-
-    <!-- ─────── ÉCRAN 3 · VEILLÉE ─────── -->
-    <section class="screen" id="s-veillee">
-      <div id="v-pre">
-        <div class="v-count">
-          <div class="v-eb">Rendez-vous hebdomadaire</div>
-          <div class="v-h">La Veillée</div>
-          <div class="v-s">Jeudi · 21h00 · 40 minutes<br>Un récit, des archives, quelques places.</div>
-          <div class="v-clock" id="v-clock">00:00:12</div>
-          <div class="v-cl">avant l'ouverture</div>
-        </div>
-        <div class="sec" style="padding-top:16px">
-          <div class="sec-eb">Cette semaine</div>
-          <h2 class="sec-t">« Le champ des cramats »<br><em>ce que les fouilles de 1964 n'ont pas trouvé</em></h2>
-          <p class="sec-d">Avec Joan Puig, ethnologue, et une boîte d'archives des Archives départementales de l'Ariège ouverte en direct.</p>
-        </div>
-        <div class="callout"><b>Emprunt Whatnot — le show à heure fixe.</b> Un rendez-vous crée une attente bornée ; un live permanent crée une compulsion. Une Veillée par semaine, 40 minutes, jamais plus. <b>Rediffusion disponible dès le lendemain, sans limite</b> — le direct crée le rendez-vous, pas la peur de rater.</div>
-        <div class="sec" style="padding-bottom:18px"><button class="btn" id="btn-enter">Entrer dans la Veillée</button></div>
-        <div class="end">Prochaine Veillée : jeudi prochain</div>
-      </div>
-
-      <div id="v-live" style="display:none">
-        <div class="v-stage">
-          <div class="v-live"><i></i>EN DIRECT</div>
-          <div class="v-watch" id="v-watch">312 marcheurs</div>
-          <div class="v-host">
-            <div class="v-host-n">Joan Puig</div>
-            <div class="v-host-r">Ethnologue · guide · Ariège</div>
-          </div>
-        </div>
-        <div class="v-chat" id="v-chat"></div>
-        <div class="v-input">
-          <input id="v-in" placeholder="Poser une question à Joan…" maxlength="90">
-          <button id="v-send">Envoyer</button>
-        </div>
-        <div id="v-drops"></div>
-        <div class="callout" id="v-note"><b>Emprunt Whatnot — les petits détails d'attention.</b> L'hôte vous nomme, la file d'attente est réelle, le tirage est public, le son ponctue. C'est l'attention individuelle qui fidélise, pas le catalogue.</div>
-        <div class="sec" style="padding-bottom:18px"><button class="btn btn-o" id="btn-leave">Quitter la Veillée</button></div>
-        <div class="end">Le live s'arrête à 21h40. Toujours.</div>
-      </div>
-    </section>
-
-    <!-- ─────── ÉCRAN 4 · CABINET ─────── -->
-    <section class="screen" id="s-cabinet">
-      <div class="cab-head">
-        <div class="cab-n">Votre Cabinet</div>
-        <div class="cab-s">Compagnonnage · <span id="cab-rank">Passant</span></div>
-        <div class="cab-stats">
-          <div class="cab-si"><div class="cab-sv" id="st-ec">0</div><div class="cab-sl">Éclats</div></div>
-          <div class="cab-si"><div class="cab-sv" id="st-re">0</div><div class="cab-sl">Récits</div></div>
-          <div class="cab-si"><div class="cab-sv" id="st-km">0</div><div class="cab-sl">km dehors</div></div>
-          <div class="cab-si"><div class="cab-sv" id="st-ct">0</div><div class="cab-sl">Témoins</div></div>
-        </div>
-      </div>
-
-      <div class="sec"><div class="sec-eb">Collection</div></div>
-      <div class="grid" id="cab-grid"></div>
-
-      <div class="sec"><div class="sec-eb">Cycles en cours</div></div>
-      <div id="cab-cycles"></div>
-      <div class="callout"><b>Emprunt Instagram — l'archive personnelle.</b> Ce que l'on a construit retient plus que ce que l'on consomme. <b>Refus :</b> le classement. Rien ici n'est comparé à qui que ce soit, rien n'est public, tout est exportable en PDF.</div>
-
-      <div class="sec"><div class="sec-eb">Sentier d'abord</div></div>
-      <div class="eth">
-        <div class="eth-h">Ratio Camins — la métrique nord</div>
-        <div class="eth-b">
-          <div class="ratio">
-            <div class="ratio-v" id="ratio-v">—</div>
-            <div class="ratio-l">heures dehors<br>par heure d'écran</div>
-          </div>
-          <div class="ratio-bar"><div class="out" id="rb-out" style="width:50%">dehors</div><div class="scr" id="rb-scr" style="width:50%">écran</div></div>
-          <div class="ratio-n" id="ratio-n">Marchez dans le prototype pour voir le ratio bouger. Cible : au-dessus de 8. Un ratio qui baisse déclenche une revue produit, même si l'engagement monte.</div>
-        </div>
-      </div>
-
-      <div class="eth">
-        <div class="eth-h">Réglages — par défaut du côté du sentier</div>
-        <div class="row"><div><div class="row-t">Mode Sentier</div><div class="row-d">Écran noir en randonnée, audio seul. Activé par défaut.</div></div><button class="sw on" data-sw="mode"></button></div>
-        <div class="row"><div><div class="row-t">Notifications</div><div class="row-d"><b id="notif-n">2</b> par semaine maximum, sécurité exceptée. Réglable à 0.</div></div><button class="sw on" data-sw="notif"></button></div>
-        <div class="row"><div><div class="row-t">Son de déverrouillage</div><div class="row-d">Uniquement sur le sentier. Jamais dans les écrans de navigation.</div></div><button class="sw on" data-sw="son"></button></div>
-        <div class="row"><div><div class="row-t">Trace GPS privée</div><div class="row-d">500 premiers mètres floutés. Aucune trace en direct partagée.</div></div><button class="sw on" data-sw="gps"></button></div>
-        <div class="row"><div><div class="row-t">Mode Fauteuil</div><div class="row-d">Déverrouille tous les Éclats sans marcher. Sans justificatif, sans marquage.</div></div><button class="sw" data-sw="fauteuil"></button></div>
-      </div>
-
-      <div class="sec"><div class="sec-eb">Ce que Camins n'aura jamais</div></div>
-      <div class="charte">
-        <div class="ch-i"><span class="ch-n">01</span><span><b>Pas de série quotidienne.</b> Marcher pour ne pas casser une série, c'est marcher fatigué, en retard, par mauvais temps. En montagne, ça tue.</span></div>
-        <div class="ch-i"><span class="ch-n">02</span><span><b>Pas de fil infini.</b> Chaque écran a une fin visible.</span></div>
-        <div class="ch-i"><span class="ch-n">03</span><span><b>Pas de classement, pas de compteur public.</b> Aucune course involontaire.</span></div>
-        <div class="ch-i"><span class="ch-n">04</span><span><b>Rien ne se perd.</b> Aucun contenu limité dans le temps, aucune récompense qui expire.</span></div>
-        <div class="ch-i"><span class="ch-n">05</span><span><b>Pas d'enchère, pas de contenu aléatoire payant.</b> Prix fixe, tirage au sort, 24 h de rétractation.</span></div>
-        <div class="ch-i"><span class="ch-n">06</span><span><b>Pas de publicité, pas de revente de données.</b> Votre temps d'écran n'a aucune valeur pour nous.</span></div>
-        <div class="ch-i"><span class="ch-n">07</span><span><b>La météo ferme des stations</b>, et cette fermeture n'est jamais rattrapable. Le rattrapage crée la pression.</span></div>
-      </div>
-      <div class="end">Charte « Sentier d'abord » · 7 des 10 règles</div>
-    </section>
-
-  </div><!-- /view -->
-
-  <!-- ─────── DÉTAIL SENTIER ─────── -->
-  <div id="detail" role="dialog" aria-modal="true" aria-label="Fiche du sentier"></div>
-
-  <!-- ─────── FICHE POINT D'INTÉRÊT ─────── -->
-  <div id="poisheet" role="dialog" aria-modal="true" aria-label="Point d'intérêt"><div class="ps-card" id="ps-card"></div></div>
-
-  <!-- ─────── MODE SENTIER ─────── -->
-  <div id="walk">
-    <div class="w-eb" id="w-eb">Mode Sentier · écran verrouillé</div>
-    <div class="w-n" id="w-n"></div>
-    <div class="w-screen">
-      <div class="w-km" id="w-km">0,0</div>
-      <div class="w-kml">kilomètres parcourus</div>
-      <div class="w-track" id="w-track"><i id="w-fill" style="width:0"></i></div>
-      <div class="w-st" id="w-st">En marche…</div>
-      <div class="w-gps">
-        <div class="w-gps-h">Conditions de déverrouillage</div>
-        <div class="w-cond" id="c1"><span>Distance à la station</span><span id="c1v">— m</span></div>
-        <div class="w-cond" id="c2"><span>Temps sur place</span><span id="c2v">0 s / 45 s</span></div>
-        <div class="w-cond" id="c3"><span>Vitesse moyenne 10 min</span><span id="c3v">4,1 km/h</span></div>
-      </div>
-    </div>
-    <div class="w-foot">L'écran reste noir. Le téléphone vibre une fois quand un Éclat s'ouvre, puis se rendort.</div>
-    <button class="w-quit" id="w-quit">Terminer la sortie</button>
-  </div>
-
-  <!-- ─────── LECTEUR ÉCLAT ─────── -->
-  <div id="eclat" role="dialog" aria-modal="true" aria-label="Éclat">
-    <div class="e-bars" id="e-bars"></div>
-    <div class="e-head">
-      <div class="e-av" id="e-av"></div>
-      <div><div class="e-au" id="e-au"></div><div class="e-ro" id="e-ro"></div></div>
-      <button class="e-x" id="e-x">✕</button>
-    </div>
-    <div class="e-art" id="e-art">
-      <div class="e-txt">
-        <div class="e-kind" id="e-kind"></div>
-        <div class="e-t" id="e-t"></div>
-        <div class="e-p" id="e-p"></div>
-        <div class="e-src" id="e-src"></div>
-      </div>
-    </div>
-    <div class="e-audio">
-      <span class="e-time" id="e-t1">0:00</span>
-      <div class="e-wave" id="e-wave"></div>
-      <span class="e-time" id="e-t2">1:40</span>
-    </div>
-    <div class="e-toast" id="e-toast">Ajouté au Cabinet</div>
-  </div>
-
-  <!-- ─────── TABBAR ─────── -->
-  <div id="tabbar">
-    <button class="tab on" data-s="sentiers" aria-current="page"><span class="tab-i">🗺</span><span class="tab-l">Sentiers</span></button>
-    <button class="tab" data-s="trace"><span class="tab-i">✏️</span><span class="tab-l">Tracé</span></button>
-    <button class="tab" data-s="communaute"><span class="tab-i">🤝</span><span class="tab-l">Cordée</span></button>
-    <button class="tab" data-s="veillee"><span class="tab-i">🔥</span><span class="tab-l">Veillée</span></button>
-    <button class="tab" data-s="cabinet"><span class="tab-i">📖</span><span class="tab-l">Cabinet</span></button>
-  </div>
-</div><!-- /phone -->
-</div><!-- /stage -->
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</div>
 <script>
+
 /* ══════════════════════════════════════════════════════════
    DONNÉES — 13 sentiers, un par département d'Occitanie
    Contenus historiques rédigés à titre d'exemple pour le
@@ -1206,887 +1037,755 @@ const TRACES_PARTAGEES = [
     art:["#4a4034","#8d7a5c","#cbb68d"] }
 ];
 </script>
+
 <script>
-/* ══════════════════════════════════════════════════════════
-   ÉTAT
-   ══════════════════════════════════════════════════════════ */
-const S = {
-  screen:"sentiers", trail:null, filter:"all",
-  unlocked:{},          // "trailId:index" -> true
-  km:0,                 // km marchés (démo)
-  outMin:0,             // minutes dehors
-  scrMin:2,             // minutes d'écran
-  temoins:0,
-  recitsRecompenses:new Set(),   // un témoin par Récit terminé
-  fauteuil:false,
-  notifs:2
-};
-const key = (t,i) => t + ":" + i;
-const isUn = (t,i) => !!S.unlocked[key(t,i)] || S.fauteuil;
-const trail = id => TRAILS.find(t => t.id === id);
+"use strict";
+/* ═════════════════════════════════════════════════════════════
+   1 · CARTE — rendu topographique sur canvas.
+   Aucune bibliothèque, aucune tuile : le relief est calculé.
+   L'application fonctionne donc hors ligne par construction,
+   ce qui est le premier besoin d'une application de randonnée.
+   ═════════════════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-const grad = a => "linear-gradient(150deg," + a[0] + "," + a[1] + " 55%," + a[2] + ")";
-/* Tout texte pouvant venir d'une personne passe par ici avant d'entrer
-   dans un innerHTML. Les données de démonstration sont sûres aujourd'hui ;
-   le jour où un champ « nom du tracé » existe, elles ne le seront plus. */
-const ech = t => String(t ?? "").replace(/[&<>"']/g, c =>
-  ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
-const DIFFN = {f:"Facile", m:"Intermédiaire", d:"Difficile"};
 
-/* ─ compteur de temps d'écran (le produit se mesure lui-même) ─ */
-setInterval(() => { if (!$("#walk").classList.contains("on")) { S.scrMin += 1/12; renderRatio(); } }, 5000);
+const V = { lat: 43.62, lon: 2.30, echelle: 62 };   // échelle = pixels par degré
+const cv = $("#carte"), ctx = cv.getContext("2d", { alpha: false });
+let L_ = 0, H_ = 0, dpr = 1;
 
-/* ══════════════════════════════════════════════════════════
-   NOTES DE CONCEPTION (colonne de gauche)
-   ══════════════════════════════════════════════════════════ */
-const NOTES = {
-  sentiers:{eb:"Écran · Sentiers", h:"Une carte, pas un fil",
-    p:"L'accueil d'Instagram est une file verticale sans fin. L'accueil de Camins est une <b>carte finie</b> : treize sentiers, un par département, et une ligne qui dit « c'est tout ».",
-    g:"<strong>Garde-fou</strong> — aucun écran de l'app ne défile à l'infini. La fin est visible et datée."},
-  detail:{eb:"Écran · Récit", h:"La promesse, pas la récompense",
-    p:"La fiche annonce ce qu'il y a à trouver et ne le donne pas. Sept stations, sept Éclats, tous verrouillés. <b>Le contenu n'est pas consommable assis.</b>",
-    g:"<strong>Garde-fou</strong> — rien n'expire. Un Éclat manqué aujourd'hui sera là dans dix ans."},
-  walk:{eb:"Écran · Mode Sentier", h:"La récompense variable, branchée sur les jambes",
-    p:"C'est ici que la mécanique la plus addictive du marché est autorisée — on ne sait pas ce que cache la prochaine station — mais elle exige <b>80 m, 45 secondes et moins de 8 km/h</b>. La chimie de l'imprévu ne se déclenche jamais au canapé.",
-    g:"<strong>Garde-fou</strong> — l'écran reste noir, le téléphone vibre une fois. Le mode Sentier est l'état par défaut en randonnée."},
-  eclat:{eb:"Écran · Éclat", h:"La grammaire d'Instagram, sans son économie",
-    p:"Format vertical, barres segmentées, tap pour avancer : on emprunte la grammaire. <b>On refuse l'éphémère</b> — l'Éclat entre au Cabinet pour toujours — et on crédite l'auteur en haut de l'écran, comme un article.",
-    g:"<strong>Garde-fou</strong> — pas de compteur de vues, pas de like, pas de partage public."},
-  trace:{eb:"Écran · Tracé", h:"L'outil s'ouvre par-dessus la carte",
-    p:"Pas de bouton en haut : la carte occupe tout, et le panneau d'outils monte du bas. Il se replie d'un geste pour rendre la carte entière. <b>Poser un point, poser un point d'eau, annuler, exporter en GPX</b> — le tracé est à vous et part avec vous.",
-    g:"<strong>Garde-fou</strong> — un tracé reste privé par défaut. Le partage se fait vers la Cordée, jamais vers un public."},
-  communaute:{eb:"Écran · Cordée", h:"Huit personnes, et rien au-delà",
-    p:"L'intimité produit plus d'engagement que l'audience. On voit ce que six personnes ont rapporté cette semaine, avec leur mot — <b>pas un flux, pas un compteur, pas un classement</b>.",
-    g:"<strong>Garde-fou</strong> — aucun score, aucune trace publique, aucune position en direct. Personne ne peut voir qu'un ami est en train de monter."},
-  veillee:{eb:"Écran · Veillée", h:"Whatnot : le rendez-vous et les petites attentions",
-    p:"Un live à heure fixe, 40 minutes, un hôte qui vous nomme, un tirage annoncé, des places réelles en nombre limité. <b>C'est l'attention individuelle qui fidélise</b>, pas la profondeur du catalogue.",
-    g:"<strong>Garde-fou</strong> — pas d'enchère, prix fixe, tirage au sort, 24 h de rétractation, rediffusion permanente."},
-  cabinet:{eb:"Écran · Cabinet", h:"L'investissement, et la métrique qui juge tout",
-    p:"Une collection privée, exportable, sans classement. Et le <b>Ratio Camins</b> : heures dehors divisées par heures d'écran. Un fil infini ferait monter l'engagement et <b>effondrerait</b> ce chiffre.",
-    g:"<strong>Garde-fou</strong> — la métrique nord punit la captation. C'est ce qui rend la charte contraignante plutôt que décorative."}
-};
-function note(k){
-  const n = NOTES[k]; if (!n) return;
-  $("#np-eb").textContent = n.eb; $("#np-h").textContent = n.h;
-  $("#np-p").innerHTML = n.p; $("#np-g").innerHTML = n.g;
+/* Relief déterministe — le même que celui de l'outil de tracé. */
+/* ── Relief : bruit fractal déterministe ──────────────────────
+   Un produit de sinus fait des stries régulières qui ne ressemblent
+   à rien. Un bruit de valeur interpolé, sommé sur plusieurs octaves,
+   plus une composante « crêtes », donne des vallées et des arêtes. */
+function hache(x, y){
+  const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return n - Math.floor(n);
 }
-
-/* ══════════════════════════════════════════════════════════
-   CARTE
-   ══════════════════════════════════════════════════════════ */
-let map, pins = {};
-function initMap(){
-  if (typeof L === "undefined"){
-    document.getElementById("map").innerHTML =
-      '<div style="height:100%;display:flex;align-items:center;justify-content:center;text-align:center;'+
-      'font-family:var(--fm);font-size:10px;letter-spacing:.06em;color:var(--ink-40);padding:0 30px;line-height:1.8">'+
-      'CARTE INDISPONIBLE HORS LIGNE<br>La liste des sentiers reste utilisable.</div>';
-    return;
+const adoucir = t => t * t * (3 - 2 * t);
+function bruit(x, y){
+  const xi = Math.floor(x), yi = Math.floor(y);
+  const u = adoucir(x - xi), v = adoucir(y - yi);
+  const a = hache(xi, yi),     b = hache(xi + 1, yi);
+  const c = hache(xi, yi + 1), d = hache(xi + 1, yi + 1);
+  return (a + (b - a) * u) + ((c + (d - c) * u) - (a + (b - a) * u)) * v;
+}
+function fbm(x, y, octaves){
+  let somme = 0, poids = 0, amp = 1, freq = 1;
+  for (let i = 0; i < octaves; i++){
+    somme += bruit(x * freq, y * freq) * amp;
+    poids += amp;
+    amp *= .5; freq *= 2.07;
   }
-  map = L.map("map", {center:[43.75,2.20], zoom:6.6, zoomControl:false, attributionControl:false, scrollWheelZoom:false});
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", {maxZoom:14}).addTo(map);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png", {maxZoom:14, pane:"shadowPane"}).addTo(map);
-  TRAILS.forEach(t => {
-    const m = L.marker(t.c, {icon:icon(t)}).addTo(map);
-    m.on("click", () => openDetail(t.id));
-    pins[t.id] = m;
-  });
+  return somme / poids;
 }
-function icon(t){
-  const done = t.st.every((_,i) => isUn(t.id,i));
-  const e = t.diff === "f" ? "🥾" : t.diff === "d" ? "⛰" : "🗺";
-  return L.divIcon({className:"", html:'<div class="pin p-'+t.diff+(done?" done":"")+'"><span>'+(done?"✓":e)+"</span></div>",
-                    iconSize:[26,26], iconAnchor:[13,26]});
-}
-function refreshPins(){ TRAILS.forEach(t => pins[t.id] && pins[t.id].setIcon(icon(t))); }
+const ECH = 0.55;  // unités de bruit par degré : un massif fait ~1,8°
 
-/* ══════════════════════════════════════════════════════════
-   LISTE DES SENTIERS
-   ══════════════════════════════════════════════════════════ */
-const FILTERS = [["all","Tous"],["f","Facile"],["m","Intermédiaire"],["d","Difficile"],
-                 ["I","Cycle I"],["II","Cycle II"],["III","Cycle III"],["IV","Cycle IV"]];
-function renderChips(){
-  $("#chips").innerHTML = FILTERS.map(([v,l]) =>
-    '<button class="chip'+(S.filter===v?" on":"")+'" data-f="'+v+'">'+l+"</button>").join("");
-  $$("#chips .chip").forEach(c => c.onclick = () => { S.filter = c.dataset.f; renderChips(); renderList(); afficherPois(); });
+/* Nombre d'octaves tenable au zoom courant : au-delà, une période du bruit
+   tient dans moins de quatre pixels et le relief devient du grésil. */
+function octavesPour(mult){
+  const parPixel = ECH * mult / V.echelle;
+  let n = 1, f = 1;
+  while (n < 8 && f * 2.07 * parPixel <= 0.25){ f *= 2.07; n++; }
+  return n;
 }
-function match(t){ return S.filter==="all" || t.diff===S.filter || t.cycle===S.filter; }
-function renderList(){
-  const list = TRAILS.filter(match);
-  $("#tlist").innerHTML = list.map(t => {
-    const done = t.st.filter((_,i) => isUn(t.id,i)).length;
-    return '<div class="tcard" data-id="'+t.id+'">'+
-      '<div class="tc-th" style="background:'+grad(t.art)+'"><div class="tc-dept">'+t.dept+"</div></div>"+
-      '<div class="tc-b"><div class="tc-n">'+t.n+"</div>"+
-      '<div class="tc-m">'+t.deptn+" · "+t.dist+" · "+t.duree+" · "+t.deni+"</div>"+
-      '<div class="tc-th2">'+t.res.slice(0,92)+"…</div>"+
-      '<div class="tc-prog"><span class="badge b-'+t.diff+'">'+DIFFN[t.diff]+"</span>"+
-      '<div class="tc-bar"><i style="width:'+(done/t.st.length*100)+'%"></i></div>'+
-      '<span class="tc-pn">'+done+"/"+t.st.length+" ✦</span></div></div></div>";
-  }).join("") || '<div class="end">Aucun sentier pour ce filtre</div>';
-  $$("#tlist .tcard").forEach(c => c.onclick = () => openDetail(c.dataset.id));
-  $("#ab-sub").textContent = "Occitanie · " + list.length + " sentier" + (list.length>1?"s":"");
+function altD(lat, lon, octSocle, octCrete){
+  const x = (lon + 2.4) * ECH, y = (lat - 41.8) * ECH;
+  const socle = fbm(x, y, octSocle);
+  const crete = 1 - Math.abs(fbm(x * 1.73 + 11.3, y * 1.73 + 7.1, octCrete) * 2 - 1);
+  return Math.max(0, Math.round(-260 + socle * 1580 + crete * crete * 1180));
 }
+/* Relief complet : mesures, tracés, altitudes affichées. */
+const alt = (lat, lon) => altD(lat, lon, 8, 5);
+const versX = lon => (lon - V.lon) * V.echelle + L_ / 2;
+const versY = lat => (V.lat - lat) * V.echelle * 1.38 + H_ / 2;
+const versLon = x => (x - L_ / 2) / V.echelle + V.lon;
+const versLat = y => V.lat - (y - H_ / 2) / (V.echelle * 1.38);
 
-/* ─ écran Éclats : ce qui attend dehors ─ */
-function renderTeasers(){
-  let h = "";
-  TRAILS.slice(0,6).forEach(t => t.st.slice(0,2).forEach((s,i) => {
-    const un = isUn(t.id,i);
-    h += '<div class="tcard" data-id="'+t.id+'">'+
-      '<div class="tc-th" style="background:'+(un?grad(t.art):"var(--paper2)")+';display:flex;align-items:center;justify-content:center">'+
-      (un?"":'<span style="opacity:.3;font-size:16px">✦</span>')+'<div class="tc-dept">'+t.dept+"</div></div>"+
-      '<div class="tc-b"><div class="tc-m">'+t.n.split("·")[0].trim()+" · km "+s.km.toFixed(1)+"</div>"+
-      '<div class="tc-n" style="'+(un?"":"color:var(--ink-40)")+'">'+(un?s.t:"Éclat verrouillé")+"</div>"+
-      '<div class="tc-th2">'+(un?s.x.slice(0,80)+"…":"Se déverrouille sur place — "+s.k)+"</div></div></div>";
-  }));
-  $("#teaselist").innerHTML = h;
-  $$("#teaselist .tcard").forEach(c => c.onclick = () => openDetail(c.dataset.id));
+/* Palette du relief, lue une seule fois par repeinte : la lire par pixel
+   coûtait un getComputedStyle pour chacun des ~70 000 échantillons. */
+const SEUILS = [0, 320, 700, 1150, 1650, 2200];
+const VARS = ["--carte-eau","--carte-vert","--carte-bas","--carte-mid","--carte-haut","--carte-roc","--carte-neige"];
+const hex = h => { const m = (h || "").trim().replace("#","").match(/\w\w/g); return m ? m.map(x => parseInt(x, 16)) : [190,180,160]; };
+function palette(){
+  const c = getComputedStyle(document.body);
+  return VARS.map(v => hex(c.getPropertyValue(v)));
 }
-
-/* ══════════════════════════════════════════════════════════
-   DÉTAIL SENTIER
-   ══════════════════════════════════════════════════════════ */
-function openDetail(id){
-  const t = trail(id); S.trail = id;
-  const done = t.st.filter((_,i) => isUn(id,i)).length;
-  $("#detail").innerHTML =
-    '<div class="d-hero" style="background:'+grad(t.art)+'">'+
-      '<button class="d-back" id="d-back">←</button>'+
-      '<div class="d-hero-t"><div class="d-dept">'+t.dept+" · "+t.deptn+'</div><div class="d-n">'+t.n+"</div></div></div>"+
-    '<div class="d-meta">'+
-      '<div class="d-mi"><div class="d-mv">'+t.dist.replace(" km","")+'</div><div class="d-ml">km</div></div>'+
-      '<div class="d-mi"><div class="d-mv">'+t.duree+'</div><div class="d-ml">durée</div></div>'+
-      '<div class="d-mi"><div class="d-mv">'+t.deni.replace(" m","")+'</div><div class="d-ml">dénivelé</div></div>'+
-      '<div class="d-mi"><div class="d-mv">'+done+"/"+t.st.length+'</div><div class="d-ml">éclats</div></div></div>'+
-    '<div class="d-body">'+
-      '<div class="d-res">'+t.res+"</div>"+
-      '<div class="d-cyc"><div class="d-cyc-l">Cycle '+(t.cycle==="0"?"—":t.cycle)+'</div><div class="d-cyc-t">'+CYCLES[t.cycle].n+"</div></div>"+
-      (POIS_PAR_SENTIER[t.id]?.length
-        ? '<div class="sec-eb" style="margin-bottom:2px">Sur le terrain · '+POIS_PAR_SENTIER[t.id].length+' point(s)</div>'
-          + POIS_PAR_SENTIER[t.id].map(lignePoi).join("")
-          + '<div style="height:18px"></div>'
-        : "")+
-      '<div class="sec-eb" style="margin-bottom:2px">Le Récit · '+t.st.length+" stations</div>"+
-      t.st.map((s,i) => {
-        const un = isUn(t.id,i);
-        return '<div class="stn '+(un?"un":"lock")+'" data-i="'+i+'">'+
-          '<div class="stn-dot">'+(un?"✦":i+1)+"</div>"+
-          '<div class="stn-b"><div class="stn-km">km '+s.km.toFixed(1)+" · "+s.k+"</div>"+
-          '<div class="stn-t">'+(un?s.t:"Éclat verrouillé")+"</div>"+
-          '<div class="stn-s">'+(un?s.x.slice(0,70)+"…":"80 m · 45 s sur place · à pied")+"</div></div>"+
-          (un?'<div class="stn-play">▶ écouter</div>':"")+"</div>";
-      }).join("")+
-      '<div style="margin-top:18px">'+
-        (done===t.st.length
-          ? '<div class="callout" style="margin:0 0 12px;border-color:var(--green)"><b>Récit terminé.</b> Une carte-témoin rejoint votre Cabinet, et Joan citera votre passage à la prochaine Veillée — si le tirage vous désigne.</div>'
-          : "")+
-        '<button class="btn btn-g" id="d-walk">'+(done?"Reprendre le Récit":"Démarrer le mode Sentier")+"</button>"+
-        '<div style="text-align:center;font-family:var(--fm);font-size:9.5px;color:var(--ink-40);margin-top:9px;line-height:1.6">Simulation de marche · aucun GPS réel n\'est utilisé</div>'+
-      "</div>"+
-      '<div class="callout" style="margin:16px 0 0"><b>Fermeture météo.</b> Au-dessus du seuil d\'alerte Météo-France, les stations sont masquées et le Récit suspendu — sans rattrapage. Le rattrapage crée la pression, et la pression fait monter les gens par mauvais temps.</div>'+
-    "</div>";
-  $("#detail").classList.add("on");
-  $("#d-back").onclick = closeDetail;
-  $("#d-walk").onclick = () => startWalk(id);
-  $$("#detail .stn.un").forEach(el => el.onclick = () => playEclat(id, +el.dataset.i, false));
-  $$("#detail .poi-row").forEach(el => el.onclick = () => ouvrirPoi(el.dataset.poi));
-  note("detail");
-}
-function closeDetail(){ $("#detail").classList.remove("on"); note(S.screen); }
-
-/* ══════════════════════════════════════════════════════════
-   MODE SENTIER — simulation de marche
-   ══════════════════════════════════════════════════════════ */
-let walkTimer = null, walkKm = 0;
-function startWalk(id){
-  const t = trail(id); S.trail = id;
-  walkKm = 0;
-  $("#w-n").textContent = t.n;
-  $("#w-track").innerHTML = '<i id="w-fill" style="width:0"></i>' + t.st.map((s,i) =>
-    '<span class="w-tick'+(isUn(id,i)?" un":"")+'" id="tk'+i+'" style="left:'+(s.km/t.km*100)+'%"></span>').join("");
-  $("#walk").classList.add("on");
-  $("#sb-mode").textContent = "SENTIER";
-  note("walk");
-  tickWalk();
-}
-function tickWalk(){
-  clearInterval(walkTimer);
-  const t = trail(S.trail);
-  walkTimer = setInterval(() => {
-    walkKm = Math.min(t.km, walkKm + t.km/200);
-    S.km += t.km/200; S.outMin += 0.9;
-    $("#w-km").textContent = walkKm.toFixed(1).replace(".", ",");
-    $("#w-fill").style.width = (walkKm/t.km*100) + "%";
-    const nx = t.st.findIndex((s,i) => !isUn(t.id,i) && s.km > walkKm - 0.001);
-    if (nx >= 0){
-      const d = Math.max(0, (t.st[nx].km - walkKm) * 1000);
-      $("#c1v").textContent = d > 999 ? (d/1000).toFixed(1).replace(".",",")+" km" : Math.round(d)+" m";
-      $("#c1").classList.toggle("ok", d <= 80);
-      $("#w-st").textContent = "Prochaine station à " + (d>999 ? (d/1000).toFixed(1).replace(".",",")+" km" : Math.round(d)+" m");
-      if (d <= 80){ clearInterval(walkTimer); arrive(nx); return; }
-    } else {
-      $("#w-st").textContent = "Récit complet — bonne fin de sortie";
-    }
-    if (walkKm >= t.km){ clearInterval(walkTimer); $("#w-st").textContent = "Sortie terminée"; }
-  }, 90);
-}
-function arrive(i){
-  const t = trail(S.trail);
-  let sec = 0;
-  $("#w-st").textContent = "Vous y êtes. Restez sur place.";
-  const iv = setInterval(() => {
-    sec += 5;
-    $("#c2v").textContent = Math.min(sec,45) + " s / 45 s";
-    $("#c2").classList.toggle("ok", sec >= 45);
-    $("#c3").classList.add("ok");
-    if (sec >= 45){
-      clearInterval(iv);
-      S.unlocked[key(t.id,i)] = true;
-      $("#tk"+i) && $("#tk"+i).classList.add("un");
-      buzz();
-      playEclat(t.id, i, true);
-    }
-  }, 210);
-}
-function buzz(){
-  const p = $("#phone");
-  p.animate([{transform:"translateX(0)"},{transform:"translateX(-2px)"},{transform:"translateX(2px)"},{transform:"translateX(0)"}], {duration:180, iterations:2});
-  if (navigator.vibrate) try{ navigator.vibrate(35); }catch(e){}
-}
-$("#w-quit").onclick = () => {
-  clearInterval(walkTimer);
-  $("#walk").classList.remove("on");
-  $("#sb-mode").textContent = "GPS";
-  refreshPins(); renderList(); renderTeasers(); renderCabinet();
-  if (S.trail) openDetail(S.trail);
+const bandeDe = a => {
+  if (a <= 0) return 0;
+  for (let i = 1; i < SEUILS.length; i++) if (a < SEUILS[i]) return i;
+  return VARS.length - 1;
 };
 
-/* ══════════════════════════════════════════════════════════
-   LECTEUR ÉCLAT
-   ══════════════════════════════════════════════════════════ */
-let eTimer = null, eResume = false;
-function playEclat(tid, i, resumeWalk){
-  const t = trail(tid), s = t.st[i];
-  eResume = !!resumeWalk;
-  $("#e-bars").innerHTML = t.st.map((_,j) =>
-    '<div class="e-bar"><i id="eb'+j+'" style="width:'+(j < i || isUn(tid, j) ? "100%" : "0")+'"></i></div>').join("");
-  $("#e-av").textContent = t.auteur.split(" ").map(w=>w[0]).join("").slice(0,2);
-  $("#e-av").style.background = t.art[1];
-  $("#e-au").textContent = t.auteur;
-  $("#e-ro").textContent = t.role;
-  $("#e-art").style.background = grad(t.art);
-  $("#e-kind").textContent = s.k;
-  $("#e-t").textContent = s.t;
-  $("#e-p").textContent = s.x;
-  $("#e-src").textContent = "Sources · " + s.s;
-  $("#e-wave").innerHTML = Array.from({length:38}, () =>
-    '<i style="height:'+(14 + Math.random()*70)+'%"></i>').join("");
-  $("#eclat").classList.add("on");
-  note("eclat");
-  let p = 0;
-  const bar = $("#eb"+i);
-  clearInterval(eTimer);
-  eTimer = setInterval(() => {
-    p += 1;
-    if (bar) bar.style.width = p + "%";
-    $("#e-t1").textContent = Math.floor(p/60) + ":" + String(p%60).padStart(2,"0");
-    $$("#e-wave i").forEach((w,k) => w.style.opacity = (k/38*100 < p) ? 1 : .35);
-    if (p >= 100){
-      clearInterval(eTimer);
-      S.unlocked[key(tid,i)] = true;
-      S.outMin += 2;
-      toast();
-    }
-  }, 90);
-}
-function toast(){
-  const el = $("#e-toast");
-  el.classList.add("on");
-  setTimeout(() => { el.classList.remove("on"); closeEclat(); }, 1500);
-}
-function closeEclat(){
-  clearInterval(eTimer);
-  $("#eclat").classList.remove("on");
-  refreshPins(); renderList(); renderTeasers(); renderCabinet();
-  const t = trail(S.trail);
-  if (eResume && t && !t.st.every((_,i)=>isUn(t.id,i))){ note("walk"); tickWalk(); }
-  else if (eResume){
-    /* Une carte-témoin par Récit, pas une par fermeture de lecteur. */
-    if (!S.recitsRecompenses.has(S.trail)){
-      S.recitsRecompenses.add(S.trail);
-      S.temoins++;
-    }
-    $("#walk").classList.remove("on"); $("#sb-mode").textContent = "GPS";
-    openDetail(S.trail);
-  } else note($("#detail").classList.contains("on") ? "detail" : S.screen);
-}
-$("#e-x").onclick = closeEclat;
-$("#e-art").onclick = closeEclat;
+/* Le terrain est peint dans un canvas hors écran à résolution réduite,
+   puis étiré : c'est ce qui rend le déplacement fluide au doigt. */
+const off = document.createElement("canvas");
+const offc = off.getContext("2d", { alpha: false });
+const PAS = 2;
 
-/* ══════════════════════════════════════════════════════════
-   VEILLÉE
-   ══════════════════════════════════════════════════════════ */
-let vTimers = [];
-const SCRIPT = [
- [600, "host", "Joan", "Bonsoir à tous. Ce soir : ce que les fouilles de 1964 à Montségur n'ont pas trouvé — et pourquoi c'est plus intéressant que ce qu'elles ont trouvé."],
- [2600, "user", "Mireia", "Bonsoir depuis Prades 👋"],
- [4200, "user", "Thomas", "La stèle de 1960, elle a été posée par qui exactement ?"],
- [5600, "host", "Joan", "Bonne question Thomas — j'ouvre la boîte, j'ai la délibération."],
- [7200, "sys", "", "Joan ouvre une boîte des Archives départementales de l'Ariège en direct."],
- [9000, "drop", "", ""],
- [11000, "user", "Anne-Claire", "Je prends une place si le tirage veut bien de moi"],
- [13000, "name", "", ""],
- [16000, "user", "Karim", "Terminé le Larzac dimanche, la lavogne c'était le meilleur éclat de l'année"],
- [18500, "give", "", ""],
- [21000, "host", "Joan", "On s'arrête à 21h40 comme d'habitude. La rediffusion est en ligne demain matin, sans limite de temps."]
-];
-function enterVeillee(){
-  $("#v-pre").style.display = "none";
-  $("#v-live").style.display = "block";
-  $("#v-chat").innerHTML = "";
-  $("#v-drops").innerHTML = "";
-  arreterVeillee();
-  SCRIPT.forEach(([t, kind, who, txt]) => vTimers.push(setTimeout(() => {
-    if (kind === "drop") return showDrop();
-    if (kind === "name") return hostNames();
-    if (kind === "give") return giveaway();
-    chat(kind, who, txt);
-  }, t)));
-  let n = 312;
-  vTimers.push(setInterval(() => { n += Math.floor(Math.random()*7)-2; $("#v-watch").textContent = n + " marcheurs"; }, 2400));
-  note("veillee");
-}
-function chat(kind, who, txt){
-  const c = $("#v-chat");
-  const d = document.createElement("div");
-  d.className = "v-msg " + (kind === "host" ? "host" : kind === "sys" ? "sys" : "");
-  /* Le chat est la seule entrée libre de l'application : on construit les
-     nœuds plutôt que d'assembler du HTML, sinon un message est du code. */
-  if (kind === "sys"){
-    d.textContent = "— " + txt;
-  } else {
-    const nom = document.createElement("b");
-    nom.textContent = who;
-    const corps = document.createElement("span");
-    corps.textContent = " " + txt;
-    d.append(nom, corps);
+function peindreRelief(){
+  const l = Math.ceil(L_ / PAS), h = Math.ceil(H_ / PAS);
+  if (!l || !h) return;
+  off.width = l; off.height = h;
+  const img = offc.createImageData(l, h);
+  const d = img.data;
+  const pal = palette();
+  const nuit = document.body.classList.contains("nuit");
+  const trait = nuit ? [214,182,132] : [104,82,50];
+  const oS = octavesPour(1), oC = Math.min(5, octavesPour(1.73));
+  const eq = V.echelle > 420 ? 50 : V.echelle > 150 ? 100 : V.echelle > 70 ? 200 : 400;
+
+  /* Grille (l+1)×(h+1) : chaque altitude n'est calculée qu'une fois, et les
+     voisins de l'ombrage y sont lus au lieu d'être recalculés. */
+  const G = new Float32Array((l + 1) * (h + 1));
+  for (let j = 0; j <= h; j++){
+    const la = versLat(j * PAS);
+    for (let i = 0; i <= l; i++) G[j * (l + 1) + i] = altD(la, versLon(i * PAS), oS, oC);
   }
-  c.appendChild(d);
-  while (c.children.length > 7) c.removeChild(c.firstChild);
+
+  /* L'amplitude d'ombrage se rapporte aux mètres couverts par un pixel :
+     une différence d'altitude de 300 m entre deux échantillons est une pente
+     douce à petite échelle et une falaise à grande échelle. Une valeur fixe
+     saturait le contraste et transformait le relief en grésil. */
+  const metresParPixel = 111320 / V.echelle * PAS;
+  const ampli = Math.max(12, metresParPixel * 0.9);
+
+  for (let j = 0; j < h; j++){
+    for (let i = 0; i < l; i++){
+      const a  = G[j * (l + 1) + i];
+      const aE = G[j * (l + 1) + i + 1];
+      const aS = G[(j + 1) * (l + 1) + i];
+      const c = pal[bandeDe(a)];
+      let f = 1 + ((aE - a) - (aS - a)) / ampli;
+      f = Math.max(.72, Math.min(1.30, f));
+      const bande = Math.floor(a / eq);
+      const courbe = a > 0 && (Math.floor(aE / eq) !== bande || Math.floor(aS / eq) !== bande);
+      const k = (j * l + i) * 4;
+      if (courbe){
+        d[k]   = trait[0] * .40 + c[0] * .60;
+        d[k+1] = trait[1] * .40 + c[1] * .60;
+        d[k+2] = trait[2] * .40 + c[2] * .60;
+      } else {
+        d[k]   = Math.min(255, c[0] * f);
+        d[k+1] = Math.min(255, c[1] * f);
+        d[k+2] = Math.min(255, c[2] * f);
+      }
+      d[k+3] = 255;
+    }
+  }
+  offc.putImageData(img, 0, 0);
 }
-function showDrop(){
-  let left = 12;
-  $("#v-drops").innerHTML =
-   '<div class="drop"><div class="drop-h"><span>Drop en direct</span><span class="rem" id="drop-rem">12 places</span></div>'+
-   '<div class="drop-b"><div class="drop-n">Montségur au lever du jour</div>'+
-   '<div class="drop-d">Samedi 14, départ 5h30 avec Joan. Montée de nuit, les six stations du Récit, petit-déjeuner au champ des cramats.</div>'+
-   '<div class="drop-f"><div class="drop-p">72 €<small>par personne · guide inclus</small></div>'+
-   '<button class="btn btn-s" id="drop-btn" style="width:auto;padding:11px 18px">Entrer au tirage</button></div>'+
-   '<div class="drop-note"><b>Pas d\'enchère.</b> Prix fixe, tirage au sort si la demande dépasse les places, 24 h de rétractation. Le compte à rebours ne sert qu\'à fermer le tirage — jamais à faire monter un prix.</div>'+
-   "</div></div>";
-  const iv = setInterval(() => {
-    left--; $("#drop-rem").textContent = left + " place" + (left>1?"s":"");
-    if (left <= 4) clearInterval(iv);
-  }, 2200);
-  vTimers.push(iv);
-  $("#drop-btn").onclick = e => {
-    e.target.textContent = "Inscrit au tirage";
-    e.target.disabled = true;
-    chat("sys", "", "Vous êtes entré au tirage. Résultat annoncé en direct dans 4 minutes.");
+
+function dessinerCarte(){
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(off, 0, 0, L_, H_);
+  placerEpingles();
+}
+
+let minuteur = null;
+function rafraichirCarte(immediat){
+  clearTimeout(minuteur);
+  const faire = () => { peindreRelief(); dessinerCarte(); };
+  if (immediat) faire(); else minuteur = setTimeout(faire, 60);
+}
+
+function dimensionner(){
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const r = cv.getBoundingClientRect();
+  L_ = r.width; H_ = r.height;
+  cv.width = L_ * dpr; cv.height = H_ * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  rafraichirCarte(true);
+}
+
+/* déplacement et zoom au doigt */
+let glisse = null;
+cv.addEventListener("pointerdown", e => { glisse = { x: e.clientX, y: e.clientY, lat: V.lat, lon: V.lon }; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove", e => {
+  if (!glisse) return;
+  V.lon = glisse.lon - (e.clientX - glisse.x) / V.echelle;
+  V.lat = glisse.lat + (e.clientY - glisse.y) / (V.echelle * 1.38);
+  dessinerCarte();
+  rafraichirCarte();
+});
+cv.addEventListener("pointerup", () => { glisse = null; rafraichirCarte(true); });
+cv.addEventListener("pointercancel", () => { glisse = null; });
+cv.addEventListener("wheel", e => {
+  e.preventDefault();
+  V.echelle = Math.max(18, Math.min(900, V.echelle * (e.deltaY < 0 ? 1.14 : .88)));
+  rafraichirCarte(true);
+}, { passive: false });
+
+/* ── épingles ── */
+const E = { pi: true, sentiers: true };
+function placerEpingles(){
+  const calque = $("#calque");
+  [...calque.querySelectorAll(".epingle")].forEach(n => n.remove());
+  const ajouter = (lat, lon, html, clic, mini) => {
+    const x = versX(lon), y = versY(lat);
+    if (x < -60 || x > L_ + 60 || y < -60 || y > H_ + 60) return;
+    const el = document.createElement("button");
+    el.className = "epingle" + (mini ? " mini" : "");
+    el.dataset.cible = "annotation";
+    el.style.left = x + "px"; el.style.top = y + "px";
+    el.innerHTML = html;
+    el.onclick = clic;
+    calque.appendChild(el);
   };
+  if (E.sentiers) TRAILS.forEach(t => ajouter(t.c[0], t.c[1],
+    '<div class="ep-c" style="background:' + couleurDiff(t.diff) + '"><i>' + (t.diff === "d" ? "⛰" : t.diff === "f" ? "🥾" : "🗺") + '</i></div>' +
+    (V.echelle > 260 ? '<span class="ep-l">' + ech(t.n.split(",")[0].split("·")[0].trim()) + "</span>" : ""),
+    () => ouvrirSentier(t.id)));
+  if (E.pi && V.echelle > 90) POIS.forEach(p => ajouter(p.c[0], p.c[1],
+    '<div class="ep-c" style="background:' + TYPES_POI[p.type].c + '"><i>' + TYPES_POI[p.type].i + "</i></div>",
+    () => ouvrirPoi(p.id), true));
 }
-function hostNames(){
-  chat("host", "Joan", "Et bravo à celles et ceux qui ont terminé un Récit cette semaine — le tirage m'en donne trois : Karim sur le Larzac, Mireia au Conflent, et vous, si vous avez marché. On ne récompense pas les plus rapides, on tire au sort parmi celles et ceux qui sont sortis.");
-}
-function giveaway(){
-  chat("sys", "", "Tirage : 3 cartes-témoins « Le champ des cramats » offertes.");
-  setTimeout(() => {
-    S.temoins++;
-    chat("sys", "", "Vous en recevez une. Elle est dans votre Cabinet.");
-    renderCabinet(); buzz();
-  }, 1600);
-}
-$("#btn-enter").onclick = enterVeillee;
-function arreterVeillee(){
-  /* clearTimeout et clearInterval partagent le même registre : un seul appel
-     suffit, mais on garde les deux pour que l'intention reste lisible. */
-  vTimers.forEach(t => { clearTimeout(t); clearInterval(t); });
-  vTimers = [];
-}
-$("#btn-leave").onclick = () => {
-  arreterVeillee();
-  $("#v-live").style.display = "none"; $("#v-pre").style.display = "block";
-};
-$("#v-send").onclick = () => {
-  const v = $("#v-in").value.trim(); if (!v) return;
-  chat("user", "Vous", v); $("#v-in").value = "";
-  setTimeout(() => chat("sys", "", "Vous êtes 3ᵉ dans la file des questions · environ 2 min."), 900);
-};
-$("#v-in").addEventListener("keydown", e => { if (e.key === "Enter") $("#v-send").click(); });
+const couleurDiff = d => d === "f" ? "#2A5A22" : d === "d" ? "#B8342B" : "#96702A";
+const ech = t => String(t ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 
-/* ─ compte à rebours d'ouverture ─ */
-let vSec = 12;
-setInterval(() => {
-  vSec = vSec > 0 ? vSec - 1 : 0;
-  const h = String(Math.floor(vSec/3600)).padStart(2,"0"),
-        m = String(Math.floor(vSec%3600/60)).padStart(2,"0"),
-        s = String(vSec%60).padStart(2,"0");
-  $("#v-clock").textContent = vSec > 0 ? h+":"+m+":"+s : "EN DIRECT";
-}, 1000);
+window.addEventListener("resize", dimensionner);
+</script>
 
-/* ══════════════════════════════════════════════════════════
-   CABINET
-   ══════════════════════════════════════════════════════════ */
-const RANKS = [[0,"Passant"],[3,"Marcheur"],[8,"Habitué"],[16,"Témoin"],[28,"Passeur"]];
-function renderCabinet(){
-  const all = [];
-  TRAILS.forEach(t => t.st.forEach((s,i) => all.push({t, s, i, un:isUn(t.id,i)})));
-  const un = all.filter(a => a.un);
-  const recits = TRAILS.filter(t => t.st.every((_,i) => isUn(t.id,i))).length;
-  $("#st-ec").textContent = un.length;
-  $("#st-re").textContent = recits;
-  $("#st-km").textContent = Math.round(S.km);
-  /* Une carte-témoin est déjà comptée dans S.temoins à la fin d'un Récit :
-     l'additionner aux Récits terminés la comptait deux fois. */
-  $("#st-ct").textContent = S.temoins;
-  $("#cab-rank").textContent = RANKS.filter(r => un.length >= r[0]).pop()[1];
+<script>
+"use strict";
+/* ═════════════════════════════════════════════════════════════
+   2 · FEUILLE À TROIS CRANS  (Apple Maps)
+   ═════════════════════════════════════════════════════════════ */
+const feuille = $("#feuille"), corps = $("#feuille-corps");
+let crans = { bas: 0, milieu: 0, haut: 0 }, cranActuel = "milieu", ty = 0;
 
-  const show = [...un, ...all.filter(a => !a.un)].slice(0, 18);
-  $("#cab-grid").innerHTML = show.map(a => a.un
-    ? '<div class="gi" style="background:'+grad(a.t.art)+'" data-t="'+a.t.id+'" data-i="'+a.i+'"><div class="gi-t">'+a.s.t+"</div></div>"
-    : '<div class="gi lock"><span>✦</span></div>').join("");
-  $$("#cab-grid .gi[data-t]").forEach(el => el.onclick = () => playEclat(el.dataset.t, +el.dataset.i, false));
-
-  $("#cab-cycles").innerHTML = ["I","II","III","IV"].map(c => {
-    const ts = TRAILS.filter(t => t.cycle === c);
-    const tot = ts.reduce((n,t) => n + t.st.length, 0);
-    const got = ts.reduce((n,t) => n + t.st.filter((_,i) => isUn(t.id,i)).length, 0);
-    return '<div class="cyc"><div class="cyc-h"><div class="cyc-n">Cycle '+c+" · "+CYCLES[c].n+'</div><div class="cyc-c">'+got+"/"+tot+"</div></div>"+
-      '<div class="cyc-bar"><i style="width:'+(tot?got/tot*100:0)+'%"></i></div>'+
-      '<div class="cyc-d">'+CYCLES[c].d+" · "+ts.length+" sentiers"+
-      (got===tot && tot ? " · <b>terminé — votre carnet papier part à l'impression</b>" : " · 3 mois, sans date butoir")+"</div></div>";
-  }).join("");
-  renderRatio();
+function mesurerCrans(){
+  const H = $("#phone").clientHeight;
+  const hf = feuille.clientHeight;              // 94 % de la coque
+  crans = { bas: hf - 152, milieu: hf - H * 0.52, haut: 0 };
+  poser(cranActuel, false);
 }
-function renderRatio(){
-  const out = S.outMin/60, scr = S.scrMin/60;
-  const r = scr > 0 ? out/scr : 0;
-  $("#ratio-v").textContent = out === 0 ? "—" : r.toFixed(1).replace(".",",");
-  const pct = out+scr > 0 ? out/(out+scr)*100 : 8;
-  $("#rb-out").style.width = Math.max(pct,8) + "%";
-  $("#rb-scr").style.width = Math.max(100-pct,8) + "%";
-  $("#ratio-n").textContent = out === 0
-    ? "Marchez dans le prototype pour voir le ratio bouger. Cible : au-dessus de 8. Un ratio qui baisse déclenche une revue produit, même si l'engagement monte."
-    : Math.round(S.outMin)+" min dehors pour "+Math.round(S.scrMin)+" min d'écran. "+
-      (r >= 8 ? "Au-dessus de la cible : l'app fait son travail." : "Sous la cible de 8 : dans la vraie app, ce chiffre déclencherait une revue produit.");
+function poser(cran, anime){
+  cranActuel = cran;
+  ty = crans[cran];
+  feuille.style.transition = anime ? "transform var(--duree-transition) var(--ressort)" : "none";
+  feuille.style.transform = "translateY(" + ty + "px)";
+  majFlottants();
+  corps.style.overflowY = cran === "bas" ? "hidden" : "auto";
+  if (cran === "bas") corps.scrollTop = 0;
 }
-
-/* ══════════════════════════════════════════════════════════
-   RÉGLAGES / NAVIGATION / RESET
-   ══════════════════════════════════════════════════════════ */
-$$("[data-sw]").forEach(b => b.onclick = () => {
-  b.classList.toggle("on");
-  const on = b.classList.contains("on");
-  if (b.dataset.sw === "fauteuil"){
-    S.fauteuil = on;
-    refreshPins(); renderList(); renderTeasers(); renderCabinet();
+function majFlottants(){
+  const visible = feuille.clientHeight - ty;
+  $("#ctrl").style.bottom = (visible + 14) + "px";
+  $("#direct").style.bottom = (visible + 14) + "px";
+}
+/* glissement : la poignée toujours, le corps seulement quand il est en haut */
+let g = null;
+function debut(e){
+  if (e.target.closest("button") && !e.target.closest("#poignee")) return;
+  if (e.currentTarget === corps && corps.scrollTop > 0) return;
+  if (e.currentTarget === corps && cranActuel === "haut") return;
+  g = { y: e.clientY, ty0: ty, t: performance.now(), dernier: e.clientY, bouge: 0 };
+  feuille.style.transition = "none";
+}
+function bouge(e){
+  if (!g) return;
+  const d = e.clientY - g.y;
+  g.bouge = Math.max(g.bouge, Math.abs(d));
+  ty = Math.max(crans.haut - 26, Math.min(crans.bas + 26, g.ty0 + d));
+  feuille.style.transform = "translateY(" + ty + "px)";
+  majFlottants();
+  g.vitesse = (e.clientY - g.dernier) / Math.max(1, performance.now() - g.t) * 1000;
+  g.dernier = e.clientY; g.t = performance.now();
+}
+let glissementRecent = 0;
+function fin(){
+  if (!g) return;
+  const v = g.vitesse || 0;
+  /* Un glissement de plus de 6 px n'est pas un appui : sans ça le clic qui
+     suit le relâchement rebasculait immédiatement le cran. */
+  if (g.bouge > 6) glissementRecent = performance.now();
+  g = null;
+  /* au-delà de 900 px/s on suit l'élan, sinon on va au cran le plus proche */
+  let cible;
+  if (Math.abs(v) > 900){
+    const ordre = ["haut", "milieu", "bas"];
+    const i = ordre.indexOf(cranActuel);
+    cible = ordre[Math.max(0, Math.min(2, i + (v > 0 ? 1 : -1)))];
+  } else {
+    cible = Object.entries(crans).sort((a, b) => Math.abs(a[1] - ty) - Math.abs(b[1] - ty))[0][0];
   }
-  if (b.dataset.sw === "notif"){ S.notifs = on ? 2 : 0; $("#notif-n").textContent = S.notifs; }
+  poser(cible, true);
+}
+["#poignee", "#feuille-corps"].forEach(sel => {
+  const el = $(sel);
+  el.addEventListener("pointerdown", e => { debut(e); if (g) el.setPointerCapture(e.pointerId); });
+  el.addEventListener("pointermove", bouge);
+  el.addEventListener("pointerup", fin);
+  el.addEventListener("pointercancel", fin);
+});
+$("#poignee").addEventListener("click", () => {
+  if (performance.now() - glissementRecent < 300) return;
+  poser(cranActuel === "haut" ? "milieu" : "haut", true);
 });
 
-function allerA(nom){
-  const onglet = document.querySelector('.tab[data-s="' + nom + '"]');
-  if (!onglet) return;
-  $$(".tab").forEach(t => {
-    const actif = t === onglet;
-    t.classList.toggle("on", actif);
-    t.setAttribute("aria-current", actif ? "page" : "false");
-  });
-  S.screen = nom;
-  $$(".screen").forEach(sc => sc.classList.toggle("on", sc.id === "s-" + nom));
-  $("#view").scrollTop = 0;
-  closeDetail();
-  fermerPoi();
-  note(nom);
-  if (nom === "sentiers" && map) setTimeout(() => map.invalidateSize(), 60);
-  if (nom === "trace"){ initTrace(); setTimeout(() => carteTrace && carteTrace.invalidateSize(), 60); }
-  if (nom === "communaute") renderCommunaute();
-  if (nom === "cabinet") renderCabinet();
-  if (nom !== "veillee" && $("#v-live").style.display === "block"){
-    arreterVeillee();
-    $("#v-live").style.display = "none"; $("#v-pre").style.display = "block";
-  }
-}
-$$(".tab").forEach(tab => tab.onclick = () => allerA(tab.dataset.s));
-
-/* Les quatre surfaces qui se superposent à l'écran se ferment à l'Échap,
-   dans l'ordre où elles sont empilées. */
-document.addEventListener("keydown", e => {
-  if (e.key !== "Escape") return;
-  if ($("#eclat").classList.contains("on")) return closeEclat();
-  if ($("#poisheet").classList.contains("on")) return fermerPoi();
-  if ($("#detail").classList.contains("on")) return closeDetail();
-});
-
-$("#btn-reset").onclick = () => {
-  S.unlocked = {}; S.km = 0; S.outMin = 0; S.scrMin = 2; S.temoins = 0;
-  S.recitsRecompenses.clear();
-  clearInterval(walkTimer); clearInterval(eTimer);
-  T.points = []; T.pois = []; T.enregistres = []; T.nom = "Nouveau trac\u00e9";
-  if (carteTrace) majTrace();
-  $("#tr-nom") && ($("#tr-nom").textContent = "Nouveau trac\u00e9");
-  renderCommunaute();
-  $("#walk").classList.remove("on"); $("#eclat").classList.remove("on"); closeDetail(); fermerPoi();
-  $("#sb-mode").textContent = "GPS";
-  refreshPins(); renderList(); renderTeasers(); renderCabinet();
+/* ═════════════════════════════════════════════════════════════
+   3 · ÉTAT ET ÉCRANS
+   ═════════════════════════════════════════════════════════════ */
+const S = {
+  onglet: "carte", vue: "sentiers", filtre: "all",
+  ouverts: new Set(), sentier: null,
+  trace: { points: [], nom: "Nouveau tracé" },
+  minutesDehors: 0, minutesEcran: 3, temoins: 0
 };
-
-
-/* ══════════════════════════════════════════════════════════
-   POINTS D'INTÉRÊT
-   ══════════════════════════════════════════════════════════ */
+const sentierPar = id => TRAILS.find(t => t.id === id);
 const poiPar = id => POIS.find(p => p.id === id);
+const cle = (t, i) => t + ":" + i;
+const ouvert = (t, i) => S.ouverts.has(cle(t, i));
+const grad = a => "linear-gradient(150deg," + a[0] + "," + a[1] + " 55%," + a[2] + ")";
+const initiales = n => n.split(/[ -]/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+const DIFF = { f: ["Facile","d-f"], m: ["Intermédiaire","d-m"], d: ["Difficile","d-d"] };
 
-function iconePoi(poi){
-  const t = TYPES_POI[poi.type];
-  return L.divIcon({
-    className: "",
-    html: '<div class="poi-pin" style="background:' + t.c + '">' + t.i + "</div>",
-    iconSize: [26, 26], iconAnchor: [13, 13]
-  });
+function rendre(){
+  const ecrans = { carte: ecranCarte, trace: ecranTrace, cordee: ecranCordee, veillee: ecranVeillee, cabinet: ecranCabinet };
+  corps.innerHTML = (ecrans[S.onglet] || ecranCarte)() + '<div class="f-bas"></div>';
+  brancher();
 }
 
-let marqueursPoi = [];
-function afficherPois(){
-  if (!map) return;
-  marqueursPoi.forEach(m => map.removeLayer(m));
-  marqueursPoi = POIS.filter(p => match(trail(p.trail))).map(p => {
-    const m = L.marker(p.c, { icon: iconePoi(p), zIndexOffset: -100 }).addTo(map);
-    m.on("click", () => ouvrirPoi(p.id));
-    return m;
-  });
-}
+/* ── écran Carte ── */
+function ecranCarte(){
+  const cordee = CORDEE.slice(0, 5).map((p, i) =>
+    '<button class="story" data-story="' + i + '">' +
+      '<div class="story-r' + (i > 2 ? " vu" : "") + '"><div class="story-i" style="background:' + p.couleur + '">' +
+      ech(initiales(p.nom)) + "</div></div>" +
+      '<div class="story-n">' + ech(p.nom) + "</div></button>").join("");
 
-/* Rendu d'une ligne de point d'intérêt, réutilisé dans la fiche Récit. */
+  const filtres = [["all","Tous"],["f","Facile"],["m","Intermédiaire"],["d","Difficile"]]
+    .map(([v, l]) => '<button class="puce' + (S.filtre === v ? " on" : "") + '" data-filtre="' + v + '">' + l + "</button>").join("");
+
+  const liste = S.vue === "sentiers"
+    ? TRAILS.filter(t => S.filtre === "all" || t.diff === S.filtre).map(carteSentier).join("")
+    : '<div style="margin:0 -18px">' + POIS.map(lignePoi).join("") + "</div>";
+
+  return '<div class="stories">' + cordee +
+      '<button class="story" data-story="live"><div class="story-r"><div class="story-i" style="background:var(--alerte)">🔥</div></div><div class="story-n">Veillée</div></button></div>' +
+    '<div class="segments"><button class="seg' + (S.vue === "sentiers" ? " on" : "") + '" data-vue="sentiers">Sentiers</button>' +
+      '<button class="seg' + (S.vue === "pi" ? " on" : "") + '" data-vue="pi">Points d\'intérêt</button></div>' +
+    (S.vue === "sentiers"
+      ? '<div class="titre-sec"><span class="ts-t">Autour de vous</span><span class="ts-a">13 sentiers</span></div><div class="puces">' + filtres + "</div>"
+      : '<div class="titre-sec"><span class="ts-t">Sur le terrain</span><span class="ts-a">' + POIS.length + " points</span></div>") +
+    '<div class="liste">' + liste + "</div>" +
+    '<div class="fin">C\'est tout. Pas de fil infini.</div>';
+}
+function carteSentier(t){
+  const faits = t.st.filter((_, i) => ouvert(t.id, i)).length;
+  return '<button class="cs" data-sentier="' + t.id + '">' +
+    '<div class="cs-v" style="background:' + grad(t.art) + '"><span class="cs-b">' + t.dept + "</span></div>" +
+    '<div class="cs-c"><div class="cs-n">' + ech(t.n) + "</div>" +
+    '<div class="cs-m"><span class="diff ' + DIFF[t.diff][1] + '">' + DIFF[t.diff][0] + "</span>" +
+      "<span>" + t.dist + "</span><span>·</span><span>" + t.deni + "</span><span>·</span><span>" + t.duree + "</span></div>" +
+    '<div class="cs-p"><div class="jauge"><i style="width:' + (faits / t.st.length * 100) + '%"></i></div>' +
+      '<span class="cs-e">' + faits + "/" + t.st.length + " ✦</span></div></div></button>";
+}
 function lignePoi(p){
-  const t = TYPES_POI[p.type];
-  return '<div class="poi-row" data-poi="' + p.id + '">' +
-    '<div class="poi-ic" style="background:' + t.c + '">' + t.i + "</div>" +
-    '<div class="poi-b">' +
-      '<div class="poi-t">' + p.nom + "</div>" +
-      '<div class="poi-m">' + t.n + " · km " + p.km.toFixed(1) + " · " + p.alt + " m</div>" +
-      '<div class="poi-r">' + p.resume + "</div>" +
-    "</div></div>";
+  const T = TYPES_POI[p.type];
+  return '<button class="pi" data-poi="' + p.id + '">' +
+    '<div class="pi-i" style="background:' + T.c + '">' + T.i + "</div>" +
+    '<div class="pi-c"><div class="pi-n">' + ech(p.nom) + "</div>" +
+    '<div class="pi-m">' + T.n + " · " + p.alt + " m · km " + p.km.toFixed(1) + "</div>" +
+    '<div class="pi-r">' + ech(p.resume) + '</div></div><span class="pi-f">\u203A</span></button>';
 }
 
-function ouvrirPoi(id){
-  const p = poiPar(id);
-  if (!p) return;
-  const t = TYPES_POI[p.type];
-  const risque = p.type === "danger" || /NON POTABLE/.test(p.pratique);
-  $("#ps-card").innerHTML =
-    '<div class="ps-photo" style="background:' + grad(p.photo.art) + '">' +
-      '<button class="ps-close" id="ps-close" aria-label="Fermer">✕</button>' +
-      '<div class="ps-sub"><b>' + p.photo.legende + "</b>" + p.photo.credit + "</div>" +
-    "</div>" +
-    '<div class="ps-body">' +
-      '<span class="ps-kind" style="background:' + t.c + '">' + t.i + " " + t.n + "</span>" +
-      '<div class="ps-n">' + p.nom + "</div>" +
-      '<div class="ps-meta">' + trail(p.trail).n + " · km " + p.km.toFixed(1) + " · " + p.alt + " m · " +
-        p.c[0].toFixed(4) + " N / " + p.c[1].toFixed(4) + " E</div>" +
-      '<div class="ps-d">' + p.detail + "</div>" +
-      '<div class="ps-prat' + (risque ? " risque" : "") + '"><b>' +
-        (risque ? "Attention" : "Sur place") + "</b>" + p.pratique + "</div>" +
+/* ── écran Tracé ── */
+function ecranTrace(){
+  const m = mesures();
+  return '<div class="titre-sec"><span class="ts-t">' + ech(S.trace.nom) + '</span><span class="ts-a" id="t-eff">Effacer</span></div>' +
+    '<div class="stat3">' +
+      '<div class="st"><div class="st-v">' + m.km.toFixed(1).replace(".", ",") + '</div><div class="st-l">km</div></div>' +
+      '<div class="st"><div class="st-v">' + m.deni + '</div><div class="st-l">D+ m</div></div>' +
+      '<div class="st"><div class="st-v">' + m.duree + '</div><div class="st-l">durée</div></div>' +
+      '<div class="st"><div class="st-v">' + S.trace.points.length + '</div><div class="st-l">points</div></div></div>' +
+    '<div class="profil">' + profilSvg(m.alts) + "</div>" +
+    '<div class="outil"><button class="ou on" id="t-add"><span class="ou-i">✚</span><span class="ou-l">Ajouter</span></button>' +
+      '<button class="ou" id="t-undo"><span class="ou-i">↶</span><span class="ou-l">Annuler</span></button>' +
+      '<button class="ou" id="t-gpx"><span class="ou-i">↓</span><span class="ou-l">GPX</span></button></div>' +
+    '<div class="note"><b>Touchez la carte pour poser vos points.</b> La feuille se replie pour vous laisser toute la carte — tirez la poignée vers le bas. Le dénivelé est estimé ; la durée suit la règle de Naismith.</div>' +
+    '<div class="fin">Tracé privé tant que vous ne le partagez pas</div>';
+}
+const distM = (a, b) => {
+  const r = x => x * Math.PI / 180, dLat = r(b[0]-a[0]), dLon = r(b[1]-a[1]);
+  const h = Math.sin(dLat/2)**2 + Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dLon/2)**2;
+  return 2 * 6371000 * Math.asin(Math.sqrt(h));
+};
+function mesures(){
+  const p = S.trace.points, alts = p.map(c => alt(c[0], c[1]));
+  let d = 0, deni = 0;
+  for (let i = 1; i < p.length; i++){ d += distM(p[i-1], p[i]); if (alts[i] > alts[i-1]) deni += alts[i] - alts[i-1]; }
+  const km = d / 1000, min = Math.round(km / 4 * 60 + deni / 600 * 60);
+  const duree = !min ? "—" : min >= 60 ? Math.floor(min/60) + "h" + String(min%60).padStart(2,"0") : min + " min";
+  return { km, deni: Math.round(deni), duree, alts };
+}
+function profilSvg(alts){
+  if (alts.length < 2) return '<svg viewBox="0 0 300 58" preserveAspectRatio="none"></svg>';
+  const mn = Math.min(...alts), mx = Math.max(...alts), amp = Math.max(1, mx - mn);
+  const pts = alts.map((a, i) => (i/(alts.length-1)*300).toFixed(1) + "," + (52 - (a-mn)/amp*44).toFixed(1));
+  return '<svg viewBox="0 0 300 58" preserveAspectRatio="none" role="img" aria-label="Profil de ' + mn + ' à ' + mx + ' mètres">' +
+    '<polygon points="0,58 ' + pts.join(" ") + ' 300,58" fill="var(--bistre-soft)"></polygon>' +
+    '<polyline points="' + pts.join(" ") + '" fill="none" stroke="var(--bistre)" stroke-width="2"></polyline></svg>';
+}
+
+/* ── écran Cordée ── */
+function ecranCordee(){
+  return '<div class="titre-sec"><span class="ts-t">Votre Cordée</span><span class="ts-a">' + CORDEE.length + "/8</span></div>" +
+    '<div class="stories">' + CORDEE.map(p =>
+      '<button class="story"><div class="story-r"><div class="story-i" style="background:' + p.couleur + '">' +
+      ech(initiales(p.nom)) + '</div></div><div class="story-n">' + ech(p.nom) + "</div></button>").join("") + "</div>" +
+    '<div class="note">Huit personnes maximum, sur invitation. <b>Aucun score, aucun classement, aucune trace publique.</b></div>' +
+    '<div class="titre-sec"><span class="ts-t">Traces partagées</span></div>' +
+    TRACES_PARTAGEES.map(t =>
+      '<div class="tc"><div class="tc-h"><div class="tc-a" style="background:' +
+        (CORDEE.find(c => c.nom === t.auteur)?.couleur ?? "#8C4A22") + '">' + ech(initiales(t.auteur)) + "</div>" +
+        '<div><div class="tc-nm">' + ech(t.auteur) + '</div><div class="tc-q">' + ech(t.quand) + "</div></div></div>" +
+      '<div class="tc-v" style="background:' + grad(t.art) + '"></div>' +
+      '<div class="tc-b"><div class="tc-t">' + ech(t.nom) + "</div>" +
+        '<div class="tc-m">' + String(t.dist).replace(".", ",") + " km · D+ " + t.deni + " · " + t.duree + "</div>" +
+        '<div class="tc-w">' + ech(t.mot) + "</div></div>" +
+      '<div class="tc-r"><button class="tc-x">Ouvrir le tracé</button><button class="tc-x" data-merci="1">Merci</button></div></div>').join("") +
+    '<div class="fin">Fin des partages de la semaine</div>';
+}
+
+/* ── écran Veillée ── */
+function ecranVeillee(){
+  return '<div class="titre-sec"><span class="ts-t">La Veillée</span><span class="ts-a">jeudi 21h</span></div>' +
+    '<div class="tc"><div class="tc-v" style="background:linear-gradient(150deg,#1d2a3a,#3d3020 60%,#5a3a20);position:relative">' +
+      '<span style="position:absolute;top:10px;left:10px;background:var(--alerte);color:#fff;font-family:var(--fm);' +
+      'font-size:9px;letter-spacing:.1em;padding:4px 9px;border-radius:999px">EN DIRECT · 312</span></div>' +
+      '<div class="tc-b"><div class="tc-t">Le champ des cramats</div>' +
+      '<div class="tc-m">Joan Puig · ethnologue · 40 min</div>' +
+      '<div class="tc-w">Ce que les fouilles de 1964 n\'ont pas trouvé — et pourquoi c\'est plus intéressant que ce qu\'elles ont trouvé.</div></div>' +
+      '<div class="tc-r"><button class="tc-x" style="background:var(--alerte);color:#fff">Rejoindre le direct</button></div></div>' +
+    '<div class="titre-sec"><span class="ts-t">Places du soir</span></div>' +
+    '<div class="tc"><div class="tc-b"><div class="tc-t">Montségur au lever du jour</div>' +
+      '<div class="tc-m">Samedi 14 · 5h30 · avec Joan · 12 places</div>' +
+      '<div class="tc-w">Prix fixe, tirage au sort si la demande dépasse les places, 24 h de rétractation. <b>Pas d\'enchère.</b></div></div>' +
+      '<div class="tc-r"><button class="tc-x" style="background:var(--bistre);color:#fff">72 € · entrer au tirage</button></div></div>' +
+    '<div class="fin">Rediffusion en ligne dès demain</div>';
+}
+
+/* ── écran Cabinet ── */
+function ecranCabinet(){
+  const tous = [];
+  TRAILS.forEach(t => t.st.forEach((s, i) => tous.push({ t, s, i, o: ouvert(t.id, i) })));
+  const acquis = tous.filter(a => a.o);
+  const recits = TRAILS.filter(t => t.st.every((_, i) => ouvert(t.id, i))).length;
+  const ratio = S.minutesEcran > 0 ? (S.minutesDehors / S.minutesEcran) : 0;
+  const cases = [...acquis, ...tous.filter(a => !a.o)].slice(0, 12).map(a => a.o
+    ? '<button class="gi" style="background:' + grad(a.t.art) + '" data-eclat="' + a.t.id + ":" + a.i + '"><span class="gi-t">' + ech(a.s.t) + "</span></button>"
+    : '<div class="gi ferme">✦</div>').join("");
+  return '<div class="titre-sec"><span class="ts-t">Votre Cabinet</span><span class="ts-a">' + acquis.length + " éclats</span></div>" +
+    '<div class="stat3">' +
+      '<div class="st"><div class="st-v">' + acquis.length + '</div><div class="st-l">éclats</div></div>' +
+      '<div class="st"><div class="st-v">' + recits + '</div><div class="st-l">récits</div></div>' +
+      '<div class="st"><div class="st-v">' + S.temoins + '</div><div class="st-l">témoins</div></div>' +
+      '<div class="st"><div class="st-v" style="color:var(--vert)">' + (ratio ? ratio.toFixed(1).replace(".", ",") : "—") + '</div><div class="st-l">ratio</div></div></div>' +
+    '<div class="grille">' + cases + "</div>" +
+    '<div class="note"><b>Ratio Camins</b> — heures dehors divisées par heures d\'écran. Cible : au-dessus de 8. Un fil infini ferait monter l\'engagement et effondrerait ce chiffre.</div>' +
+    '<div class="fin">Collection privée · exportable</div>';
+}
+</script>
+
+<script>
+"use strict";
+/* ═════════════════════════════════════════════════════════════
+   4 · INTERACTIONS
+   ═════════════════════════════════════════════════════════════ */
+function vibrer(){ if (navigator.vibrate) try { navigator.vibrate(35); } catch(e){} }
+
+function brancher(){
+  $$("[data-sentier]").forEach(b => b.onclick = () => ouvrirSentier(b.dataset.sentier));
+  $$("[data-poi]").forEach(b => b.onclick = () => ouvrirPoi(b.dataset.poi));
+  $$("[data-eclat]").forEach(b => b.onclick = () => {
+    const [t, i] = b.dataset.eclat.split(":"); jouerEclat(t, +i);
+  });
+  $$("[data-filtre]").forEach(b => b.onclick = () => { S.filtre = b.dataset.filtre; rendre(); });
+  $$("[data-vue]").forEach(b => b.onclick = () => { S.vue = b.dataset.vue; rendre(); });
+  $$("[data-story]").forEach(b => b.onclick = () => {
+    if (b.dataset.story === "live") allerA("veillee"); else allerA("cordee");
+  });
+  $$("[data-merci]").forEach(b => b.onclick = () => { b.textContent = "Merci envoyé"; b.disabled = true; });
+  const eff = $("#t-eff"); if (eff) eff.onclick = () => { S.trace.points = []; majTrace(); };
+  const un = $("#t-undo"); if (un) un.onclick = () => { S.trace.points.pop(); majTrace(); };
+  const gp = $("#t-gpx"); if (gp) gp.onclick = exporterGpx;
+}
+
+function allerA(o){
+  S.onglet = o;
+  fermerFiche();
+  $$(".og").forEach(b => {
+    const actif = b.dataset.o === o;
+    b.classList.toggle("on", actif);
+    b.setAttribute("aria-current", actif ? "page" : "false");
+  });
+  E.pi = (o === "carte" && S.vue === "pi") || o === "carte";
+  rendre();
+  poser(o === "trace" ? "bas" : "milieu", true);
+  /* En mode Tracé la carte entière est une surface de dessin : les épingles
+     ne doivent pas intercepter le doigt. */
+  $("#calque").classList.toggle("inerte", o === "trace");
+  placerEpingles();
+  dessinerTrace();
+}
+$$(".og").forEach(b => b.onclick = () => allerA(b.dataset.o));
+
+/* ── fiche sentier ── */
+function ouvrirSentier(id){
+  const t = sentierPar(id); if (!t) return;
+  S.sentier = id;
+  const faits = t.st.filter((_, i) => ouvert(id, i)).length;
+  const pis = POIS.filter(p => p.trail === id);
+  $("#fiche-c").innerHTML =
+    '<div class="fi-v" style="background:' + grad(t.art) + '"><button class="fi-x" id="fi-x">✕</button>' +
+      '<div class="fi-leg"><b>' + ech(t.n) + "</b>" + t.dept + " · " + ech(t.deptn) + "</div></div>" +
+    '<div class="fi-b">' +
+      '<div class="cs-m" style="margin-bottom:12px"><span class="diff ' + DIFF[t.diff][1] + '">' + DIFF[t.diff][0] + "</span>" +
+        "<span>" + t.dist + "</span><span>·</span><span>" + t.duree + "</span><span>·</span><span>" + t.deni + "</span></div>" +
+      '<div class="fi-d">' + ech(t.res) + "</div>" +
+      '<div class="fi-cta"><button class="btn" id="fi-go">▶ Mode Sentier</button>' +
+        '<button class="btn creux" id="fi-trace">Tracer</button></div>' +
+      (pis.length ? '<div class="titre-sec" style="padding:22px 0 4px"><span class="ts-t">Sur le terrain</span>' +
+        '<span class="ts-a">' + pis.length + "</span></div>" +
+        '<div style="margin:0 -18px">' + pis.map(lignePoi).join("") + "</div>" : "") +
+      '<div class="titre-sec" style="padding:22px 0 4px"><span class="ts-t">Le Récit</span>' +
+        '<span class="ts-a">' + faits + "/" + t.st.length + "</span></div>" +
+      t.st.map((st, i) => {
+        const o = ouvert(id, i);
+        return '<button class="stn ' + (o ? "ouvert" : "ferme") + '" data-eclat="' + id + ":" + i + '">' +
+          '<span class="stn-p">' + (o ? "✦" : i + 1) + "</span>" +
+          '<span class="stn-c"><span class="stn-k">km ' + st.km.toFixed(1) + " · " + ech(st.k) + "</span>" +
+          '<span class="stn-t">' + (o ? ech(st.t) : "Éclat verrouillé") + "</span>" +
+          '<span class="stn-x">' + (o ? ech(st.x.slice(0, 64)) + "…" : "80 m · 45 s sur place · à pied") + "</span></span></button>";
+      }).join("") +
     "</div>";
-  $("#poisheet").classList.add("on");
-  $("#ps-close").onclick = fermerPoi;
+  $("#fiche").classList.add("on");
+  $("#fi-x").onclick = fermerFiche;
+  $("#fi-go").onclick = () => { fermerFiche(); demarrerGuidage(id); };
+  $("#fi-trace").onclick = () => { fermerFiche(); allerA("trace"); };
+  brancher();
 }
-function fermerPoi(){ $("#poisheet").classList.remove("on"); }
-$("#poisheet").addEventListener("click", e => { if (e.target.id === "poisheet") fermerPoi(); });
-
-/* ══════════════════════════════════════════════════════════
-   TRACÉ — outil de création d'itinéraire par-dessus la carte
-   ══════════════════════════════════════════════════════════ */
-const T = { points: [], pois: [], mode: "ajout", typePoi: "vue", nom: "Nouveau tracé", enregistres: [] };
-let carteTrace = null, ligneTrace = null, marqueursTrace = [], marqueursTracePoi = [];
-
-/* Estimation d'altitude : relief pseudo-aléatoire mais déterministe, pour la
-   démonstration seulement. En production : modèle numérique de terrain IGN. */
-function altitudeEstimee(lat, lon){
-  const n = (a, b) => Math.sin(a * 2.7 + b * 1.3) * Math.cos(b * 3.1 - a * 0.7);
-  const base = 900                  // altitude moyenne plausible en Occitanie
-    + n(lat, lon) * 500             // massifs
-    + n(lat * 3.4, lon * 2.8) * 260 // vallées
-    + n(lat * 9.1, lon * 7.3) * 90
-    + n(lat * 41, lon * 37) * 30    // vallons — visibles à l'échelle du kilomètre
-    + n(lat * 137, lon * 119) * 10; // ondulations de détail
-  return Math.max(5, Math.round(base));
-}
-
-const R_TERRE = 6371000;
-function distanceM(a, b){
-  const rad = x => x * Math.PI / 180;
-  const dLat = rad(b[0] - a[0]), dLon = rad(b[1] - a[1]);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLon / 2) ** 2;
-  return 2 * R_TERRE * Math.asin(Math.sqrt(h));
-}
-
-function mesuresTrace(){
-  let dist = 0, deni = 0;
-  const alts = T.points.map(p => altitudeEstimee(p[0], p[1]));
-  for (let i = 1; i < T.points.length; i++){
-    dist += distanceM(T.points[i - 1], T.points[i]);
-    const d = alts[i] - alts[i - 1];
-    if (d > 0) deni += d;
-  }
-  const km = dist / 1000;
-  const minutes = km / 4 * 60 + deni / 600 * 60;   // règle de Naismith
-  return { km, deni: Math.round(deni), minutes: Math.round(minutes), alts };
-}
-
-function formaterDuree(min){
-  if (!min) return "—";
-  const h = Math.floor(min / 60), m = Math.round(min % 60);
-  return h ? h + "h" + String(m).padStart(2, "0") : m + " min";
-}
-
-function dessinerProfil(alts){
-  const el = $("#tr-prof");
-  if (alts.length < 2){
-    el.innerHTML = '<svg viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true"></svg>';
-    return;
-  }
-  const min = Math.min(...alts), max = Math.max(...alts), amp = Math.max(1, max - min);
-  const pts = alts.map((a, i) => {
-    const x = i / (alts.length - 1) * 300;
-    const y = 42 - (a - min) / amp * 36;
-    return x.toFixed(1) + "," + y.toFixed(1);
-  });
-  el.innerHTML =
-    '<svg viewBox="0 0 300 46" preserveAspectRatio="none" role="img" aria-label="Profil altimétrique estimé, de ' +
-      min + ' à ' + max + ' mètres">' +
-      '<polygon points="0,46 ' + pts.join(" ") + ' 300,46" fill="rgba(200,32,26,.12)"></polygon>' +
-      '<polyline points="' + pts.join(" ") + '" fill="none" stroke="var(--red)" stroke-width="1.5"></polyline>' +
-    "</svg>";
-}
-
-function redessinerTrace(){
-  if (!carteTrace) return;
-  if (ligneTrace) carteTrace.removeLayer(ligneTrace);
-  marqueursTrace.forEach(m => carteTrace.removeLayer(m));
-  marqueursTrace = [];
-
-  if (T.points.length > 1){
-    ligneTrace = L.polyline(T.points, { color: "#C8201A", weight: 3, opacity: .85 }).addTo(carteTrace);
-  } else ligneTrace = null;
-
-  T.points.forEach((pt, i) => {
-    const role = i === 0 ? " depart" : i === T.points.length - 1 && T.points.length > 1 ? " arrivee" : "";
-    const m = L.marker(pt, {
-      icon: L.divIcon({ className: "", html: '<div class="tr-marker' + role + '"></div>', iconSize: [14, 14], iconAnchor: [7, 7] })
-    }).addTo(carteTrace);
-    m.on("click", () => { if (T.mode === "ajout"){ T.points.splice(i, 1); majTrace(); } });
-    marqueursTrace.push(m);
-  });
-
-  marqueursTracePoi.forEach(m => carteTrace.removeLayer(m));
-  marqueursTracePoi = T.pois.map(p => L.marker(p.c, { icon: iconePoi(p) })
-    .addTo(carteTrace).bindPopup(TYPES_POI[p.type].n));
-}
-
-function majTrace(){
-  const m = mesuresTrace();
-  $("#tr-dist").textContent = m.km.toFixed(1).replace(".", ",");
-  $("#tr-deni").textContent = m.deni;
-  $("#tr-duree").textContent = formaterDuree(m.minutes);
-  $("#tr-pts").textContent = T.points.length;
-  dessinerProfil(m.alts);
-  redessinerTrace();
-  const vide = T.points.length === 0;
-  $("#tr-empty").hidden = !vide;
-  ["tr-undo", "tr-clear", "tr-save", "tr-share", "tr-gpx"].forEach(id => { $("#" + id).disabled = vide; });
-}
-
-/* Poser un point : logique pure, indépendante de la bibliothèque de carte.
-   C'est elle que le gestionnaire de clic appelle, et elle seule. */
-function poserSurTrace(lat, lon){
-  if (T.mode === "poi"){
-    const n = T.pois.length + 1;
-    T.pois.push({
-      id: "u" + n, type: T.typePoi, trail: null, nom: TYPES_POI[T.typePoi].n + " " + n,
-      alt: altitudeEstimee(lat, lon), km: 0, c: [lat, lon],
-      resume: "Point posé sur votre tracé.", detail: "", pratique: "",
-      photo: { art: ["#4a4034", "#8d7a5c", "#cbb68d"], legende: "", credit: "" }
-    });
-  } else {
-    T.points.push([lat, lon]);
-  }
-  majTrace();
-}
-
-/* La carte est un affichage, pas une dépendance : si la bibliothèque ne charge
-   pas, les outils du panneau restent utilisables et l'état reste cohérent. */
-function initTraceCarte(){
-  if (carteTrace) return;
-  const zone = $("#trace-map");
-  if (typeof L === "undefined"){
-    zone.innerHTML =
-      '<div style="height:100%;display:flex;align-items:center;justify-content:center;text-align:center;' +
-      'font-family:var(--fm);font-size:10px;letter-spacing:.06em;color:var(--ink-40);padding:0 34px;line-height:1.9">' +
-      "CARTE INDISPONIBLE HORS LIGNE<br>Les outils et les tracés déjà enregistrés restent accessibles.</div>";
-    return;
-  }
-  carteTrace = L.map("trace-map", { center: [43.75, 2.2], zoom: 8, zoomControl: false, attributionControl: false });
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", { maxZoom: 16 }).addTo(carteTrace);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png", { maxZoom: 16, pane: "shadowPane" }).addTo(carteTrace);
-  carteTrace.on("click", e => poserSurTrace(e.latlng.lat, e.latlng.lng));
-  redessinerTrace();
-}
-
-let outilsTracePrets = false;
-function initTrace(){
-  initTraceCarte();
-  if (outilsTracePrets) return;
-  outilsTracePrets = true;
-
-  $("#tr-types").innerHTML = Object.entries(TYPES_POI).map(([k, t]) =>
-    '<button class="tr-type' + (k === T.typePoi ? " on" : "") + '" data-type="' + k + '">' +
-      t.i + "<span>" + t.court + "</span></button>").join("");
-  $$("#tr-types .tr-type").forEach(b => b.onclick = () => {
-    T.typePoi = b.dataset.type;
-    $$("#tr-types .tr-type").forEach(x => x.classList.toggle("on", x === b));
-  });
-
-  $$("#tr-panel [data-mode]").forEach(b => b.onclick = () => {
-    T.mode = b.dataset.mode;
-    $$("#tr-panel [data-mode]").forEach(x => x.classList.toggle("on", x === b));
-    $("#tr-poi-choix").hidden = T.mode !== "poi";
-  });
-
-  $("#tr-grip").onclick = () => {
-    const p = $("#tr-panel"), replie = p.classList.toggle("reduit");
-    $("#tr-grip").setAttribute("aria-expanded", String(!replie));
-    $("#tr-etat").textContent = replie ? "outils repliés · toucher pour ouvrir" : "outils ouverts · toucher pour replier";
+function ouvrirPoi(id){
+  const p = poiPar(id); if (!p) return;
+  const T = TYPES_POI[p.type];
+  const risque = p.type === "danger" || /NON POTABLE/.test(p.pratique);
+  $("#fiche-c").innerHTML =
+    '<div class="fi-v" style="background:' + grad(p.photo.art) + '"><button class="fi-x" id="fi-x">✕</button>' +
+      '<div class="fi-leg"><b>' + ech(p.photo.legende) + "</b>" + ech(p.photo.credit) + "</div></div>" +
+    '<div class="fi-b"><span class="fi-k" style="background:' + T.c + '">' + T.i + " " + T.n + "</span>" +
+      '<div class="fi-n">' + ech(p.nom) + "</div>" +
+      '<div class="fi-m">' + p.alt + " m · km " + p.km.toFixed(1) + " · " + p.c[0].toFixed(4) + " N / " + p.c[1].toFixed(4) + " E</div>" +
+      '<div class="fi-d">' + ech(p.detail) + "</div>" +
+      '<div class="fi-prat' + (risque ? " risque" : "") + '"><b>' + (risque ? "Attention" : "Sur place") + "</b>" +
+        ech(p.pratique) + "</div>" +
+      '<div class="fi-cta"><button class="btn creux" id="fi-vers">Centrer sur la carte</button></div></div>';
+  $("#fiche").classList.add("on");
+  $("#fi-x").onclick = fermerFiche;
+  $("#fi-vers").onclick = () => {
+    fermerFiche(); V.lat = p.c[0]; V.lon = p.c[1]; V.echelle = 420;
+    poser("bas", true); rafraichirCarte(true);
   };
-  $("#tr-undo").onclick  = () => { T.points.pop(); majTrace(); };
-  $("#tr-clear").onclick = () => { T.points = []; T.pois = []; majTrace(); };
-  $("#tr-save").onclick  = () => enregistrerTrace(false);
-  $("#tr-share").onclick = () => enregistrerTrace(true);
-  $("#tr-gpx").onclick   = exporterGpx;
+}
+function fermerFiche(){ $("#fiche").classList.remove("on"); }
+$("#fiche").addEventListener("click", e => { if (e.target.id === "fiche") fermerFiche(); });
 
+/* ── lecteur : mini + plein écran (Apple Music) ── */
+let lect = null, lectTimer = null, enLecture = false;
+function jouerEclat(tid, i){
+  const t = sentierPar(tid); if (!t || !t.st[i]) return;
+  S.ouverts.add(cle(tid, i));
+  lect = { tid, i, p: 0 };
+  const st = t.st[i];
+  document.documentElement.style.setProperty("--fond-lecteur", t.art[0]);
+  document.documentElement.style.setProperty("--halo",
+    "radial-gradient(circle at 30% 20%," + t.art[2] + "aa, transparent 62%), radial-gradient(circle at 70% 70%," + t.art[1] + "cc, transparent 60%)");
+  $("#lc-art").style.background = grad(t.art);
+  $("#lc-art-k").textContent = st.k;
+  $("#lc-eb").textContent = t.dept + " · " + t.deptn;
+  $("#lc-t").textContent = st.t;
+  $("#lc-s").textContent = t.auteur + " · " + t.role;
+  $("#lc-p").textContent = st.x;
+  $("#lc-src").textContent = "Sources · " + st.s;
+  $("#mini-v").style.background = grad(t.art);
+  $("#mini-t").textContent = st.t;
+  $("#mini-s").textContent = t.auteur;
+  fermerFiche();
+  $("#lecteur").classList.add("on");
+  $("#mini").classList.add("on");
+  enLecture = true; $("#lc-pp").textContent = "⏸"; $("#mini-pp").textContent = "⏸";
+  vibrer();
+  clearInterval(lectTimer);
+  lectTimer = setInterval(() => {
+    if (!enLecture || !lect) return;
+    lect.p = Math.min(100, lect.p + 1);
+    $("#lc-fill").style.width = lect.p + "%";
+    $("#mini-j i").style.width = lect.p + "%";
+    const sec = Math.round(lect.p / 100 * 90);
+    $("#lc-t1").textContent = Math.floor(sec/60) + ":" + String(sec%60).padStart(2, "0");
+    if (lect.p >= 100){ clearInterval(lectTimer); enLecture = false; S.minutesDehors += 2; }
+  }, 90);
+}
+const basculeLecture = () => {
+  enLecture = !enLecture;
+  $("#lc-pp").textContent = $("#mini-pp").textContent = enLecture ? "⏸" : "▶";
+};
+$("#lc-pp").onclick = basculeLecture;
+$("#mini-pp").onclick = e => { e.stopPropagation(); basculeLecture(); };
+$("#lc-x").onclick = () => $("#lecteur").classList.remove("on");
+$("#mini").onclick = () => $("#lecteur").classList.add("on");
+$("#mini-x").onclick = e => {
+  e.stopPropagation();
+  clearInterval(lectTimer); lect = null; enLecture = false;
+  $("#mini").classList.remove("on"); $("#lecteur").classList.remove("on");
+};
+const saut = d => { if (!lect) return; const t = sentierPar(lect.tid);
+  const j = Math.max(0, Math.min(t.st.length - 1, lect.i + d)); jouerEclat(lect.tid, j); };
+$("#lc-prev").onclick = () => saut(-1);
+$("#lc-next").onclick = () => saut(1);
+
+/* ── mode Sentier (Waze) ── */
+let gTimer = null, gKm = 0, gTrail = null;
+function demarrerGuidage(id){
+  gTrail = sentierPar(id); gKm = 0;
+  $("#guide").classList.add("on");
+  $("#mode-gps").textContent = "SENTIER";
+  /* La taille se lit après que le panneau est affiché : avant, clientWidth
+     vaut zéro et la carte n'occupait qu'un coin. */
+  requestAnimationFrame(() => {
+    const gc = $("#guide-carte");
+    const r = gc.getBoundingClientRect();
+    gc.width = Math.round(r.width * dpr); gc.height = Math.round(r.height * dpr);
+    const g2 = gc.getContext("2d");
+    g2.imageSmoothingEnabled = true;
+    g2.drawImage(off, 0, 0, gc.width, gc.height);
+  });
+  clearInterval(gTimer);
+  gTimer = setInterval(pasGuidage, 90);
+}
+function pasGuidage(){
+  const t = gTrail; if (!t) return;
+  gKm = Math.min(t.km, gKm + t.km / 260);
+  S.minutesDehors += 0.6;
+  $("#g-km").textContent = gKm.toFixed(1).replace(".", ",");
+  $("#g-rest").textContent = (t.km - gKm).toFixed(1).replace(".", ",") + " km";
+  const suivante = t.st.find((s, i) => !ouvert(t.id, i) && s.km >= gKm);
+  if (!suivante){ $("#g-l").textContent = "Récit complet — bonne fin de sortie"; $("#g-d").textContent = "✓"; return; }
+  const d = Math.round((suivante.km - gKm) * 1000);
+  $("#g-d").textContent = d > 999 ? (d/1000).toFixed(1).replace(".", ",") + " km" : d + " m";
+  $("#g-l").textContent = "Prochaine station · " + suivante.t;
+  $("#g-c1").classList.toggle("ok", d <= 80);
+  $("#g-c3").classList.add("ok");
+  if (d <= 80){
+    clearInterval(gTimer);
+    let s = 0;
+    const iv = setInterval(() => {
+      s += 5; $("#g-c2").textContent = Math.min(s, 45) + " s";
+      $("#g-c2").classList.toggle("ok", s >= 45);
+      if (s >= 45){
+        clearInterval(iv);
+        const i = t.st.indexOf(suivante);
+        vibrer(); jouerEclat(t.id, i);
+        gTimer = setInterval(pasGuidage, 90);
+      }
+    }, 200);
+  }
+}
+$("#g-stop").onclick = () => {
+  clearInterval(gTimer);
+  $("#guide").classList.remove("on");
+  /* Le lecteur ne doit pas rester déplié par-dessus l'application : il se
+     réduit au mini-lecteur, comme à la fermeture manuelle. */
+  $("#lecteur").classList.remove("on");
+  $("#mode-gps").textContent = "GPS";
+  const fini = gTrail && gTrail.st.every((_, i) => ouvert(gTrail.id, i));
+  if (fini) S.temoins++;
+  rendre();
+};
+
+/* ── tracé sur la carte ── */
+function majTrace(){ rendre(); dessinerTrace(); }
+function dessinerTrace(){
+  const svg = $("#trace-svg");
+  if (S.onglet !== "trace" || S.trace.points.length < 1){ svg.innerHTML = ""; return; }
+  const pts = S.trace.points.map(p => versX(p[1]).toFixed(1) + "," + versY(p[0]).toFixed(1));
+  svg.innerHTML =
+    (pts.length > 1 ? '<polyline points="' + pts.join(" ") + '" fill="none" stroke="#C8201A" stroke-width="3.5" ' +
+      'stroke-linecap="round" stroke-linejoin="round" opacity=".9"></polyline>' : "") +
+    S.trace.points.map((p, i) => '<circle cx="' + versX(p[1]).toFixed(1) + '" cy="' + versY(p[0]).toFixed(1) +
+      '" r="6" fill="' + (i === 0 ? "#2A5A22" : i === S.trace.points.length - 1 ? "#211B12" : "#C8201A") +
+      '" stroke="#fff" stroke-width="2.5"></circle>').join("");
+}
+cv.addEventListener("click", e => {
+  if (S.onglet !== "trace" || glisse) return;
+  if ($("#lecteur").classList.contains("on") || $("#guide").classList.contains("on")) return;
+  const r = cv.getBoundingClientRect();
+  S.trace.points.push([versLat(e.clientY - r.top), versLon(e.clientX - r.left)]);
   majTrace();
-}
-
-function enregistrerTrace(partager){
-  if (!T.points.length) return;
-  const m = mesuresTrace();
-  const t = {
-    id: "u" + (T.enregistres.length + 1),
-    auteur: "Vous", nom: T.nom === "Nouveau tracé" ? "Tracé du " + new Date().toLocaleDateString("fr-FR") : T.nom,
-    dist: +m.km.toFixed(1), deni: m.deni, duree: formaterDuree(m.minutes),
-    dept: "—", quand: "à l'instant", pois: T.pois.length,
-    mot: partager ? "Partagé avec votre Cordée." : "Enregistré dans votre Cabinet.",
-    art: ["#4a3f34", "#8a7355", "#c4a882"], partage: partager
-  };
-  T.enregistres.push(t);
-  T.nom = t.nom;
-  $("#tr-nom").textContent = t.nom;
-  buzz();
-  renderCommunaute();
-  $("#tr-note").textContent = partager
-    ? "Tracé partagé avec les 6 personnes de votre Cordée. Il n'est visible de personne d'autre."
-    : "Tracé enregistré dans votre Cabinet. Il reste privé tant que vous ne le partagez pas.";
-}
-
-/* Échappement XML — un nom de tracé est saisi par la personne. */
-const xml = t => String(t).replace(/[<>&'"]/g, c =>
-  ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c]));
-
+});
+const xml = t => String(t).replace(/[<>&'"]/g, c => ({ "<":"&lt;",">":"&gt;","&":"&amp;","'":"&apos;",'"':"&quot;" }[c]));
 function exporterGpx(){
-  if (!T.points.length) return;
-  const pts = T.points.map(p =>
-    '    <trkpt lat="' + p[0].toFixed(6) + '" lon="' + p[1].toFixed(6) + '"><ele>' +
-    altitudeEstimee(p[0], p[1]) + "</ele></trkpt>").join("\n");
-  const wpts = T.pois.map(p =>
-    '  <wpt lat="' + p.c[0].toFixed(6) + '" lon="' + p.c[1].toFixed(6) + '"><name>' +
-    xml(p.nom) + "</name><type>" + xml(p.type) + "</type></wpt>").join("\n");
-  const gpx =
-'<?xml version="1.0" encoding="UTF-8"?>\n' +
-'<gpx version="1.1" creator="Camins — Points P-O" xmlns="http://www.topografix.com/GPX/1/1">\n' +
-'  <metadata><name>' + xml(T.nom) + "</name></metadata>\n" +
-(wpts ? wpts + "\n" : "") +
-"  <trk><name>" + xml(T.nom) + "</name><trkseg>\n" + pts + "\n  </trkseg></trk>\n</gpx>\n";
-
+  if (!S.trace.points.length) return;
+  const corpsGpx = S.trace.points.map(p =>
+    '    <trkpt lat="' + p[0].toFixed(6) + '" lon="' + p[1].toFixed(6) + '"><ele>' + alt(p[0], p[1]) + "</ele></trkpt>").join("\n");
+  const gpx = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Camins — Points P-O" ' +
+    'xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>' + xml(S.trace.nom) + "</name></metadata>\n" +
+    "  <trk><name>" + xml(S.trace.nom) + "</name><trkseg>\n" + corpsGpx + "\n  </trkseg></trk>\n</gpx>\n";
   const url = URL.createObjectURL(new Blob([gpx], { type: "application/gpx+xml" }));
   const a = document.createElement("a");
   a.href = url;
-  const base = T.nom.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  const base = S.trace.nom.normalize("NFD").replace(/[̀-ͯ]/g, "")
     .replace(/[^\w\-]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase();
   a.download = (base || "trace-camins") + ".gpx";
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  $("#tr-note").textContent = "Fichier GPX produit : " + T.points.length + " points, " +
-    T.pois.length + " point(s) d'intérêt. Il s'ouvre dans n'importe quelle application de randonnée.";
 }
 
-/* ══════════════════════════════════════════════════════════
-   COMMUNAUTÉ
-   ══════════════════════════════════════════════════════════ */
-const initiales = n => n.split(/[ -]/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+/* ── commandes de carte ── */
+$("#c-pi").onclick = () => { E.pi = !E.pi; $("#c-pi").classList.toggle("on", E.pi); placerEpingles(); };
+$("#c-relief").onclick = () => { E.sentiers = !E.sentiers; $("#c-relief").classList.toggle("on", !E.sentiers); placerEpingles(); };
+$("#c-pos").onclick = () => { V.lat = 43.62; V.lon = 2.30; V.echelle = 62; rafraichirCarte(true); };
+$("#c-nuit").onclick = () => {
+  document.body.classList.toggle("nuit");
+  $("#c-nuit").classList.toggle("on", document.body.classList.contains("nuit"));
+  rafraichirCarte(true);
+};
+$("#direct").onclick = () => allerA("veillee");
+$("#btn-recherche").onclick = () => poser("haut", true);
+$("#btn-profil").onclick = () => {
+  $("#fiche-c").innerHTML =
+    '<div class="fi-b" style="padding-top:26px"><button class="fi-x" id="fi-x" style="top:14px">✕</button>' +
+      '<div class="fi-n" style="margin-top:0">Sentier d\'abord</div>' +
+      '<div class="fi-m">Les règles que cette application s\'impose</div>' +
+      '<div class="fi-prat"><b>Ce que Camins n\'aura jamais</b>Pas de série quotidienne. Pas de classement, pas de compteur public. ' +
+      'Rien ne se perd : aucun contenu limité dans le temps. Deux notifications par semaine au maximum, réglables à zéro. ' +
+      'Pas de publicité, pas de revente de données.</div>' +
+      '<div class="fi-cta"><button class="btn creux" id="fi-x2">Fermer</button></div></div>';
+  $("#fiche").classList.add("on");
+  $("#fi-x").onclick = $("#fi-x2").onclick = fermerFiche;
+};
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if ($("#guide").classList.contains("on")) return $("#g-stop").click();
+  if ($("#lecteur").classList.contains("on")) return $("#lc-x").click();
+  if ($("#fiche").classList.contains("on")) return fermerFiche();
+});
 
-function renderCommunaute(){
-  $("#cor-nb").textContent = CORDEE.length;
-  $("#cor-people").innerHTML = CORDEE.map(p =>
-    '<div class="cor-p"><div class="cor-av" style="background:' + p.couleur + '">' + initiales(p.nom) + "</div>" +
-    '<div class="cor-pn">' + ech(p.nom) + '</div><div class="cor-pl">' + ech(p.lieu) + "</div></div>").join("") +
-    '<div class="cor-p"><button class="cor-add" id="cor-add" aria-label="Inviter quelqu\'un">+</button>' +
-    '<div class="cor-pn">Inviter</div><div class="cor-pl">' + (8 - CORDEE.length) + " place(s)</div></div>";
-  $("#cor-add").onclick = () => {
-    $("#cor-add").textContent = "✓";
-    $("#cor-add").setAttribute("aria-label", "Invitation envoyée");
-  };
-
-  const toutes = [...T.enregistres.filter(t => t.partage), ...TRACES_PARTAGEES];
-  $("#cor-traces").innerHTML = toutes.map(t =>
-    '<div class="tp">' +
-      '<div class="tp-h">' +
-        '<div class="tp-av" style="background:' + (CORDEE.find(c => c.nom === t.auteur)?.couleur ?? "#1A1814") + '">' +
-          ech(initiales(t.auteur)) + "</div>" +
-        '<div><div class="tp-a">' + ech(t.auteur) + '</div><div class="tp-q">' + ech(t.quand) + "</div></div>" +
-      "</div>" +
-      '<div class="tp-card">' +
-        '<div class="tp-img" style="background:' + grad(t.art) + '"><div class="tp-dept">' + t.dept + "</div></div>" +
-        '<div class="tp-body">' +
-          '<div class="tp-n">' + ech(t.nom) + "</div>" +
-          '<div class="tp-meta">' + String(t.dist).replace(".", ",") + " km · D+ " + t.deni + " · " + t.duree +
-            " · " + t.pois + " point(s) d'intérêt</div>" +
-          '<div class="tp-mot">' + ech(t.mot) + "</div>" +
-          '<div class="tp-acts">' +
-            '<button class="tp-act" data-trace="' + t.id + '">Ouvrir dans Tracé</button>' +
-            '<button class="tp-act" data-merci="' + t.id + '">Merci</button>' +
-          "</div>" +
-        "</div>" +
-      "</div>" +
-    "</div>").join("");
-
-  $$("#cor-traces [data-merci]").forEach(b => b.onclick = () => { b.textContent = "Merci envoyé"; b.disabled = true; });
-  $$("#cor-traces [data-trace]").forEach(b => b.onclick = () => allerA("trace"));
-}
-
-/* ─ horloge ─ */
+/* ── horloge et compteur d'écran ── */
 setInterval(() => {
   const d = new Date();
-  $("#sb-time").textContent = String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+  $("#heure").textContent = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
 }, 1000);
+setInterval(() => { if (!$("#guide").classList.contains("on")) S.minutesEcran += 1/12; }, 5000);
 
-/* ─ démarrage ─ */
-try { initMap(); } catch(e){ console.warn("Carte indisponible :", e); }
-try { afficherPois(); } catch(e){ console.warn("Points d'intérêt :", e); }
-renderCommunaute();
-renderChips(); renderList(); renderTeasers(); renderCabinet(); note("sentiers");
-setTimeout(() => map && map.invalidateSize(), 300);
+/* ── démarrage ── */
+if (matchMedia("(prefers-color-scheme: dark)").matches) document.body.classList.add("nuit");
+$("#c-pi").classList.add("on");
+dimensionner();
+mesurerCrans();
+rendre();
+new ResizeObserver(() => { dimensionner(); mesurerCrans(); }).observe($("#phone"));
 </script>
 </body>
 </html>

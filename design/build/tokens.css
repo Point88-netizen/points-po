@@ -77,6 +77,8 @@
   --espace-7: 48px;
   /* WCAG 2.2 SC 2.5.8 exige 24 px en AA ; on double pour l'usage en marche, gants et main qui tremble. */
   --cible-minimum: 48px;
+  /* Épingles et annotations posées sur la carte. Exemption assumée de la règle des 48 px : ces cibles se touchent à l'arrêt, jamais en marchant, et les rapprocher casserait la lisibilité d'une carte dense. Le plancher reste le minimum AA de WCAG 2.5.8, soit 24 px. */
+  --cible-annotation: 30px;
   /* Décélération : l'objet arrive et se pose. */
   --courbe-entree: cubic-bezier(0.2, 0.8, 0.3, 1);
   /* Linéaire : on ne regarde pas un objet partir. */

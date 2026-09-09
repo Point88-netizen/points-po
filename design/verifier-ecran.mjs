@@ -28,7 +28,8 @@ const largeur = +(process.argv[3] ?? 390), hauteur = +(process.argv[4] ?? 844);
 const arbre = {};
 for (const f of readdirSync(join(ici, "tokens")).filter(f => f.endsWith(".json")))
   Object.assign(arbre, JSON.parse(readFileSync(join(ici, "tokens", f), "utf8")));
-const CIBLE_MIN = arbre.cible.minimum.$value.value;          // 48
+const CIBLE_MIN = arbre.cible.minimum.$value.value;           // 48
+const CIBLE_ANNO = arbre.cible.annotation.$value.value;       // 30, exemption déclarée
 const ACCENTS_MAX = arbre.quota["accents-par-ecran"].$value; // 1
 const CLIGNOTEMENTS_MAX = arbre.quota["clignotements-dans-l-app"].$value; // 1
 
@@ -37,7 +38,7 @@ const p = await b.newPage({ viewport: { width: largeur, height: hauteur }, devic
 await p.goto(url, { waitUntil: "domcontentloaded" });
 await p.waitForTimeout(1500);
 
-const rapport = await p.evaluate(({ CIBLE_MIN }) => {
+const rapport = await p.evaluate(({ CIBLE_MIN, CIBLE_ANNO }) => {
   const visible = el => {
     const r = el.getBoundingClientRect(), s = getComputedStyle(el);
     return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && +s.opacity > .05;
@@ -48,10 +49,18 @@ const rapport = await p.evaluate(({ CIBLE_MIN }) => {
 
   /* 1 · cibles tactiles */
   const interactifs = [...document.querySelectorAll('button, a[href], input, select, [role="button"], [onclick]')].filter(visible);
-  const petites = interactifs
-    .map(el => ({ el, r: el.getBoundingClientRect() }))
-    .filter(({ r }) => r.width < CIBLE_MIN || r.height < CIBLE_MIN)
-    .map(({ el, r }) => ({ nom: nomme(el), l: Math.round(r.width), h: Math.round(r.height) }));
+  /* Les annotations de carte relèvent d'un seuil déclaré à part (30 px) :
+     elles se touchent à l'arrêt. Elles restent vérifiées, contre ce seuil. */
+  const mesure = el => {
+    const r = el.getBoundingClientRect();
+    const anno = el.dataset.cible === "annotation";
+    return { nom: nomme(el), l: Math.round(r.width), h: Math.round(r.height), anno,
+             seuil: anno ? CIBLE_ANNO : CIBLE_MIN };
+  };
+  const toutes = interactifs.map(mesure);
+  const petites = toutes.filter(c => !c.anno && (c.l < c.seuil || c.h < c.seuil));
+  const petitesAnno = toutes.filter(c => c.anno && (c.l < c.seuil || c.h < c.seuil));
+  const nbAnno = toutes.filter(c => c.anno).length;
 
   /* 2 · éléments qui bougent en boucle */
   const anim = [...document.querySelectorAll("*")].filter(el => {
@@ -100,8 +109,8 @@ const rapport = await p.evaluate(({ CIBLE_MIN }) => {
   const proche = (a, c) => a && c && Math.abs(a[0] - c[0]) + Math.abs(a[1] - c[1]) + Math.abs(a[2] - c[2]) < 40;
   const accents = interactifs.filter(el => proche(lire(getComputedStyle(el).backgroundColor), cible)).map(nomme);
 
-  return { total: interactifs.length, petites, anim, faibles: faibles.slice(0, 12), nbFaibles: faibles.length, accents, accentHex: accent };
-}, { CIBLE_MIN });
+  return { total: interactifs.length, petites, petitesAnno, nbAnno, anim, faibles: faibles.slice(0, 12), nbFaibles: faibles.length, accents, accentHex: accent };
+}, { CIBLE_MIN, CIBLE_ANNO });
 
 await b.close();
 
@@ -115,8 +124,13 @@ const ok = m => console.log("  \x1b[32m✓\x1b[0m " + m);
 console.log(`\n\x1b[1mÉcran vérifié\x1b[0m  ${url}  —  ${largeur}×${hauteur}`);
 
 bloc(`1 · Cibles tactiles — minimum ${CIBLE_MIN} px (WCAG 2.2 SC 2.5.8 exige 24 ; on double pour la marche)`);
-if (!rapport.petites.length) ok(`${rapport.total} éléments interactifs, tous conformes`);
-else {
+if (!rapport.petites.length && !rapport.petitesAnno.length)
+  ok(`${rapport.total} éléments interactifs conformes, dont ${rapport.nbAnno} annotation(s) de carte au seuil de ${CIBLE_ANNO} px`);
+else if (rapport.petitesAnno.length){
+  ko(`${rapport.petitesAnno.length} annotation(s) de carte sous ${CIBLE_ANNO} px`);
+  for (const c of rapport.petitesAnno.slice(0, 5)) console.log(`      ${c.l}×${c.h} — « ${c.nom} »`);
+}
+if (rapport.petites.length){
   ko(`${rapport.petites.length} cibles sur ${rapport.total} sous ${CIBLE_MIN} px`);
   for (const c of rapport.petites.slice(0, 8)) console.log(`      ${c.l}×${c.h} — « ${c.nom} »`);
   if (rapport.petites.length > 8) console.log(`      … et ${rapport.petites.length - 8} autres`);

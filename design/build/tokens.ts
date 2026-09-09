@@ -58,6 +58,7 @@ export const tokens = {
   "espace.6": "32px",
   "espace.7": "48px",
   "cible.minimum": "48px",
+  "cible.annotation": "30px",
   "courbe.entree": "cubic-bezier(0.2, 0.8, 0.3, 1)",
   "courbe.sortie": "cubic-bezier(0, 0, 1, 1)",
   "courbe.deplacement": "cubic-bezier(0.4, 0, 0.2, 1)",
