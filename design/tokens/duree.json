@@ -7,6 +7,7 @@
     "transition": { "$value": { "value": 320,     "unit": "ms" }, "$description": "Changement d'état. Assez pour suivre du regard, pas assez pour attendre." },
     "presence":   { "$value": { "value": 45000,   "unit": "ms" }, "$description": "Temps sur place exigé pour déverrouiller un Éclat." },
     "eclat":      { "$value": { "value": 90000,   "unit": "ms" }, "$description": "Durée cible d'un Éclat." },
-    "veillee":    { "$value": { "value": 2400000, "unit": "ms" }, "$description": "40 minutes. Plafond dur du direct hebdomadaire." }
+    "veillee":    { "$value": { "value": 2400000, "unit": "ms" }, "$description": "40 minutes. Plafond dur du direct hebdomadaire." },
+    "clignotement-direct": { "$value": { "value": 1100, "unit": "ms" }, "$description": "L'unique clignotement de l'application : le point du direct (document 03, §4). Déclaré ici pour qu'il soit une exception nommée et non une valeur arbitraire." }
   }
 }

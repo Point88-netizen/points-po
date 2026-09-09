@@ -66,6 +66,8 @@
   --duree-eclat: 90000ms;
   /* 40 minutes. Plafond dur du direct hebdomadaire. */
   --duree-veillee: 2400000ms;
+  /* L'unique clignotement de l'application : le point du direct (document 03, §4). Déclaré ici pour qu'il soit une exception nommée et non une valeur arbitraire. */
+  --duree-clignotement-direct: 1100ms;
   --espace-1: 4px;
   --espace-2: 8px;
   --espace-3: 12px;

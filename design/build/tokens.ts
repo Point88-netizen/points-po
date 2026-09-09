@@ -49,6 +49,7 @@ export const tokens = {
   "duree.presence": "45000ms",
   "duree.eclat": "90000ms",
   "duree.veillee": "2400000ms",
+  "duree.clignotement-direct": "1100ms",
   "espace.1": "4px",
   "espace.2": "8px",
   "espace.3": "12px",

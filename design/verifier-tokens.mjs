@@ -69,16 +69,19 @@ const AUTORISES_JAUNE = (plat.get("role.attention-deverrouillage").ext?.["camins
   .map(p => new RegExp("^" + p.replace(/\*/g, ".*") + "$"));
 
 /* ══ collecte des fichiers ══ */
+const EXTENSIONS = [".html", ".js", ".mjs", ".ts", ".tsx", ".css"];
+const IGNORES = new Set(["build", "node_modules", ".git"]);
 const fichiers = [];
-(function marcher(p) {
-  if (!statSync(p, { throwIfNoEntry: false })) return;
-  if (statSync(p).isDirectory()) { for (const e of readdirSync(p)) if (e !== "build" && e !== "node_modules") marcher(join(p, e)); return; }
-  if ([".html", ".js", ".mjs", ".ts", ".tsx", ".css"].includes(extname(p))) fichiers.push(p);
-})(cibles[0]);
-for (const c of cibles.slice(1)) (function m(p) {
-  if (statSync(p).isDirectory()) { for (const e of readdirSync(p)) m(join(p, e)); return; }
-  fichiers.push(p);
-})(c);
+function marcher(p) {
+  const st = statSync(p, { throwIfNoEntry: false });
+  if (!st) return;
+  if (st.isDirectory()) {
+    for (const e of readdirSync(p)) if (!IGNORES.has(e)) marcher(join(p, e));
+    return;
+  }
+  if (EXTENSIONS.includes(extname(p))) fichiers.push(p);
+}
+for (const c of cibles) marcher(c);
 
 /* ══ exécution ══ */
 let bloquantes = 0, avertissements = 0;
