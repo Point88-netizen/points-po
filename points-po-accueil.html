@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Source+Sans+3:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <style>
 /* ══ TOKENS ══ */
 :root{
@@ -25,7 +25,11 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:16px;scroll-behavior:auto;-webkit-font-smoothing:antialiased;}
-body{font-family:var(--fb);background:var(--paper);color:var(--ink);overflow-x:hidden;cursor:none;}
+body{font-family:var(--fb);background:var(--paper);color:var(--ink);overflow-x:hidden;}
+/* Le curseur dessiné ne remplace le curseur système que là où il existe :
+   au doigt, ou si le script échoue, on garde le curseur natif. */
+@media (hover:hover) and (pointer:fine){ body.curseur-dessine{cursor:none;} }
+@media not all and (pointer:fine){ #cur,#cur2{display:none;} }
 
 /* ══ PROGRESS ══ */
 #progress{position:fixed;top:0;left:0;height:2px;width:0%;background:var(--red);z-index:9999;pointer-events:none;}
@@ -758,7 +762,7 @@ footer{background:var(--ink);padding:64px 0 0;}
       <h2 class="sec-title">Préparez<br><em>votre aventure</em></h2>
     </div>
     <div class="resa-grid">
-      <form class="reveal-l" onsubmit="return false;">
+      <form class="reveal-l" id="form-resa" novalidate>
         <div class="form-row-2">
           <div class="form-row"><label>Prénom</label><input type="text" placeholder="Votre prénom"></div>
           <div class="form-row"><label>Nom</label><input type="text" placeholder="Votre nom"></div>
@@ -784,6 +788,7 @@ footer{background:var(--ink);padding:64px 0 0;}
         </div>
         <div class="form-row"><label>Message (optionnel)</label><textarea placeholder="Questions, contraintes particulières..."></textarea></div>
         <button type="submit" class="form-submit">Envoyer ma demande</button>
+        <p id="form-retour" role="status" aria-live="polite" style="margin-top:12px;font-size:13px;line-height:1.6;color:var(--ink-70);display:none"></p>
       </form>
       <div class="reveal-r">
         <div class="ri-block">
@@ -851,19 +856,53 @@ footer{background:var(--ink);padding:64px 0 0;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
 <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <script>
+/* Le formulaire est déclaré en premier : c'est la seule fonction critique de
+   la page, elle ne doit dépendre d'aucune bibliothèque ni d'aucun code en aval. */
+/* ══ FORMULAIRE ══ */
+const formResa = document.getElementById('form-resa');
+if (formResa) formResa.addEventListener('submit', e => {
+  e.preventDefault();
+  const retour = document.getElementById('form-retour');
+  const manquants = [...formResa.querySelectorAll('input[type="text"],input[type="email"],input[type="date"]')]
+    .filter(i => !i.value.trim());
+  retour.style.display = 'block';
+  if (manquants.length) {
+    retour.style.color = 'var(--red)';
+    retour.textContent = 'Merci de compléter les champs manquants avant d\'envoyer.';
+    manquants[0].focus();
+    return;
+  }
+  retour.style.color = 'var(--green)';
+  retour.textContent = 'Demande enregistrée. Maquette de démonstration : aucun message n\'est réellement envoyé. Écrivez à contact@pointspo.fr en attendant la mise en service.';
+  formResa.querySelector('.form-submit').disabled = true;
+});
+
+/* ══ DISPONIBILITÉ DES BIBLIOTHÈQUES ══
+   Les sections sont en opacity:0 et c'est GSAP qui les révèle. Si le CDN est
+   injoignable, la page entière restait blanche : on révèle tout et on continue
+   sans animation plutôt que de perdre le contenu. */
+const AVEC_GSAP = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
+const REVELABLES = '.reveal,.reveal-l,.reveal-r,.reveal-s';
+if (!AVEC_GSAP) {
+  console.warn('GSAP indisponible — la page est servie sans animation.');
+  document.querySelectorAll(REVELABLES).forEach(el => el.classList.add('revealed'));
+}
+
 /* ══ LENIS + GSAP ══ */
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
-gsap.ticker.lagSmoothing(0);
 let lenis = null;
-try {
-  lenis = new Lenis({ lerp: 0.08, smooth: true });
-  lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add(t => lenis.raf(t * 1000));
-} catch(e) { console.warn('Lenis fallback:', e); }
+if (AVEC_GSAP) {
+  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+  gsap.ticker.lagSmoothing(0);
+  try {
+    lenis = new Lenis({ lerp: 0.08, smooth: true });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(t => lenis.raf(t * 1000));
+  } catch(e) { console.warn('Lenis indisponible :', e); }
+}
 
 /* ══ PROGRESS ══ */
 const progress = document.getElementById('progress');
@@ -885,6 +924,7 @@ const animCursor = () => {
   requestAnimationFrame(animCursor);
 };
 animCursor();
+document.body.classList.add('curseur-dessine');
 
 /* ══ NAV ══ */
 const nav = document.getElementById('nav'), topbar = document.getElementById('topbar');
@@ -904,18 +944,23 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     const t = document.querySelector(a.getAttribute('href'));
     if (!t) return;
     if (lenis) lenis.scrollTo(t, { offset: -80, duration: 1.4 });
-    else gsap.to(window, { scrollTo: { y: t, offsetY: 80 }, duration: 1.4, ease: 'power2.inOut' });
+    else if (AVEC_GSAP) gsap.to(window, { scrollTo: { y: t, offsetY: 80 }, duration: 1.4, ease: 'power2.inOut' });
+    else t.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
 
 /* ══ REVEALS ══ */
-document.querySelectorAll('.reveal,.reveal-l,.reveal-r,.reveal-s').forEach(el => {
+if (AVEC_GSAP) document.querySelectorAll(REVELABLES).forEach(el => {
   ScrollTrigger.create({ trigger: el, start: 'top 90%', onEnter: () => el.classList.add('revealed'), once: true });
 });
 
 /* ══ STATS COUNTER ══ */
 let countersStarted = false;
-ScrollTrigger.create({
+if (!AVEC_GSAP) document.querySelectorAll('.hsb-num').forEach(el => {
+  const n = parseInt(el.dataset.n);
+  el.textContent = n >= 1000 ? n.toLocaleString('fr-FR') : n;
+});
+if (AVEC_GSAP) ScrollTrigger.create({
   trigger: '.hero-stats', start: 'top 95%',
   onEnter: () => {
     if (countersStarted) return; countersStarted = true;
@@ -937,9 +982,9 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     document.querySelectorAll('.rc').forEach(card => {
       const show = f === 'all' || card.dataset.diff === f;
       card.style.display = show ? '' : 'none';
-      if (show) gsap.fromTo(card, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .35 });
+      if (show && AVEC_GSAP) gsap.fromTo(card, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .35 });
     });
-    ScrollTrigger.refresh();
+    if (AVEC_GSAP) ScrollTrigger.refresh();
   });
 });
 
@@ -953,126 +998,138 @@ const RANDOS = {
   cathares: { name:'Tour Châteaux Cathares',   diff:'Intermédiaire', diffClass:'diff-m', color:'#B87A00', coords:[42.8789,2.5994],  duree:'6h',      dist:'16 km', deni:'+620m',  prix:'85€',  desc:"De Quéribus à Peyrepertuse — la traversée des châteaux du vertige, sentinelles cathares au-dessus des gorges du Galamus." }
 };
 
-/* ══ LEAFLET CARTE ══ */
-const map = L.map('region-map', {
-  center: [42.62, 2.55],
-  zoom: 9,
-  zoomControl: true,
-  scrollWheelZoom: false,
-  attributionControl: false
-});
-
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-  maxZoom: 16
-}).addTo(map);
-
-// Labels séparés (pour les garder)
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
-  maxZoom: 16, pane: 'shadowPane'
-}).addTo(map);
-
-// Polygone département 66 simplifié
-const deptCoords = [
-  [42.33,2.02],[42.34,2.07],[42.38,2.14],[42.44,2.18],[42.47,2.15],[42.50,2.12],
-  [42.52,2.08],[42.56,2.04],[42.60,2.00],[42.63,2.02],[42.68,2.05],[42.72,2.10],
-  [42.78,2.18],[42.82,2.25],[42.87,2.32],[42.91,2.40],[42.93,2.52],[42.92,2.62],
-  [42.89,2.70],[42.86,2.80],[42.84,2.90],[42.85,3.00],[42.82,3.08],[42.77,3.12],
-  [42.70,3.16],[42.62,3.18],[42.56,3.17],[42.50,3.15],[42.45,3.10],[42.42,3.04],
-  [42.38,2.98],[42.35,2.90],[42.34,2.80],[42.34,2.70],[42.37,2.62],[42.38,2.52],
-  [42.36,2.44],[42.35,2.36],[42.33,2.28],[42.33,2.20],[42.34,2.12],[42.33,2.02]
-];
-L.polygon(deptCoords, {
-  color:'#C8201A', weight:2, opacity:.5, fillColor:'#C8201A', fillOpacity:.04
-}).addTo(map);
-
-// Marqueurs custom
-const markers = {};
-const activeMarkers = {};
-
-const createIcon = (rando) => {
-  const colorClass = rando.diff === 'Facile' ? 'marker-facile' : rando.diff === 'Difficile' ? 'marker-difficile' : 'marker-intermediaire';
-  const emoji = rando.diff === 'Facile' ? '🥾' : rando.diff === 'Difficile' ? '⛰' : '🗺';
-  return L.divIcon({
-    className: '',
-    html: `<div class="custom-marker ${colorClass}"><div class="custom-marker-inner">${emoji}</div></div>`,
-    iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36]
+/* ══ LEAFLET CARTE ══
+   Encapsulée : si la bibliothèque manque, la carte affiche un repli et le reste
+   de la page — filtres, formulaire, navigation — continue de fonctionner. */
+(function carteRegion(){
+  if (typeof L === 'undefined') {
+    const zone = document.getElementById('region-map');
+    if (zone) zone.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;' +
+      'font-family:var(--fm);font-size:11px;letter-spacing:.08em;color:var(--ink-40);text-align:center;padding:0 30px">' +
+      'CARTE INDISPONIBLE<br>Les itinéraires restent consultables ci-dessous.</div>';
+    console.warn('Leaflet indisponible — page servie sans carte.');
+    return;
+  }
+  const map = L.map('region-map', {
+    center: [42.62, 2.55],
+    zoom: 9,
+    zoomControl: true,
+    scrollWheelZoom: false,
+    attributionControl: false
   });
-};
 
-const infoPanel = document.getElementById('mapInfoPanel');
-const mipName = document.getElementById('mipName');
-const mipDiff = document.getElementById('mipDiff');
-const mipMeta = document.getElementById('mipMeta');
-const mipDesc = document.getElementById('mipDesc');
-const mipPrice = document.getElementById('mipPrice');
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+    maxZoom: 16
+  }).addTo(map);
 
-const showInfoPanel = (id) => {
-  const r = RANDOS[id];
-  mipDiff.textContent = r.diff;
-  mipDiff.style.color = r.color;
-  mipName.textContent = r.name;
-  mipMeta.innerHTML = `<span class="mip-tag">⏱ ${r.duree}</span><span class="mip-tag">📏 ${r.dist}</span><span class="mip-tag">↑ ${r.deni}</span>`;
-  mipDesc.textContent = r.desc;
-  mipPrice.textContent = r.prix;
-  infoPanel.classList.add('visible');
-};
+  // Labels séparés (pour les garder)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+    maxZoom: 16, pane: 'shadowPane'
+  }).addTo(map);
 
-document.getElementById('mapInfoClose').addEventListener('click', () => {
-  infoPanel.classList.remove('visible');
-  document.querySelectorAll('.rc').forEach(c => c.classList.remove('map-active'));
-});
+  // Polygone département 66 simplifié
+  const deptCoords = [
+    [42.33,2.02],[42.34,2.07],[42.38,2.14],[42.44,2.18],[42.47,2.15],[42.50,2.12],
+    [42.52,2.08],[42.56,2.04],[42.60,2.00],[42.63,2.02],[42.68,2.05],[42.72,2.10],
+    [42.78,2.18],[42.82,2.25],[42.87,2.32],[42.91,2.40],[42.93,2.52],[42.92,2.62],
+    [42.89,2.70],[42.86,2.80],[42.84,2.90],[42.85,3.00],[42.82,3.08],[42.77,3.12],
+    [42.70,3.16],[42.62,3.18],[42.56,3.17],[42.50,3.15],[42.45,3.10],[42.42,3.04],
+    [42.38,2.98],[42.35,2.90],[42.34,2.80],[42.34,2.70],[42.37,2.62],[42.38,2.52],
+    [42.36,2.44],[42.35,2.36],[42.33,2.28],[42.33,2.20],[42.34,2.12],[42.33,2.02]
+  ];
+  L.polygon(deptCoords, {
+    color:'#C8201A', weight:2, opacity:.5, fillColor:'#C8201A', fillOpacity:.04
+  }).addTo(map);
 
-Object.entries(RANDOS).forEach(([id, r]) => {
-  const marker = L.marker(r.coords, { icon: createIcon(r) }).addTo(map);
-  markers[id] = marker;
+  // Marqueurs custom
+  const markers = {};
+  const activeMarkers = {};
 
-  marker.on('click mouseover', () => {
-    showInfoPanel(id);
-    // Highlight corresponding card
-    document.querySelectorAll('.rc').forEach(c => c.classList.remove('map-active'));
-    const card = document.querySelector(`.rc[data-id="${id}"]`);
-    if (card) card.classList.add('map-active');
-  });
-});
+  const createIcon = (rando) => {
+    const colorClass = rando.diff === 'Facile' ? 'marker-facile' : rando.diff === 'Difficile' ? 'marker-difficile' : 'marker-intermediaire';
+    const emoji = rando.diff === 'Facile' ? '🥾' : rando.diff === 'Difficile' ? '⛰' : '🗺';
+    return L.divIcon({
+      className: '',
+      html: `<div class="custom-marker ${colorClass}"><div class="custom-marker-inner">${emoji}</div></div>`,
+      iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36]
+    });
+  };
 
-// Cards → carte
-document.querySelectorAll('.rc').forEach(card => {
-  card.addEventListener('click', (e) => {
-    if (e.target.classList.contains('rc-btn')) return; // don't intercept réserver
-    const id = card.dataset.id;
-    if (!id || !RANDOS[id]) return;
+  const infoPanel = document.getElementById('mapInfoPanel');
+  const mipName = document.getElementById('mipName');
+  const mipDiff = document.getElementById('mipDiff');
+  const mipMeta = document.getElementById('mipMeta');
+  const mipDesc = document.getElementById('mipDesc');
+  const mipPrice = document.getElementById('mipPrice');
+
+  const showInfoPanel = (id) => {
     const r = RANDOS[id];
-    // Scroll to map
-    const mapEl = document.getElementById('region-map');
-    if (lenis) lenis.scrollTo(mapEl, { offset: -80, duration: 1.2 });
-    else gsap.to(window, { scrollTo: { y: mapEl, offsetY: 80 }, duration: 1.2, ease: 'power2.inOut' });
-    // Pan map + show panel
-    setTimeout(() => {
-      map.flyTo(r.coords, 11, { duration: 1 });
-      showInfoPanel(id);
-      document.querySelectorAll('.rc').forEach(c => c.classList.remove('map-active'));
-      card.classList.add('map-active');
-    }, 300);
-  });
-});
+    mipDiff.textContent = r.diff;
+    mipDiff.style.color = r.color;
+    mipName.textContent = r.name;
+    mipMeta.innerHTML = `<span class="mip-tag">⏱ ${r.duree}</span><span class="mip-tag">📏 ${r.dist}</span><span class="mip-tag">↑ ${r.deni}</span>`;
+    mipDesc.textContent = r.desc;
+    mipPrice.textContent = r.prix;
+    infoPanel.classList.add('visible');
+  };
 
-/* ══ TERRITOIRE SELECTOR → zoom carte ══ */
-const TERR_VIEWS = {
-  montagne: { center:[42.54, 2.35], zoom:10 },
-  cote:     { center:[42.52, 3.05], zoom:11 },
-  cathares: { center:[42.88, 2.60], zoom:10 },
-  vignes:   { center:[42.75, 2.88], zoom:10 },
-  vallees:  { center:[42.58, 2.18], zoom:10 }
-};
-document.querySelectorAll('.ts-item').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.ts-item').forEach(i => i.classList.remove('active'));
-    item.classList.add('active');
-    const terr = item.dataset.terr;
-    const v = TERR_VIEWS[terr];
-    if (v) map.flyTo(v.center, v.zoom, { duration: 1.2 });
+  document.getElementById('mapInfoClose').addEventListener('click', () => {
+    infoPanel.classList.remove('visible');
+    document.querySelectorAll('.rc').forEach(c => c.classList.remove('map-active'));
   });
-});
+
+  Object.entries(RANDOS).forEach(([id, r]) => {
+    const marker = L.marker(r.coords, { icon: createIcon(r) }).addTo(map);
+    markers[id] = marker;
+
+    marker.on('click mouseover', () => {
+      showInfoPanel(id);
+      // Highlight corresponding card
+      document.querySelectorAll('.rc').forEach(c => c.classList.remove('map-active'));
+      const card = document.querySelector(`.rc[data-id="${id}"]`);
+      if (card) card.classList.add('map-active');
+    });
+  });
+
+  // Cards → carte
+  document.querySelectorAll('.rc').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.classList.contains('rc-btn')) return; // don't intercept réserver
+      const id = card.dataset.id;
+      if (!id || !RANDOS[id]) return;
+      const r = RANDOS[id];
+      // Scroll to map
+      const mapEl = document.getElementById('region-map');
+      if (lenis) lenis.scrollTo(mapEl, { offset: -80, duration: 1.2 });
+      else gsap.to(window, { scrollTo: { y: mapEl, offsetY: 80 }, duration: 1.2, ease: 'power2.inOut' });
+      // Pan map + show panel
+      setTimeout(() => {
+        map.flyTo(r.coords, 11, { duration: 1 });
+        showInfoPanel(id);
+        document.querySelectorAll('.rc').forEach(c => c.classList.remove('map-active'));
+        card.classList.add('map-active');
+      }, 300);
+    });
+  });
+
+  /* ══ TERRITOIRE SELECTOR → zoom carte ══ */
+  const TERR_VIEWS = {
+    montagne: { center:[42.54, 2.35], zoom:10 },
+    cote:     { center:[42.52, 3.05], zoom:11 },
+    cathares: { center:[42.88, 2.60], zoom:10 },
+    vignes:   { center:[42.75, 2.88], zoom:10 },
+    vallees:  { center:[42.58, 2.18], zoom:10 }
+  };
+  document.querySelectorAll('.ts-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.ts-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const terr = item.dataset.terr;
+      const v = TERR_VIEWS[terr];
+      if (v) map.flyTo(v.center, v.zoom, { duration: 1.2 });
+    });
+  });
+})();
 
 /* ══ THREE.JS HERO ══ */
 const initThree = () => {
@@ -1139,13 +1196,13 @@ const initThree = () => {
     renderer.render(scene,camera);
   };
   animate();
-  gsap.to('#hero-canvas',{yPercent:20,ease:'none',scrollTrigger:{trigger:'#hero',start:'top top',end:'bottom top',scrub:true}});
+  if (AVEC_GSAP) gsap.to('#hero-canvas',{yPercent:20,ease:'none',scrollTrigger:{trigger:'#hero',start:'top top',end:'bottom top',scrub:true}});
   window.addEventListener('resize',()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); });
 };
 
 window.addEventListener('load', () => {
-  try { initThree(); } catch(e) { console.warn('Three.js:', e); }
-  ScrollTrigger.refresh();
+  try { if (typeof THREE !== 'undefined') initThree(); } catch(e) { console.warn('Three.js indisponible :', e); }
+  if (AVEC_GSAP) ScrollTrigger.refresh();
 });
 </script>
 </body>

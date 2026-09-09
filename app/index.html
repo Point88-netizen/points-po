@@ -2,7 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<!-- Pas de maximum-scale : bloquer le zoom est un défaut d'accessibilité (WCAG 1.4.4). -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Camins — prototype · Points P-O</title>
 <meta name="description" content="Prototype interactif de Camins : l'application de randonnée narrative de l'Occitanie. Récits géolocalisés, Veillée hebdomadaire, Cabinet — et les garde-fous anti-dépendance.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -663,10 +664,10 @@ body{
   </div><!-- /view -->
 
   <!-- ─────── DÉTAIL SENTIER ─────── -->
-  <div id="detail"></div>
+  <div id="detail" role="dialog" aria-modal="true" aria-label="Fiche du sentier"></div>
 
   <!-- ─────── FICHE POINT D'INTÉRÊT ─────── -->
-  <div id="poisheet"><div class="ps-card" id="ps-card"></div></div>
+  <div id="poisheet" role="dialog" aria-modal="true" aria-label="Point d'intérêt"><div class="ps-card" id="ps-card"></div></div>
 
   <!-- ─────── MODE SENTIER ─────── -->
   <div id="walk">
@@ -689,7 +690,7 @@ body{
   </div>
 
   <!-- ─────── LECTEUR ÉCLAT ─────── -->
-  <div id="eclat">
+  <div id="eclat" role="dialog" aria-modal="true" aria-label="Éclat">
     <div class="e-bars" id="e-bars"></div>
     <div class="e-head">
       <div class="e-av" id="e-av"></div>
@@ -714,7 +715,7 @@ body{
 
   <!-- ─────── TABBAR ─────── -->
   <div id="tabbar">
-    <button class="tab on" data-s="sentiers"><span class="tab-i">🗺</span><span class="tab-l">Sentiers</span></button>
+    <button class="tab on" data-s="sentiers" aria-current="page"><span class="tab-i">🗺</span><span class="tab-l">Sentiers</span></button>
     <button class="tab" data-s="trace"><span class="tab-i">✏️</span><span class="tab-l">Tracé</span></button>
     <button class="tab" data-s="communaute"><span class="tab-i">🤝</span><span class="tab-l">Cordée</span></button>
     <button class="tab" data-s="veillee"><span class="tab-i">🔥</span><span class="tab-l">Veillée</span></button>
@@ -1218,8 +1219,7 @@ const S = {
   temoins:0,
   recitsRecompenses:new Set(),   // un témoin par Récit terminé
   fauteuil:false,
-  notifs:2,
-  drawEntered:false
+  notifs:2
 };
 const key = (t,i) => t + ":" + i;
 const isUn = (t,i) => !!S.unlocked[key(t,i)] || S.fauteuil;
@@ -1227,6 +1227,11 @@ const trail = id => TRAILS.find(t => t.id === id);
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const grad = a => "linear-gradient(150deg," + a[0] + "," + a[1] + " 55%," + a[2] + ")";
+/* Tout texte pouvant venir d'une personne passe par ici avant d'entrer
+   dans un innerHTML. Les données de démonstration sont sûres aujourd'hui ;
+   le jour où un champ « nom du tracé » existe, elles ne le seront plus. */
+const ech = t => String(t ?? "").replace(/[&<>"']/g, c =>
+  ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 const DIFFN = {f:"Facile", m:"Intermédiaire", d:"Difficile"};
 
 /* ─ compteur de temps d'écran (le produit se mesure lui-même) ─ */
@@ -1394,11 +1399,10 @@ function closeDetail(){ $("#detail").classList.remove("on"); note(S.screen); }
 /* ══════════════════════════════════════════════════════════
    MODE SENTIER — simulation de marche
    ══════════════════════════════════════════════════════════ */
-let walkTimer = null, walkKm = 0, walkNext = 0;
+let walkTimer = null, walkKm = 0;
 function startWalk(id){
   const t = trail(id); S.trail = id;
-  walkKm = 0; walkNext = t.st.findIndex((_,i) => !isUn(id,i));
-  if (walkNext < 0) walkNext = 0;
+  walkKm = 0;
   $("#w-n").textContent = t.n;
   $("#w-track").innerHTML = '<i id="w-fill" style="width:0"></i>' + t.st.map((s,i) =>
     '<span class="w-tick'+(isUn(id,i)?" un":"")+'" id="tk'+i+'" style="left:'+(s.km/t.km*100)+'%"></span>').join("");
@@ -1543,7 +1547,7 @@ function enterVeillee(){
   $("#v-live").style.display = "block";
   $("#v-chat").innerHTML = "";
   $("#v-drops").innerHTML = "";
-  vTimers.forEach(clearTimeout); vTimers = [];
+  arreterVeillee();
   SCRIPT.forEach(([t, kind, who, txt]) => vTimers.push(setTimeout(() => {
     if (kind === "drop") return showDrop();
     if (kind === "name") return hostNames();
@@ -1588,7 +1592,6 @@ function showDrop(){
   }, 2200);
   vTimers.push(iv);
   $("#drop-btn").onclick = e => {
-    S.drawEntered = true;
     e.target.textContent = "Inscrit au tirage";
     e.target.disabled = true;
     chat("sys", "", "Vous êtes entré au tirage. Résultat annoncé en direct dans 4 minutes.");
@@ -1606,8 +1609,14 @@ function giveaway(){
   }, 1600);
 }
 $("#btn-enter").onclick = enterVeillee;
+function arreterVeillee(){
+  /* clearTimeout et clearInterval partagent le même registre : un seul appel
+     suffit, mais on garde les deux pour que l'intention reste lisible. */
+  vTimers.forEach(t => { clearTimeout(t); clearInterval(t); });
+  vTimers = [];
+}
 $("#btn-leave").onclick = () => {
-  vTimers.forEach(t => { clearTimeout(t); clearInterval(t); }); vTimers = [];
+  arreterVeillee();
   $("#v-live").style.display = "none"; $("#v-pre").style.display = "block";
 };
 $("#v-send").onclick = () => {
@@ -1639,7 +1648,9 @@ function renderCabinet(){
   $("#st-ec").textContent = un.length;
   $("#st-re").textContent = recits;
   $("#st-km").textContent = Math.round(S.km);
-  $("#st-ct").textContent = S.temoins + recits;
+  /* Une carte-témoin est déjà comptée dans S.temoins à la fin d'un Récit :
+     l'additionner aux Récits terminés la comptait deux fois. */
+  $("#st-ct").textContent = S.temoins;
   $("#cab-rank").textContent = RANKS.filter(r => un.length >= r[0]).pop()[1];
 
   const show = [...un, ...all.filter(a => !a.un)].slice(0, 18);
@@ -1688,7 +1699,11 @@ $$("[data-sw]").forEach(b => b.onclick = () => {
 function allerA(nom){
   const onglet = document.querySelector('.tab[data-s="' + nom + '"]');
   if (!onglet) return;
-  $$(".tab").forEach(t => t.classList.toggle("on", t === onglet));
+  $$(".tab").forEach(t => {
+    const actif = t === onglet;
+    t.classList.toggle("on", actif);
+    t.setAttribute("aria-current", actif ? "page" : "false");
+  });
   S.screen = nom;
   $$(".screen").forEach(sc => sc.classList.toggle("on", sc.id === "s-" + nom));
   $("#view").scrollTop = 0;
@@ -1699,12 +1714,25 @@ function allerA(nom){
   if (nom === "trace"){ initTrace(); setTimeout(() => carteTrace && carteTrace.invalidateSize(), 60); }
   if (nom === "communaute") renderCommunaute();
   if (nom === "cabinet") renderCabinet();
+  if (nom !== "veillee" && $("#v-live").style.display === "block"){
+    arreterVeillee();
+    $("#v-live").style.display = "none"; $("#v-pre").style.display = "block";
+  }
 }
 $$(".tab").forEach(tab => tab.onclick = () => allerA(tab.dataset.s));
 
+/* Les quatre surfaces qui se superposent à l'écran se ferment à l'Échap,
+   dans l'ordre où elles sont empilées. */
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if ($("#eclat").classList.contains("on")) return closeEclat();
+  if ($("#poisheet").classList.contains("on")) return fermerPoi();
+  if ($("#detail").classList.contains("on")) return closeDetail();
+});
+
 $("#btn-reset").onclick = () => {
   S.unlocked = {}; S.km = 0; S.outMin = 0; S.scrMin = 2; S.temoins = 0;
-  S.recitsRecompenses.clear(); S.drawEntered = false;
+  S.recitsRecompenses.clear();
   clearInterval(walkTimer); clearInterval(eTimer);
   T.points = []; T.pois = []; T.enregistres = []; T.nom = "Nouveau trac\u00e9";
   if (carteTrace) majTrace();
@@ -1994,8 +2022,9 @@ function exporterGpx(){
   const url = URL.createObjectURL(new Blob([gpx], { type: "application/gpx+xml" }));
   const a = document.createElement("a");
   a.href = url;
-  a.download = T.nom.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\w\-]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase() + ".gpx";
+  const base = T.nom.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\-]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase();
+  a.download = (base || "trace-camins") + ".gpx";
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   $("#tr-note").textContent = "Fichier GPX produit : " + T.points.length + " points, " +
@@ -2011,7 +2040,7 @@ function renderCommunaute(){
   $("#cor-nb").textContent = CORDEE.length;
   $("#cor-people").innerHTML = CORDEE.map(p =>
     '<div class="cor-p"><div class="cor-av" style="background:' + p.couleur + '">' + initiales(p.nom) + "</div>" +
-    '<div class="cor-pn">' + p.nom + '</div><div class="cor-pl">' + p.lieu + "</div></div>").join("") +
+    '<div class="cor-pn">' + ech(p.nom) + '</div><div class="cor-pl">' + ech(p.lieu) + "</div></div>").join("") +
     '<div class="cor-p"><button class="cor-add" id="cor-add" aria-label="Inviter quelqu\'un">+</button>' +
     '<div class="cor-pn">Inviter</div><div class="cor-pl">' + (8 - CORDEE.length) + " place(s)</div></div>";
   $("#cor-add").onclick = () => {
@@ -2024,16 +2053,16 @@ function renderCommunaute(){
     '<div class="tp">' +
       '<div class="tp-h">' +
         '<div class="tp-av" style="background:' + (CORDEE.find(c => c.nom === t.auteur)?.couleur ?? "#1A1814") + '">' +
-          initiales(t.auteur) + "</div>" +
-        '<div><div class="tp-a">' + t.auteur + '</div><div class="tp-q">' + t.quand + "</div></div>" +
+          ech(initiales(t.auteur)) + "</div>" +
+        '<div><div class="tp-a">' + ech(t.auteur) + '</div><div class="tp-q">' + ech(t.quand) + "</div></div>" +
       "</div>" +
       '<div class="tp-card">' +
         '<div class="tp-img" style="background:' + grad(t.art) + '"><div class="tp-dept">' + t.dept + "</div></div>" +
         '<div class="tp-body">' +
-          '<div class="tp-n">' + t.nom + "</div>" +
+          '<div class="tp-n">' + ech(t.nom) + "</div>" +
           '<div class="tp-meta">' + String(t.dist).replace(".", ",") + " km · D+ " + t.deni + " · " + t.duree +
             " · " + t.pois + " point(s) d'intérêt</div>" +
-          '<div class="tp-mot">' + t.mot + "</div>" +
+          '<div class="tp-mot">' + ech(t.mot) + "</div>" +
           '<div class="tp-acts">' +
             '<button class="tp-act" data-trace="' + t.id + '">Ouvrir dans Tracé</button>' +
             '<button class="tp-act" data-merci="' + t.id + '">Merci</button>' +
