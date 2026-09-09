@@ -92,9 +92,9 @@ body{
   flex:none;height:66px;border-top:1px solid var(--paper3);background:rgba(250,250,247,.97);
   backdrop-filter:blur(12px);display:flex;padding-bottom:6px;z-index:50;
 }
-.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border:none;background:none;font-family:inherit;position:relative;}
+.tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border:none;background:none;font-family:inherit;position:relative;}
 .tab-i{font-size:18px;filter:grayscale(1);opacity:.42;transition:var(--duree-toucher);}
-.tab-l{font-family:var(--fm);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-40);transition:var(--duree-toucher);}
+.tab-l{font-family:var(--fm);font-size:8px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-40);transition:color var(--duree-toucher);white-space:nowrap;}
 .tab.on .tab-i{filter:grayscale(0);opacity:1;}
 .tab.on .tab-l{color:var(--ink);}
 .tab-badge{position:absolute;top:8px;right:calc(50% - 20px);min-width:16px;height:16px;padding:0 4px;background:var(--red);color:#fff;border-radius:8px;font-family:var(--fm);font-size:9px;display:flex;align-items:center;justify-content:center;}
@@ -294,7 +294,7 @@ body{
 .ratio-l{font-size:12px;font-weight:300;color:var(--ink-70);line-height:1.45;}
 .ratio-bar{height:22px;display:flex;border-radius:2px;overflow:hidden;margin:10px 0 7px;}
 .ratio-bar .out{background:var(--green);} .ratio-bar .scr{background:var(--stone);}
-.ratio-bar div{display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:9px;color:#fff;transition:width var(--duree-transition);}
+.ratio-bar div{display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-family:var(--fm);font-size:9px;color:#fff;transition:width var(--duree-transition);}
 .ratio-bar .scr{color:var(--ink-70);}
 .ratio-n{font-size:11.5px;font-weight:300;color:var(--ink-40);line-height:1.55;}
 .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-bottom:1px solid var(--paper3);}
@@ -317,6 +317,99 @@ body{
 
 .callout{margin:14px 18px;padding:12px 14px;background:var(--paper2);border-left:2px solid var(--red);font-size:12px;font-weight:300;line-height:1.62;color:var(--ink-70);}
 .callout b{color:var(--ink);font-weight:600;}
+
+
+/* ══ POINTS D'INTÉRÊT ══ */
+.poi-pin{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.32);font-size:12px;}
+.poi-row{display:flex;gap:11px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--paper3);cursor:pointer;}
+.poi-row:hover{background:var(--paper2);}
+.poi-ic{flex:none;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;}
+.poi-b{flex:1;min-width:0;}
+.poi-t{font-family:var(--fs);font-size:15px;font-style:italic;line-height:1.2;}
+.poi-m{font-family:var(--fm);font-size:9px;color:var(--ink-40);letter-spacing:.04em;margin-top:2px;}
+.poi-r{font-size:12px;font-weight:300;color:var(--ink-70);line-height:1.5;margin-top:4px;}
+
+/* fiche point d'intérêt */
+#poisheet{position:absolute;inset:0;background:rgba(26,24,20,.5);z-index:80;display:none;}
+#poisheet.on{display:block;animation:fade var(--duree-transition);}
+.ps-card{position:absolute;left:0;right:0;bottom:0;max-height:88%;overflow-y:auto;background:var(--paper);border-radius:12px 12px 0 0;animation:slideup var(--duree-transition) cubic-bezier(.2,.8,.3,1);scrollbar-width:none;}
+.ps-card::-webkit-scrollbar{display:none;}
+.ps-photo{height:172px;position:relative;border-radius:12px 12px 0 0;overflow:hidden;display:flex;align-items:flex-end;}
+.ps-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(16,14,12,.8),transparent 62%);}
+.ps-sub{position:relative;z-index:2;padding:10px 16px;font-family:var(--fm);font-size:9px;line-height:1.6;color:rgba(255,255,255,.82);}
+.ps-sub b{display:block;color:#fff;font-weight:500;font-size:10px;margin-bottom:2px;}
+.ps-close{position:absolute;top:10px;right:10px;z-index:3;width:var(--cible-minimum);height:var(--cible-minimum);border-radius:50%;background:rgba(255,255,255,.92);border:none;cursor:pointer;font-size:15px;}
+.ps-body{padding:16px 18px 24px;}
+.ps-kind{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:4px 9px;border-radius:2px;color:#fff;}
+.ps-n{font-family:var(--fs);font-size:24px;font-style:italic;line-height:1.14;margin:10px 0 6px;}
+.ps-meta{font-family:var(--fm);font-size:10px;color:var(--ink-40);letter-spacing:.04em;margin-bottom:14px;}
+.ps-d{font-size:14px;font-weight:300;line-height:1.68;color:var(--ink-70);margin-bottom:14px;}
+.ps-prat{background:var(--paper2);border-left:2px solid var(--green);padding:11px 13px;font-size:12.5px;line-height:1.55;color:var(--ink-70);}
+.ps-prat.risque{border-color:var(--red);}
+.ps-prat b{display:block;font-family:var(--fm);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-40);margin-bottom:5px;}
+
+/* ══ TRACÉ ══ */
+#s-trace{position:relative;height:100%;}
+.tr-wrap{position:absolute;inset:0;}
+#trace-map{position:absolute;inset:0;background:var(--paper2);}
+.tr-empty{position:absolute;top:16px;left:16px;right:16px;z-index:500;background:rgba(26,24,20,.9);color:#fff;padding:12px 14px;border-radius:3px;font-size:12.5px;line-height:1.5;}
+.tr-empty b{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--yellow);display:block;margin-bottom:4px;}
+.tr-panel{position:absolute;left:0;right:0;bottom:0;z-index:600;background:var(--paper);border-top:1px solid var(--paper3);box-shadow:0 -6px 20px rgba(0,0,0,.12);transition:transform var(--duree-transition) cubic-bezier(.2,.8,.3,1);}
+.tr-panel.reduit{transform:translateY(calc(100% - 96px));}
+.tr-grip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 14px;min-height:48px;cursor:pointer;border-bottom:1px solid var(--paper3);background:none;border-left:none;border-right:none;border-top:none;width:100%;font-family:inherit;text-align:left;}
+.tr-grip-t{font-family:var(--fs);font-size:16px;font-style:italic;}
+.tr-grip-c{font-family:var(--fm);font-size:10px;color:var(--ink-40);}
+.tr-stats{display:flex;border-bottom:1px solid var(--paper3);}
+.tr-si{flex:1;padding:9px 4px;text-align:center;border-right:1px solid var(--paper3);}
+.tr-si:last-child{border-right:none;}
+.tr-sv{font-family:var(--fs);font-size:18px;font-style:italic;line-height:1;}
+.tr-sl{font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-40);margin-top:3px;}
+.tr-prof{height:62px;padding:8px 14px 0;border-bottom:1px solid var(--paper3);}
+.tr-prof svg{width:100%;height:46px;display:block;}
+.tr-tools{padding:12px 14px;}
+.tr-lab{font-family:var(--fm);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-40);margin:0 0 7px;}
+.tr-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px;}
+.tr-btn{flex:1;min-width:74px;min-height:var(--cible-minimum);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid var(--paper3);background:var(--white);border-radius:3px;cursor:pointer;font-family:var(--fb);transition:border-color var(--duree-toucher),background var(--duree-toucher);}
+.tr-btn:hover{border-color:var(--ink-40);}
+.tr-btn.on{background:var(--ink);border-color:var(--ink);color:#fff;}
+.tr-btn:disabled{opacity:.38;cursor:default;}
+.tr-bi{font-size:15px;line-height:1;}
+.tr-bl{font-family:var(--fm);font-size:8.5px;letter-spacing:.05em;}
+.tr-types{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px;}
+.tr-type{flex:1;min-width:52px;min-height:var(--cible-minimum);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1px solid var(--paper3);background:var(--white);border-radius:3px;cursor:pointer;font-size:14px;transition:border-color var(--duree-toucher);}
+.tr-type span{font-family:var(--fm);font-size:7.5px;letter-spacing:.03em;color:var(--ink-40);}
+.tr-type.on{border-color:var(--ink);border-width:2px;}
+.tr-note{font-size:11.5px;font-weight:300;line-height:1.5;color:var(--ink-40);margin-top:10px;padding-top:10px;border-top:1px solid var(--paper3);}
+.tr-marker{width:14px;height:14px;border-radius:50%;background:var(--red);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);}
+.tr-marker.depart{background:var(--green);}
+.tr-marker.arrivee{background:var(--ink);}
+
+/* ══ COMMUNAUTÉ ══ */
+.cor-head{padding:18px;background:var(--ink);color:#fff;}
+.cor-n{font-family:var(--fs);font-size:22px;font-style:italic;}
+.cor-s{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.42);margin-top:3px;}
+.cor-people{display:flex;gap:8px;overflow-x:auto;padding:14px 18px;scrollbar-width:none;}
+.cor-people::-webkit-scrollbar{display:none;}
+.cor-p{flex:none;width:62px;text-align:center;}
+.cor-av{width:46px;height:46px;border-radius:50%;margin:0 auto 5px;display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:17px;font-style:italic;color:#fff;}
+.cor-pn{font-size:11.5px;font-weight:500;line-height:1.2;min-height:2.4em;}
+.cor-pl{font-family:var(--fm);font-size:8px;color:var(--ink-40);margin-top:1px;}
+.cor-add{width:var(--cible-minimum);height:var(--cible-minimum);border-radius:50%;margin:0 auto 5px;border:1px dashed var(--stone);background:none;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink-40);cursor:pointer;}
+.tp{border-top:1px solid var(--paper3);padding:14px 18px;}
+.tp-h{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+.tp-av{width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:13px;font-style:italic;color:#fff;}
+.tp-a{font-size:13px;font-weight:500;}
+.tp-q{font-family:var(--fm);font-size:9px;color:var(--ink-40);}
+.tp-card{border:1px solid var(--paper3);border-radius:3px;overflow:hidden;background:var(--white);}
+.tp-img{height:96px;position:relative;}
+.tp-dept{position:absolute;bottom:0;left:0;background:rgba(26,24,20,.78);color:#fff;font-family:var(--fm);font-size:9px;padding:3px 8px;}
+.tp-body{padding:12px 13px;}
+.tp-n{font-family:var(--fs);font-size:16px;font-style:italic;line-height:1.2;margin-bottom:5px;}
+.tp-meta{font-family:var(--fm);font-size:9.5px;color:var(--ink-40);letter-spacing:.03em;margin-bottom:8px;}
+.tp-mot{font-size:12.5px;font-weight:300;line-height:1.55;color:var(--ink-70);border-left:2px solid var(--paper3);padding-left:10px;}
+.tp-acts{display:flex;gap:7px;margin-top:11px;}
+.tp-act{flex:1;min-height:var(--cible-minimum);border:1px solid var(--paper3);background:var(--white);border-radius:3px;font-family:var(--fm);font-size:10px;letter-spacing:.05em;cursor:pointer;transition:border-color var(--duree-toucher);}
+.tp-act:hover{border-color:var(--ink-40);}
 
 /* ═══ RESPONSIVE ═══ */
 @media (max-width:1080px){
@@ -388,11 +481,6 @@ body{
       </div>
       <div class="chips" id="chips"></div>
       <div id="tlist"></div>
-      <div class="end">C'est tout. 13 sentiers, pas de fil infini.</div>
-    </section>
-
-    <!-- ─────── ÉCRAN 2 · ÉCLATS ─────── -->
-    <section class="screen" id="s-eclats">
       <div class="sec">
         <div class="sec-eb">Éclats</div>
         <h2 class="sec-t">Ce qui vous attend<br><em>dehors</em></h2>
@@ -402,6 +490,78 @@ body{
       <div id="teaselist"></div>
       <div class="callout" style="border-color:var(--green)"><b>La règle d'or.</b> 80 m du point · 45 s sur place · moins de 8 km/h de moyenne. Trois conditions, une conséquence : la récompense variable est branchée sur les jambes, pas sur le pouce.</div>
       <div class="end">Fin de la liste</div>
+      <div class="end">C'est tout. 13 sentiers, pas de fil infini.</div>
+    </section>
+
+
+    <!-- ─────── ÉCRAN · TRACÉ ─────── -->
+    <section class="screen" id="s-trace">
+      <div class="tr-wrap">
+        <div id="trace-map"></div>
+
+        <div class="tr-empty" id="tr-empty">
+          <b>Tracer un itinéraire</b>
+          Touchez la carte pour poser vos points. Les outils s'ouvrent par-dessus la carte, en bas.
+        </div>
+
+        <div class="tr-panel" id="tr-panel">
+          <button class="tr-grip" id="tr-grip" aria-expanded="true" aria-controls="tr-corps">
+            <span class="tr-grip-t" id="tr-nom">Nouveau tracé</span>
+            <span class="tr-grip-c" id="tr-etat">outils ouverts · toucher pour replier</span>
+          </button>
+
+          <div id="tr-corps">
+            <div class="tr-stats">
+              <div class="tr-si"><div class="tr-sv" id="tr-dist">0,0</div><div class="tr-sl">km</div></div>
+              <div class="tr-si"><div class="tr-sv" id="tr-deni">0</div><div class="tr-sl">D+ m</div></div>
+              <div class="tr-si"><div class="tr-sv" id="tr-duree">—</div><div class="tr-sl">durée</div></div>
+              <div class="tr-si"><div class="tr-sv" id="tr-pts">0</div><div class="tr-sl">points</div></div>
+            </div>
+
+            <div class="tr-prof" id="tr-prof"></div>
+
+            <div class="tr-tools">
+              <p class="tr-lab">Outils de tracé</p>
+              <div class="tr-row">
+                <button class="tr-btn on" id="tr-m-ajout" data-mode="ajout"><span class="tr-bi">✚</span><span class="tr-bl">Ajouter</span></button>
+                <button class="tr-btn" id="tr-m-poi" data-mode="poi"><span class="tr-bi">📍</span><span class="tr-bl">Point</span></button>
+                <button class="tr-btn" id="tr-undo"><span class="tr-bi">↶</span><span class="tr-bl">Annuler</span></button>
+                <button class="tr-btn" id="tr-clear"><span class="tr-bi">⌫</span><span class="tr-bl">Effacer</span></button>
+              </div>
+
+              <div id="tr-poi-choix" hidden>
+                <p class="tr-lab">Type de point à poser</p>
+                <div class="tr-types" id="tr-types"></div>
+              </div>
+
+              <p class="tr-lab">Enregistrer</p>
+              <div class="tr-row">
+                <button class="tr-btn" id="tr-save"><span class="tr-bi">📖</span><span class="tr-bl">Au Cabinet</span></button>
+                <button class="tr-btn" id="tr-share"><span class="tr-bi">🤝</span><span class="tr-bl">À la Cordée</span></button>
+                <button class="tr-btn" id="tr-gpx"><span class="tr-bi">↓</span><span class="tr-bl">GPX</span></button>
+              </div>
+
+              <p class="tr-note" id="tr-note">Le dénivelé est une estimation de démonstration, calculée à partir des coordonnées. En production, il vient du modèle numérique de terrain de l'IGN. La durée suit la règle de Naismith : 1 h pour 4 km, plus 1 h pour 600 m de montée.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────── ÉCRAN · COMMUNAUTÉ ─────── -->
+    <section class="screen" id="s-communaute">
+      <div class="cor-head">
+        <div class="cor-n">Votre Cordée</div>
+        <div class="cor-s"><span id="cor-nb">6</span> personnes sur 8 · sur invitation</div>
+      </div>
+      <div class="cor-people" id="cor-people"></div>
+
+      <div class="callout"><b>Emprunt Instagram — le cercle restreint.</b> Huit personnes maximum, sur invitation. <b>Refus :</b> les abonnés, la portée, le classement. Personne ici n'a de score, et aucune trace n'est publique.</div>
+
+      <div class="sec"><div class="sec-eb">Traces partagées</div></div>
+      <div id="cor-traces"></div>
+
+      <div class="end">Fin des partages de la semaine</div>
     </section>
 
     <!-- ─────── ÉCRAN 3 · VEILLÉE ─────── -->
@@ -505,6 +665,9 @@ body{
   <!-- ─────── DÉTAIL SENTIER ─────── -->
   <div id="detail"></div>
 
+  <!-- ─────── FICHE POINT D'INTÉRÊT ─────── -->
+  <div id="poisheet"><div class="ps-card" id="ps-card"></div></div>
+
   <!-- ─────── MODE SENTIER ─────── -->
   <div id="walk">
     <div class="w-eb" id="w-eb">Mode Sentier · écran verrouillé</div>
@@ -552,7 +715,8 @@ body{
   <!-- ─────── TABBAR ─────── -->
   <div id="tabbar">
     <button class="tab on" data-s="sentiers"><span class="tab-i">🗺</span><span class="tab-l">Sentiers</span></button>
-    <button class="tab" data-s="eclats"><span class="tab-i">✦</span><span class="tab-l">Éclats</span></button>
+    <button class="tab" data-s="trace"><span class="tab-i">✏️</span><span class="tab-l">Tracé</span></button>
+    <button class="tab" data-s="communaute"><span class="tab-i">🤝</span><span class="tab-l">Cordée</span></button>
     <button class="tab" data-s="veillee"><span class="tab-i">🔥</span><span class="tab-l">Veillée</span></button>
     <button class="tab" data-s="cabinet"><span class="tab-i">📖</span><span class="tab-l">Cabinet</span></button>
   </div>
@@ -826,6 +990,220 @@ const TRAILS = [
    s:"Registres des marchands pasteliers de Toulouse, XVIᵉ s."}
  ]}
 ];
+
+/* ══════════════════════════════════════════════════════════
+   POINTS D'INTÉRÊT — 26 points sur les 13 sentiers.
+   Chaque point porte ce dont un marcheur a besoin sur place :
+   une description, une info pratique datée, et le cadrage de la
+   photographie à produire (les visuels ci-dessous sont des aplats
+   de substitution, pas des photographies).
+   ══════════════════════════════════════════════════════════ */
+const TYPES_POI = {
+  vue:        { n:"Point de vue",     court:"Vue",     i:"👁", c:"#8C4A22" },
+  eau:        { n:"Point d'eau",      court:"Eau",     i:"💧", c:"#1E5A7A" },
+  patrimoine: { n:"Patrimoine",       court:"Bâti",    i:"⛪", c:"#96702A" },
+  abri:       { n:"Abri / refuge",    court:"Abri",    i:"⛺", c:"#2A5A22" },
+  danger:     { n:"Passage délicat",  court:"Danger",  i:"⚠",  c:"#B8342B" },
+  nature:     { n:"Faune & flore",    court:"Nature",  i:"🌿", c:"#5B6B3A" }
+};
+
+const POIS = [
+/* ── Points de vue ─────────────────────────────────────── */
+{id:"v1", type:"vue", trail:"montsegur", nom:"Belvédère du Roc de la Tour", alt:1180, km:2.9, c:[42.8801,1.8402],
+ resume:"Le pog vu de profil, avec les terrasses du village lisibles.",
+ detail:"C'est le seul endroit d'où l'on comprend la forme du site : le château au sommet, et en contrebas les replats en encorbellement où tenait le village des assiégés. Depuis le pied, on ne voit qu'une falaise ; d'ici, on voit une ville. Les trous de poutres dans la roche sont visibles à la jumelle sur le ressaut central.",
+ pratique:"Lumière rasante le matin jusqu'à 10h ; à contre-jour l'après-midi.",
+ photo:{art:["#4a4034","#8d7a5c","#cbb68d"], legende:"Le pog de trois quarts depuis le nord-est, terrasses au premier plan", credit:"À produire — 24 mm, matin, ciel dégagé"}},
+
+{id:"v2", type:"vue", trail:"canigou", nom:"Les Cortalets, balcon sur la plaine", alt:2150, km:16.2, c:[42.5361,2.4708],
+ resume:"Toute la plaine du Roussillon jusqu'à la mer, 2 000 mètres plus bas.",
+ detail:"Le refuge est posé sur un replat qui ouvre plein est. Par temps clair on suit la ligne de la Côte Vermeille jusqu'au cap Béar ; par vent de nord d'hiver, la visibilité porte plus loin encore. C'est le point de bivouac classique avant l'ascension finale, précisément pour le lever de soleil qu'on y voit.",
+ pratique:"Lever de soleil vers 6h20 en juin, 8h10 en décembre. Vent d'ouest fréquent l'après-midi.",
+ photo:{art:["#2f3a46","#6b6a5e","#c8b28a"], legende:"La plaine au lever du jour, brume basse sur le Roussillon", credit:"À produire — téléobjectif court, aube"}},
+
+{id:"v3", type:"vue", trail:"gavarnie", nom:"Plateau de Bellevue", alt:1750, km:3.4, c:[42.7008,-0.0145],
+ resume:"Le cirque en entier et la Grande Cascade sur toute sa hauteur.",
+ detail:"Le nom n'est pas une invention touristique : c'est de là que le cirque se lit comme un amphithéâtre, avec ses trois gradins de calcaire et la cascade qui tombe de 423 mètres d'un seul jet. Le débit varie du simple au décuple selon la fonte ; en août, elle peut se réduire à un filet.",
+ pratique:"Débit maximal entre mi-mai et fin juin. Le plateau est en plein soleil, aucun point d'ombre.",
+ photo:{art:["#3f4a54","#8b9095","#d3d6cf"], legende:"Le cirque complet, cascade au centre, marcheur pour l'échelle", credit:"À produire — grand-angle, fin de matinée"}},
+
+{id:"v4", type:"vue", trail:"larzac", nom:"Rebord du causse, la Baume-Auriol", alt:730, km:6.8, c:[43.8919,3.5061],
+ resume:"Le cirque de Navacelles depuis son rebord nord.",
+ detail:"Un méandre abandonné de la Vis, creusé puis délaissé par la rivière qui a fini par couper au plus court. Le village au fond du trou a longtemps vécu coupé du monde. On mesure d'ici l'épaisseur du calcaire entaillé : trois cents mètres de causse.",
+ pratique:"Table d'orientation. Parking à 400 m — l'endroit est très fréquenté de 11h à 17h en été.",
+ photo:{art:["#6b6455","#a49775","#ded4b4"], legende:"Le méandre vu du rebord, village au fond", credit:"À produire — panoramique, lumière latérale"}},
+
+{id:"v5", type:"vue", trail:"lozere", nom:"Signal des Laubies", alt:1471, km:7.9, c:[44.4478,3.5847],
+ resume:"Trois cent soixante degrés, de l'Aigoual à l'Aubrac.",
+ detail:"Un dôme de granit sans un arbre, couvert de blocs erratiques et de callune. Par temps clair on tient l'Aigoual au sud, le Mézenc au nord-est et la ligne de l'Aubrac à l'ouest. C'est aussi le point le plus exposé du parcours : rien n'y arrête le vent.",
+ pratique:"Aucun abri sur 3 km. En cas d'orage annoncé, ne pas s'y engager.",
+ photo:{art:["#3a4450","#77806f","#b3b596"], legende:"Le dôme de granit et ses blocs, horizon dégagé", credit:"À produire — fin d'après-midi, nuages"}},
+
+{id:"v6", type:"vue", trail:"lastours", nom:"Belvédère des quatre châteaux", alt:340, km:1.6, c:[43.3358,2.3711],
+ resume:"L'alignement des quatre tours sur la même arête.",
+ detail:"Le point de vue a été aménagé sur le versant opposé, à flanc de garrigue, précisément pour ce cadrage. On y comprend d'un coup d'œil ce que le plan au sol ne dit pas : Cabaret, Surdespine et Quertinheux sont serrées, et la Tour Régine — la royale — les regarde depuis l'extrémité.",
+ pratique:"Sentier raide sur 300 m, sol glissant après la pluie. Accessible toute l'année.",
+ photo:{art:["#3d4436","#7f8564","#bab88c"], legende:"Les quatre tours alignées, garrigue au premier plan", credit:"À produire — téléobjectif, lumière du soir"}},
+
+{id:"v7", type:"vue", trail:"stguilhem", nom:"Le verrou de l'Infernet", alt:390, km:3.8, c:[43.7381,3.5399],
+ resume:"Le cirque de l'Infernet vu d'en haut, l'abbaye minuscule au fond.",
+ detail:"Un cirque d'érosion fermé, où le village s'est logé. De ce belvédère, l'abbaye de Gellone n'est plus qu'un rectangle de tuiles au milieu du calcaire — ce qui donne la mesure du choix de Guilhem : s'installer là, c'était disparaître.",
+ pratique:"Montée exposée au sud, très chaude de juin à septembre. Partir avant 9h.",
+ photo:{art:["#4d4a3a","#918366","#d8ceb0"], legende:"Le cirque complet, village au fond du plan", credit:"À produire — grand-angle, matin"}},
+
+/* ── Points d'eau ──────────────────────────────────────── */
+{id:"e1", type:"eau", trail:"montsegur", nom:"Fontaine du village", alt:900, km:0.1, c:[42.8746,1.8326],
+ resume:"Potable. Le dernier point d'eau avant 430 m de montée.",
+ detail:"Fontaine communale sur la place, alimentée par une source captée. C'est le dernier point d'eau du parcours : il n'y a rien sur le pog, ni au sommet, ni sur le sentier de descente. Compter deux litres par personne en été.",
+ pratique:"Potable, analyses affichées en mairie. Coule toute l'année. Gel possible de décembre à février.",
+ photo:{art:["#5a5648","#8f8a72","#c8c4a8"], legende:"La fontaine et son bassin, plaque des analyses visible", credit:"À produire — plan rapproché, détail de la plaque"}},
+
+{id:"e2", type:"eau", trail:"canigou", nom:"Source des Cortalets", alt:2145, km:16.0, c:[42.5357,2.4699],
+ resume:"Potable en saison. À sec certains étés secs.",
+ detail:"Une émergence captée à cinquante mètres du refuge, en contrebas du replat. Le débit dépend entièrement de la fonte : abondant en juin, faible en août, nul lors des étés secs de 2022 et 2023. Ne pas fonder son ravitaillement dessus sans avoir appelé le refuge.",
+ pratique:"Coule de juin à octobre selon l'année. En cas de tarissement, le refuge vend de l'eau. Vérifier avant de partir.",
+ photo:{art:["#3b4a4a","#7d8878","#c2c4a8"], legende:"L'émergence et son bac de pierre, refuge en arrière-plan", credit:"À produire — plan large montrant le contexte"}},
+
+{id:"e3", type:"eau", trail:"larzac", nom:"La lavogne de la Couvertoirade", alt:735, km:0.6, c:[43.9132,3.3161],
+ resume:"NON potable. C'est un abreuvoir à troupeau, pas une source.",
+ detail:"Cuvette d'argile damée et pavée, alimentée par le seul ruissellement. Elle sert à abreuver les brebis depuis le Moyen Âge et l'eau y stagne : elle n'est ni captée, ni traitée, ni analysée. Le point d'eau potable le plus proche est la fontaine du village, à 600 mètres.",
+ pratique:"NON POTABLE — même filtrée. Eau potable : fontaine de la Couvertoirade, 600 m.",
+ photo:{art:["#6e6857","#a89b7d","#d6cdb2"], legende:"La lavogne circulaire, pavage visible, troupeau si possible", credit:"À produire — vue plongeante montrant la forme ronde"}},
+
+{id:"e4", type:"eau", trail:"lozere", nom:"La source du Tarn", alt:1550, km:4.2, c:[44.4258,3.6608],
+ resume:"Potable, permanente, glacée. Le fleuve commence ici.",
+ detail:"Une émergence au pied du roc du Serre, sous un bloc de granit gravé. Le débit est faible mais constant toute l'année, et l'eau sort à sept degrés. C'est le point de départ officiel du Tarn, trois cent quatre-vingts kilomètres avant la Garonne.",
+ pratique:"Potable, permanente. Pas de bac : prévoir de quoi remplir sous un filet.",
+ photo:{art:["#3f4a44","#7b8272","#b9bd9c"], legende:"L'émergence sous le bloc gravé, mousse et granit", credit:"À produire — macro, lumière diffuse"}},
+
+{id:"e5", type:"eau", trail:"gavarnie", nom:"Pied de la Grande Cascade", alt:1580, km:5.1, c:[42.6903,-0.0072],
+ resume:"Eau de fonte. Filtration recommandée — pâturage en amont.",
+ detail:"L'eau vient du glacier du Marboré, mais elle traverse des estives pâturées avant d'arriver ici. Très froide, très chargée en particules après un orage. Une filtration ou un traitement chimique est recommandé malgré l'apparence.",
+ pratique:"Filtrer ou traiter. Débit maximal mai-juin. Zone très venteuse et humide en permanence.",
+ photo:{art:["#44505a","#8d969a","#d6dad4"], legende:"Le pied de la cascade, embruns et blocs", credit:"À produire — vitesse lente, trépied"}},
+
+{id:"e6", type:"eau", trail:"rocamadour", nom:"Fontaine Saint-Amadour", alt:210, km:1.2, c:[44.7998,1.6182],
+ resume:"Potable. Le seul point d'ombre du causse en été.",
+ detail:"Adossée à la falaise sous le sanctuaire, la fontaine est alimentée par une résurgence du causse. L'endroit reste frais toute la journée : c'est autant un point d'eau qu'un abri thermique, sur un plateau où le sol dépasse les cinquante degrés en juillet.",
+ pratique:"Potable, permanente. Ombre garantie toute la journée. Très fréquentée de 11h à 16h.",
+ photo:{art:["#5c5142","#9d8d6d","#ded1ae"], legende:"La fontaine à l'ombre de la falaise, contraste ombre/lumière", credit:"À produire — midi, fort contraste assumé"}},
+
+{id:"e7", type:"eau", trail:"cordes", nom:"Le puits du Grand Fauconnier", alt:275, km:2.3, c:[44.0648,1.9531],
+ resume:"Historique, plus en service. Eau potable au marché couvert.",
+ detail:"Cent quatorze mètres creusés dans le grès, au centre de la ville haute — une prouesse médiévale qui explique qu'on ait pu tenir un siège ici. Il n'est plus exploité et sa margelle est fermée. L'eau potable la plus proche coule sous la halle, à cinquante mètres.",
+ pratique:"Puits fermé, non accessible. Eau potable : fontaine de la halle, 50 m.",
+ photo:{art:["#4b4239","#8d7f66","#cfc0a2"], legende:"La margelle et sa grille, halle en arrière-plan", credit:"À produire — plan moyen, lumière douce"}},
+
+/* ── Patrimoine ────────────────────────────────────────── */
+{id:"p1", type:"patrimoine", trail:"canigou", nom:"Abbaye Saint-Martin-du-Canigou", alt:1094, km:2.1, c:[42.5281,2.3936],
+ resume:"Fondée en 1009 sur un éperon où l'on ne monte qu'à pied.",
+ detail:"Deux églises superposées, un cloître à demi reconstruit, et le tombeau que Guifré II de Cerdagne a fait creuser dans le roc de son vivant. L'accès n'a jamais été carrossable : c'est le sens du lieu, et c'est resté vrai.",
+ pratique:"Visite guidée uniquement, horaires variables selon la saison. 30 min de montée depuis Casteil.",
+ photo:{art:["#3f463c","#82775f","#c6b795"], legende:"L'abbaye sur son éperon, vue depuis le sentier d'accès", credit:"À produire — fin d'après-midi, lumière chaude"}},
+
+{id:"p2", type:"patrimoine", trail:"larzac", nom:"Les remparts de la Couvertoirade", alt:790, km:0.3, c:[43.9128,3.3167],
+ resume:"Templiers au XIIᵉ, Hospitaliers au XVᵉ : les murs sont des seconds.",
+ detail:"Le village est templier, mais l'enceinte que l'on parcourt a été montée par les Hospitaliers deux siècles plus tard, pendant la guerre de Cent Ans. Le chemin de ronde se fait en quinze minutes et donne la meilleure lecture du plan : une commanderie agricole fortifiée sur le tard.",
+ pratique:"Chemin de ronde payant, ouvert d'avril à novembre. Marches irrégulières, pas de garde-corps continu.",
+ photo:{art:["#6b6455","#a89b7d","#d8cfb4"], legende:"Le chemin de ronde vers l'ouest, causse à l'horizon", credit:"À produire — grand-angle, matin"}},
+
+{id:"p3", type:"patrimoine", trail:"stguilhem", nom:"Le pont du Diable", alt:80, km:5.6, c:[43.7028,3.5539],
+ resume:"Vers 1030 — l'un des plus anciens ponts médiévaux debout en France.",
+ detail:"Bâti par les moines d'Aniane et de Gellone pour relier deux abbayes rivales, il enjambe l'Hérault d'une seule arche principale. La légende du diable est postérieure de plusieurs siècles : elle explique commodément qu'un ouvrage aussi audacieux ait tenu.",
+ pratique:"Baignade interdite depuis le pont. Site classé UNESCO au titre des chemins de Compostelle.",
+ photo:{art:["#4a5347","#8e8f6e","#d5cfae"], legende:"L'arche depuis la rive, eau turquoise au premier plan", credit:"À produire — matin, avant l'affluence"}},
+
+/* ── Abris et refuges ──────────────────────────────────── */
+{id:"a1", type:"abri", trail:"canigou", nom:"Refuge des Cortalets", alt:2150, km:16.2, c:[42.5364,2.4703],
+ resume:"Gardé de juin à septembre. Abri d'hiver ouvert toute l'année.",
+ detail:"Quatre-vingts places en dortoir, repas du soir, réservation obligatoire en saison. Hors gardiennage, un abri d'hiver de douze places reste ouvert en permanence : couvertures, poêle, pas de vivres. C'est le point de bascule de l'itinéraire, et le seul hébergement en altitude.",
+ pratique:"Réservation obligatoire juin-septembre. Abri d'hiver : 12 places, toujours ouvert, sans gardien.",
+ photo:{art:["#3a4148","#767a6c","#bdb99a"], legende:"Le refuge et le replat, Canigó en arrière-plan", credit:"À produire — soir, lumière rasante"}},
+
+{id:"a2", type:"abri", trail:"lozere", nom:"Chalet de Mas-Camarguès", alt:1290, km:10.6, c:[44.4064,3.7194],
+ resume:"Ancienne ferme du Mont Lozère, halte d'étape sur le chemin de Stevenson.",
+ detail:"Un bâtiment de granit à toit de lauzes, restauré par le Parc national. On y trouve un point d'information, de l'eau, et un abri en cas de grain — ce qui compte sur un plateau où rien n'arrête le vent pendant huit kilomètres.",
+ pratique:"Ouvert en saison. Eau potable sur place. Abri sous auvent accessible hors horaires.",
+ photo:{art:["#454b44","#84876f","#c6c2a0"], legende:"La ferme et ses lauzes, plateau derrière", credit:"À produire — ciel chargé, lumière contrastée"}},
+
+{id:"a3", type:"abri", trail:"gavarnie", nom:"Refuge des Espuguettes", alt:2027, km:6.7, c:[42.7053,-0.0021],
+ resume:"Gardé de juin à septembre, 60 places.",
+ detail:"Perché sur l'épaule qui domine le cirque, il sert de base pour le Piméné. C'est le seul point couvert de tout le versant est : au-delà, on redescend ou on bivouaque.",
+ pratique:"Réservation conseillée. Fermé d'octobre à mai, local hors-sac non garanti.",
+ photo:{art:["#414c56","#868e8e","#cdd0c6"], legende:"Le refuge sur son épaule, cirque en contrebas", credit:"À produire — grand-angle, milieu de journée"}},
+
+/* ── Passages délicats ─────────────────────────────────── */
+{id:"d1", type:"danger", trail:"canigou", nom:"La cheminée du Canigou", alt:2650, km:19.8, c:[42.5204,2.4562],
+ resume:"Chaînes, passage exposé, névé jusqu'en juin. Itinéraire de contournement.",
+ detail:"Le passage classique du versant nord : une soixantaine de mètres de rocher raide équipé de chaînes, exposé au vide sur la gauche. Sec, il ne présente pas de difficulté technique. Verglacé ou enneigé, il change de nature. La voie de Balaig, plus longue d'une heure, l'évite entièrement.",
+ pratique:"Névé fréquent jusqu'à mi-juin. Déconseillé en cas de vertige. Contournement : voie de Balaig, +1h.",
+ photo:{art:["#3a3f45","#6f7167","#a9a68d"], legende:"Le passage équipé vu d'en bas, chaînes visibles", credit:"À produire — montrer l'exposition sans dramatiser"}},
+
+{id:"d2", type:"danger", trail:"gavarnie", nom:"Le névé sous la Brèche", alt:2700, km:7.9, c:[42.6961,-0.0136],
+ resume:"Neige dure jusqu'en juillet. Crampons et piolet nécessaires.",
+ detail:"Sous la Brèche de Roland subsiste un névé permanent, raide et dur le matin. Sans crampons, une glissade y est incontrôlable et l'arrivée en bas est rocheuse. Plusieurs accidents graves par an, presque tous en juin et juillet, presque tous sur des personnes équipées pour la randonnée seulement.",
+ pratique:"Crampons + piolet obligatoires jusqu'à fin juillet. Se renseigner auprès du refuge la veille.",
+ photo:{art:["#495560","#95a0a4","#e0e4de"], legende:"Le névé et sa pente, la Brèche au-dessus", credit:"À produire — montrer l'inclinaison réelle"}},
+
+{id:"d3", type:"danger", trail:"lozere", nom:"Le plateau par temps de brouillard", alt:1450, km:7.5, c:[44.4443,3.5901],
+ resume:"Aucun repère visuel. Les montjoies sont le seul guide.",
+ detail:"Sur trois kilomètres, le plateau ne présente ni arbre, ni relief, ni bâtiment. Le brouillard s'y installe en dix minutes et efface le sentier. Les montjoies — les bornes de granit dressées tous les cent mètres — ont été plantées pour ça, et elles fonctionnent encore : on va d'une borne à la suivante, sans jamais quitter des yeux celle qu'on vient de dépasser.",
+ pratique:"Boussole ou GPS indispensable. Ne pas quitter la ligne des montjoies. Trace téléchargée avant départ.",
+ photo:{art:["#4a5158","#8b9089","#c9cbba"], legende:"Deux montjoies dans le brouillard, la seconde à peine visible", credit:"À produire — jour de brume, exactement"}},
+
+/* ── Faune et flore ────────────────────────────────────── */
+{id:"n1", type:"nature", trail:"canigou", nom:"Le desman du torrent du Llech", alt:1180, km:4.6, c:[42.5498,2.4231],
+ resume:"Un insectivore aquatique endémique des Pyrénées, en fort déclin.",
+ detail:"Petit mammifère à trompe, nocturne, qui chasse les larves sous les pierres du torrent. Il exige une eau vive, froide et non polluée : sa présence est un indicateur de qualité du cours d'eau. On ne le voit pratiquement jamais ; on repère ses crottes sur les pierres émergées.",
+ pratique:"Espèce protégée. Ne pas déplacer les pierres du lit ni s'y baigner en amont.",
+ photo:{art:["#2f3f38","#5f7360","#a3b192"], legende:"Le torrent et ses pierres, à défaut de l'animal", credit:"À produire — macro sur le lit, vitesse lente"}},
+
+{id:"n2", type:"nature", trail:"larzac", nom:"Les orchidées du causse", alt:760, km:4.4, c:[43.9098,3.3312],
+ resume:"Une quarantaine d'espèces, floraison de mai à début juin.",
+ detail:"Les pelouses sèches du causse comptent parmi les milieux les plus riches de France en orchidées sauvages — ophrys abeille, orchis pourpre, céphalanthère. Cette richesse est le produit direct du pâturage : là où le troupeau s'arrête, le buis referme le milieu et les orchidées disparaissent en quinze ans.",
+ pratique:"Ne rien cueillir : plusieurs espèces sont protégées. Rester sur le sentier, les stations sont fragiles.",
+ photo:{art:["#5d6449","#96996d","#d5cfa8"], legende:"Une station en fleur, pelouse rase autour", credit:"À produire — fin mai, macro et plan large"}},
+
+{id:"n3", type:"nature", trail:"lozere", nom:"La tourbière des Sagnes", alt:1420, km:9.1, c:[44.4302,3.6912],
+ resume:"Un milieu qui met mille ans à se former et une saison à se détruire.",
+ detail:"Une accumulation de sphaignes gorgées d'eau, qui archive les pollens depuis la dernière glaciation — c'est de ces carottes que vient ce qu'on sait du déboisement du plateau. Le pied y enfonce et le tapis végétal ne se referme pas : chaque passage hors caillebotis laisse une trace pour des années.",
+ pratique:"Rester impérativement sur le caillebotis. Chiens tenus. Aucun bivouac.",
+ photo:{art:["#3d4a3e","#77855f","#b7bd90"], legende:"Le caillebotis traversant les sphaignes, contre-jour", credit:"À produire — automne, couleurs des sphaignes"}}
+];
+
+/* Index des points par sentier, calculé une fois. */
+const POIS_PAR_SENTIER = POIS.reduce((m, p) => {
+  (m[p.trail] ??= []).push(p);
+  return m;
+}, {});
+
+/* ══════════════════════════════════════════════════════════
+   COMMUNAUTÉ — la Cordée (8 personnes maximum) et ses traces.
+   Aucun classement, aucun compteur public : document 03, §2.
+   ══════════════════════════════════════════════════════════ */
+const CORDEE = [
+  { nom:"Mireia",      lieu:"Prades",     depuis:"2 ans",  couleur:"#8C4A22" },
+  { nom:"Karim",       lieu:"Millau",     depuis:"8 mois", couleur:"#2A5A22" },
+  { nom:"Anne-Claire", lieu:"Foix",       depuis:"1 an",   couleur:"#1E5A7A" },
+  { nom:"Thomas",      lieu:"Mende",      depuis:"3 mois", couleur:"#96702A" },
+  { nom:"Sylvie",      lieu:"Perpignan",  depuis:"2 ans",  couleur:"#6B6257" },
+  { nom:"Joan",        lieu:"Montségur",  depuis:"3 ans",  couleur:"#B8342B" }
+];
+
+const TRACES_PARTAGEES = [
+  { id:"t1", auteur:"Karim", nom:"Le tour des lavognes", dist:11.4, deni:210, duree:"3h20",
+    dept:"12", quand:"dimanche dernier", pois:3,
+    mot:"Trois lavognes en état, dont une que je ne connaissais pas au nord du hameau. Sec partout, prévoir l'eau.",
+    art:["#6b6455","#a89b7d","#d8cfb4"] },
+  { id:"t2", auteur:"Mireia", nom:"Conflent — la boucle des orgues", dist:8.2, deni:340, duree:"2h50",
+    dept:"66", quand:"il y a 4 jours", pois:2,
+    mot:"Fait tôt le matin pour la lumière sur les orgues. Le passage du ruisseau est à gué, chaussures mouillées assurées.",
+    art:["#4a3f34","#8a7355","#c4a882"] },
+  { id:"t3", auteur:"Anne-Claire", nom:"Montségur par le versant nord", dist:7.1, deni:520, duree:"3h40",
+    dept:"09", quand:"la semaine dernière", pois:4,
+    mot:"Variante plus longue mais à l'ombre jusqu'à 11h. J'ai ajouté le belvédère, ça vaut le détour de vingt minutes.",
+    art:["#4a4034","#8d7a5c","#cbb68d"] }
+];
 </script>
 <script>
 /* ══════════════════════════════════════════════════════════
@@ -870,6 +1248,12 @@ const NOTES = {
   eclat:{eb:"Écran · Éclat", h:"La grammaire d'Instagram, sans son économie",
     p:"Format vertical, barres segmentées, tap pour avancer : on emprunte la grammaire. <b>On refuse l'éphémère</b> — l'Éclat entre au Cabinet pour toujours — et on crédite l'auteur en haut de l'écran, comme un article.",
     g:"<strong>Garde-fou</strong> — pas de compteur de vues, pas de like, pas de partage public."},
+  trace:{eb:"Écran · Tracé", h:"L'outil s'ouvre par-dessus la carte",
+    p:"Pas de bouton en haut : la carte occupe tout, et le panneau d'outils monte du bas. Il se replie d'un geste pour rendre la carte entière. <b>Poser un point, poser un point d'eau, annuler, exporter en GPX</b> — le tracé est à vous et part avec vous.",
+    g:"<strong>Garde-fou</strong> — un tracé reste privé par défaut. Le partage se fait vers la Cordée, jamais vers un public."},
+  communaute:{eb:"Écran · Cordée", h:"Huit personnes, et rien au-delà",
+    p:"L'intimité produit plus d'engagement que l'audience. On voit ce que six personnes ont rapporté cette semaine, avec leur mot — <b>pas un flux, pas un compteur, pas un classement</b>.",
+    g:"<strong>Garde-fou</strong> — aucun score, aucune trace publique, aucune position en direct. Personne ne peut voir qu'un ami est en train de monter."},
   veillee:{eb:"Écran · Veillée", h:"Whatnot : le rendez-vous et les petites attentions",
     p:"Un live à heure fixe, 40 minutes, un hôte qui vous nomme, un tirage annoncé, des places réelles en nombre limité. <b>C'est l'attention individuelle qui fidélise</b>, pas la profondeur du catalogue.",
     g:"<strong>Garde-fou</strong> — pas d'enchère, prix fixe, tirage au sort, 24 h de rétractation, rediffusion permanente."},
@@ -920,7 +1304,7 @@ const FILTERS = [["all","Tous"],["f","Facile"],["m","Intermédiaire"],["d","Diff
 function renderChips(){
   $("#chips").innerHTML = FILTERS.map(([v,l]) =>
     '<button class="chip'+(S.filter===v?" on":"")+'" data-f="'+v+'">'+l+"</button>").join("");
-  $$("#chips .chip").forEach(c => c.onclick = () => { S.filter = c.dataset.f; renderChips(); renderList(); });
+  $$("#chips .chip").forEach(c => c.onclick = () => { S.filter = c.dataset.f; renderChips(); renderList(); afficherPois(); });
 }
 function match(t){ return S.filter==="all" || t.diff===S.filter || t.cycle===S.filter; }
 function renderList(){
@@ -974,6 +1358,11 @@ function openDetail(id){
     '<div class="d-body">'+
       '<div class="d-res">'+t.res+"</div>"+
       '<div class="d-cyc"><div class="d-cyc-l">Cycle '+(t.cycle==="0"?"—":t.cycle)+'</div><div class="d-cyc-t">'+CYCLES[t.cycle].n+"</div></div>"+
+      (POIS_PAR_SENTIER[t.id]?.length
+        ? '<div class="sec-eb" style="margin-bottom:2px">Sur le terrain · '+POIS_PAR_SENTIER[t.id].length+' point(s)</div>'
+          + POIS_PAR_SENTIER[t.id].map(lignePoi).join("")
+          + '<div style="height:18px"></div>'
+        : "")+
       '<div class="sec-eb" style="margin-bottom:2px">Le Récit · '+t.st.length+" stations</div>"+
       t.st.map((s,i) => {
         const un = isUn(t.id,i);
@@ -997,6 +1386,7 @@ function openDetail(id){
   $("#d-back").onclick = closeDetail;
   $("#d-walk").onclick = () => startWalk(id);
   $$("#detail .stn.un").forEach(el => el.onclick = () => playEclat(id, +el.dataset.i, false));
+  $$("#detail .poi-row").forEach(el => el.onclick = () => ouvrirPoi(el.dataset.poi));
   note("detail");
 }
 function closeDetail(){ $("#detail").classList.remove("on"); note(S.screen); }
@@ -1295,27 +1685,366 @@ $$("[data-sw]").forEach(b => b.onclick = () => {
   if (b.dataset.sw === "notif"){ S.notifs = on ? 2 : 0; $("#notif-n").textContent = S.notifs; }
 });
 
-$$(".tab").forEach(tab => tab.onclick = () => {
-  $$(".tab").forEach(t => t.classList.remove("on"));
-  tab.classList.add("on");
-  S.screen = tab.dataset.s;
-  $$(".screen").forEach(s => s.classList.remove("on"));
-  $("#s-" + S.screen).classList.add("on");
+function allerA(nom){
+  const onglet = document.querySelector('.tab[data-s="' + nom + '"]');
+  if (!onglet) return;
+  $$(".tab").forEach(t => t.classList.toggle("on", t === onglet));
+  S.screen = nom;
+  $$(".screen").forEach(sc => sc.classList.toggle("on", sc.id === "s-" + nom));
   $("#view").scrollTop = 0;
   closeDetail();
-  note(S.screen);
-  if (S.screen === "sentiers" && map) setTimeout(() => map.invalidateSize(), 60);
-  if (S.screen === "cabinet") renderCabinet();
-});
+  fermerPoi();
+  note(nom);
+  if (nom === "sentiers" && map) setTimeout(() => map.invalidateSize(), 60);
+  if (nom === "trace"){ initTrace(); setTimeout(() => carteTrace && carteTrace.invalidateSize(), 60); }
+  if (nom === "communaute") renderCommunaute();
+  if (nom === "cabinet") renderCabinet();
+}
+$$(".tab").forEach(tab => tab.onclick = () => allerA(tab.dataset.s));
 
 $("#btn-reset").onclick = () => {
   S.unlocked = {}; S.km = 0; S.outMin = 0; S.scrMin = 2; S.temoins = 0;
   S.recitsRecompenses.clear(); S.drawEntered = false;
   clearInterval(walkTimer); clearInterval(eTimer);
-  $("#walk").classList.remove("on"); $("#eclat").classList.remove("on"); closeDetail();
+  T.points = []; T.pois = []; T.enregistres = []; T.nom = "Nouveau trac\u00e9";
+  if (carteTrace) majTrace();
+  $("#tr-nom") && ($("#tr-nom").textContent = "Nouveau trac\u00e9");
+  renderCommunaute();
+  $("#walk").classList.remove("on"); $("#eclat").classList.remove("on"); closeDetail(); fermerPoi();
   $("#sb-mode").textContent = "GPS";
   refreshPins(); renderList(); renderTeasers(); renderCabinet();
 };
+
+
+/* ══════════════════════════════════════════════════════════
+   POINTS D'INTÉRÊT
+   ══════════════════════════════════════════════════════════ */
+const poiPar = id => POIS.find(p => p.id === id);
+
+function iconePoi(poi){
+  const t = TYPES_POI[poi.type];
+  return L.divIcon({
+    className: "",
+    html: '<div class="poi-pin" style="background:' + t.c + '">' + t.i + "</div>",
+    iconSize: [26, 26], iconAnchor: [13, 13]
+  });
+}
+
+let marqueursPoi = [];
+function afficherPois(){
+  if (!map) return;
+  marqueursPoi.forEach(m => map.removeLayer(m));
+  marqueursPoi = POIS.filter(p => match(trail(p.trail))).map(p => {
+    const m = L.marker(p.c, { icon: iconePoi(p), zIndexOffset: -100 }).addTo(map);
+    m.on("click", () => ouvrirPoi(p.id));
+    return m;
+  });
+}
+
+/* Rendu d'une ligne de point d'intérêt, réutilisé dans la fiche Récit. */
+function lignePoi(p){
+  const t = TYPES_POI[p.type];
+  return '<div class="poi-row" data-poi="' + p.id + '">' +
+    '<div class="poi-ic" style="background:' + t.c + '">' + t.i + "</div>" +
+    '<div class="poi-b">' +
+      '<div class="poi-t">' + p.nom + "</div>" +
+      '<div class="poi-m">' + t.n + " · km " + p.km.toFixed(1) + " · " + p.alt + " m</div>" +
+      '<div class="poi-r">' + p.resume + "</div>" +
+    "</div></div>";
+}
+
+function ouvrirPoi(id){
+  const p = poiPar(id);
+  if (!p) return;
+  const t = TYPES_POI[p.type];
+  const risque = p.type === "danger" || /NON POTABLE/.test(p.pratique);
+  $("#ps-card").innerHTML =
+    '<div class="ps-photo" style="background:' + grad(p.photo.art) + '">' +
+      '<button class="ps-close" id="ps-close" aria-label="Fermer">✕</button>' +
+      '<div class="ps-sub"><b>' + p.photo.legende + "</b>" + p.photo.credit + "</div>" +
+    "</div>" +
+    '<div class="ps-body">' +
+      '<span class="ps-kind" style="background:' + t.c + '">' + t.i + " " + t.n + "</span>" +
+      '<div class="ps-n">' + p.nom + "</div>" +
+      '<div class="ps-meta">' + trail(p.trail).n + " · km " + p.km.toFixed(1) + " · " + p.alt + " m · " +
+        p.c[0].toFixed(4) + " N / " + p.c[1].toFixed(4) + " E</div>" +
+      '<div class="ps-d">' + p.detail + "</div>" +
+      '<div class="ps-prat' + (risque ? " risque" : "") + '"><b>' +
+        (risque ? "Attention" : "Sur place") + "</b>" + p.pratique + "</div>" +
+    "</div>";
+  $("#poisheet").classList.add("on");
+  $("#ps-close").onclick = fermerPoi;
+}
+function fermerPoi(){ $("#poisheet").classList.remove("on"); }
+$("#poisheet").addEventListener("click", e => { if (e.target.id === "poisheet") fermerPoi(); });
+
+/* ══════════════════════════════════════════════════════════
+   TRACÉ — outil de création d'itinéraire par-dessus la carte
+   ══════════════════════════════════════════════════════════ */
+const T = { points: [], pois: [], mode: "ajout", typePoi: "vue", nom: "Nouveau tracé", enregistres: [] };
+let carteTrace = null, ligneTrace = null, marqueursTrace = [], marqueursTracePoi = [];
+
+/* Estimation d'altitude : relief pseudo-aléatoire mais déterministe, pour la
+   démonstration seulement. En production : modèle numérique de terrain IGN. */
+function altitudeEstimee(lat, lon){
+  const n = (a, b) => Math.sin(a * 2.7 + b * 1.3) * Math.cos(b * 3.1 - a * 0.7);
+  const base = 900                  // altitude moyenne plausible en Occitanie
+    + n(lat, lon) * 500             // massifs
+    + n(lat * 3.4, lon * 2.8) * 260 // vallées
+    + n(lat * 9.1, lon * 7.3) * 90
+    + n(lat * 41, lon * 37) * 30    // vallons — visibles à l'échelle du kilomètre
+    + n(lat * 137, lon * 119) * 10; // ondulations de détail
+  return Math.max(5, Math.round(base));
+}
+
+const R_TERRE = 6371000;
+function distanceM(a, b){
+  const rad = x => x * Math.PI / 180;
+  const dLat = rad(b[0] - a[0]), dLon = rad(b[1] - a[1]);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLon / 2) ** 2;
+  return 2 * R_TERRE * Math.asin(Math.sqrt(h));
+}
+
+function mesuresTrace(){
+  let dist = 0, deni = 0;
+  const alts = T.points.map(p => altitudeEstimee(p[0], p[1]));
+  for (let i = 1; i < T.points.length; i++){
+    dist += distanceM(T.points[i - 1], T.points[i]);
+    const d = alts[i] - alts[i - 1];
+    if (d > 0) deni += d;
+  }
+  const km = dist / 1000;
+  const minutes = km / 4 * 60 + deni / 600 * 60;   // règle de Naismith
+  return { km, deni: Math.round(deni), minutes: Math.round(minutes), alts };
+}
+
+function formaterDuree(min){
+  if (!min) return "—";
+  const h = Math.floor(min / 60), m = Math.round(min % 60);
+  return h ? h + "h" + String(m).padStart(2, "0") : m + " min";
+}
+
+function dessinerProfil(alts){
+  const el = $("#tr-prof");
+  if (alts.length < 2){
+    el.innerHTML = '<svg viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true"></svg>';
+    return;
+  }
+  const min = Math.min(...alts), max = Math.max(...alts), amp = Math.max(1, max - min);
+  const pts = alts.map((a, i) => {
+    const x = i / (alts.length - 1) * 300;
+    const y = 42 - (a - min) / amp * 36;
+    return x.toFixed(1) + "," + y.toFixed(1);
+  });
+  el.innerHTML =
+    '<svg viewBox="0 0 300 46" preserveAspectRatio="none" role="img" aria-label="Profil altimétrique estimé, de ' +
+      min + ' à ' + max + ' mètres">' +
+      '<polygon points="0,46 ' + pts.join(" ") + ' 300,46" fill="rgba(200,32,26,.12)"></polygon>' +
+      '<polyline points="' + pts.join(" ") + '" fill="none" stroke="var(--red)" stroke-width="1.5"></polyline>' +
+    "</svg>";
+}
+
+function redessinerTrace(){
+  if (!carteTrace) return;
+  if (ligneTrace) carteTrace.removeLayer(ligneTrace);
+  marqueursTrace.forEach(m => carteTrace.removeLayer(m));
+  marqueursTrace = [];
+
+  if (T.points.length > 1){
+    ligneTrace = L.polyline(T.points, { color: "#C8201A", weight: 3, opacity: .85 }).addTo(carteTrace);
+  } else ligneTrace = null;
+
+  T.points.forEach((pt, i) => {
+    const role = i === 0 ? " depart" : i === T.points.length - 1 && T.points.length > 1 ? " arrivee" : "";
+    const m = L.marker(pt, {
+      icon: L.divIcon({ className: "", html: '<div class="tr-marker' + role + '"></div>', iconSize: [14, 14], iconAnchor: [7, 7] })
+    }).addTo(carteTrace);
+    m.on("click", () => { if (T.mode === "ajout"){ T.points.splice(i, 1); majTrace(); } });
+    marqueursTrace.push(m);
+  });
+
+  marqueursTracePoi.forEach(m => carteTrace.removeLayer(m));
+  marqueursTracePoi = T.pois.map(p => L.marker(p.c, { icon: iconePoi(p) })
+    .addTo(carteTrace).bindPopup(TYPES_POI[p.type].n));
+}
+
+function majTrace(){
+  const m = mesuresTrace();
+  $("#tr-dist").textContent = m.km.toFixed(1).replace(".", ",");
+  $("#tr-deni").textContent = m.deni;
+  $("#tr-duree").textContent = formaterDuree(m.minutes);
+  $("#tr-pts").textContent = T.points.length;
+  dessinerProfil(m.alts);
+  redessinerTrace();
+  const vide = T.points.length === 0;
+  $("#tr-empty").hidden = !vide;
+  ["tr-undo", "tr-clear", "tr-save", "tr-share", "tr-gpx"].forEach(id => { $("#" + id).disabled = vide; });
+}
+
+/* Poser un point : logique pure, indépendante de la bibliothèque de carte.
+   C'est elle que le gestionnaire de clic appelle, et elle seule. */
+function poserSurTrace(lat, lon){
+  if (T.mode === "poi"){
+    const n = T.pois.length + 1;
+    T.pois.push({
+      id: "u" + n, type: T.typePoi, trail: null, nom: TYPES_POI[T.typePoi].n + " " + n,
+      alt: altitudeEstimee(lat, lon), km: 0, c: [lat, lon],
+      resume: "Point posé sur votre tracé.", detail: "", pratique: "",
+      photo: { art: ["#4a4034", "#8d7a5c", "#cbb68d"], legende: "", credit: "" }
+    });
+  } else {
+    T.points.push([lat, lon]);
+  }
+  majTrace();
+}
+
+/* La carte est un affichage, pas une dépendance : si la bibliothèque ne charge
+   pas, les outils du panneau restent utilisables et l'état reste cohérent. */
+function initTraceCarte(){
+  if (carteTrace) return;
+  const zone = $("#trace-map");
+  if (typeof L === "undefined"){
+    zone.innerHTML =
+      '<div style="height:100%;display:flex;align-items:center;justify-content:center;text-align:center;' +
+      'font-family:var(--fm);font-size:10px;letter-spacing:.06em;color:var(--ink-40);padding:0 34px;line-height:1.9">' +
+      "CARTE INDISPONIBLE HORS LIGNE<br>Les outils et les tracés déjà enregistrés restent accessibles.</div>";
+    return;
+  }
+  carteTrace = L.map("trace-map", { center: [43.75, 2.2], zoom: 8, zoomControl: false, attributionControl: false });
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", { maxZoom: 16 }).addTo(carteTrace);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png", { maxZoom: 16, pane: "shadowPane" }).addTo(carteTrace);
+  carteTrace.on("click", e => poserSurTrace(e.latlng.lat, e.latlng.lng));
+  redessinerTrace();
+}
+
+let outilsTracePrets = false;
+function initTrace(){
+  initTraceCarte();
+  if (outilsTracePrets) return;
+  outilsTracePrets = true;
+
+  $("#tr-types").innerHTML = Object.entries(TYPES_POI).map(([k, t]) =>
+    '<button class="tr-type' + (k === T.typePoi ? " on" : "") + '" data-type="' + k + '">' +
+      t.i + "<span>" + t.court + "</span></button>").join("");
+  $$("#tr-types .tr-type").forEach(b => b.onclick = () => {
+    T.typePoi = b.dataset.type;
+    $$("#tr-types .tr-type").forEach(x => x.classList.toggle("on", x === b));
+  });
+
+  $$("#tr-panel [data-mode]").forEach(b => b.onclick = () => {
+    T.mode = b.dataset.mode;
+    $$("#tr-panel [data-mode]").forEach(x => x.classList.toggle("on", x === b));
+    $("#tr-poi-choix").hidden = T.mode !== "poi";
+  });
+
+  $("#tr-grip").onclick = () => {
+    const p = $("#tr-panel"), replie = p.classList.toggle("reduit");
+    $("#tr-grip").setAttribute("aria-expanded", String(!replie));
+    $("#tr-etat").textContent = replie ? "outils repliés · toucher pour ouvrir" : "outils ouverts · toucher pour replier";
+  };
+  $("#tr-undo").onclick  = () => { T.points.pop(); majTrace(); };
+  $("#tr-clear").onclick = () => { T.points = []; T.pois = []; majTrace(); };
+  $("#tr-save").onclick  = () => enregistrerTrace(false);
+  $("#tr-share").onclick = () => enregistrerTrace(true);
+  $("#tr-gpx").onclick   = exporterGpx;
+
+  majTrace();
+}
+
+function enregistrerTrace(partager){
+  if (!T.points.length) return;
+  const m = mesuresTrace();
+  const t = {
+    id: "u" + (T.enregistres.length + 1),
+    auteur: "Vous", nom: T.nom === "Nouveau tracé" ? "Tracé du " + new Date().toLocaleDateString("fr-FR") : T.nom,
+    dist: +m.km.toFixed(1), deni: m.deni, duree: formaterDuree(m.minutes),
+    dept: "—", quand: "à l'instant", pois: T.pois.length,
+    mot: partager ? "Partagé avec votre Cordée." : "Enregistré dans votre Cabinet.",
+    art: ["#4a3f34", "#8a7355", "#c4a882"], partage: partager
+  };
+  T.enregistres.push(t);
+  T.nom = t.nom;
+  $("#tr-nom").textContent = t.nom;
+  buzz();
+  renderCommunaute();
+  $("#tr-note").textContent = partager
+    ? "Tracé partagé avec les 6 personnes de votre Cordée. Il n'est visible de personne d'autre."
+    : "Tracé enregistré dans votre Cabinet. Il reste privé tant que vous ne le partagez pas.";
+}
+
+/* Échappement XML — un nom de tracé est saisi par la personne. */
+const xml = t => String(t).replace(/[<>&'"]/g, c =>
+  ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c]));
+
+function exporterGpx(){
+  if (!T.points.length) return;
+  const pts = T.points.map(p =>
+    '    <trkpt lat="' + p[0].toFixed(6) + '" lon="' + p[1].toFixed(6) + '"><ele>' +
+    altitudeEstimee(p[0], p[1]) + "</ele></trkpt>").join("\n");
+  const wpts = T.pois.map(p =>
+    '  <wpt lat="' + p.c[0].toFixed(6) + '" lon="' + p.c[1].toFixed(6) + '"><name>' +
+    xml(p.nom) + "</name><type>" + xml(p.type) + "</type></wpt>").join("\n");
+  const gpx =
+'<?xml version="1.0" encoding="UTF-8"?>\n' +
+'<gpx version="1.1" creator="Camins — Points P-O" xmlns="http://www.topografix.com/GPX/1/1">\n' +
+'  <metadata><name>' + xml(T.nom) + "</name></metadata>\n" +
+(wpts ? wpts + "\n" : "") +
+"  <trk><name>" + xml(T.nom) + "</name><trkseg>\n" + pts + "\n  </trkseg></trk>\n</gpx>\n";
+
+  const url = URL.createObjectURL(new Blob([gpx], { type: "application/gpx+xml" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = T.nom.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\-]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase() + ".gpx";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  $("#tr-note").textContent = "Fichier GPX produit : " + T.points.length + " points, " +
+    T.pois.length + " point(s) d'intérêt. Il s'ouvre dans n'importe quelle application de randonnée.";
+}
+
+/* ══════════════════════════════════════════════════════════
+   COMMUNAUTÉ
+   ══════════════════════════════════════════════════════════ */
+const initiales = n => n.split(/[ -]/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+
+function renderCommunaute(){
+  $("#cor-nb").textContent = CORDEE.length;
+  $("#cor-people").innerHTML = CORDEE.map(p =>
+    '<div class="cor-p"><div class="cor-av" style="background:' + p.couleur + '">' + initiales(p.nom) + "</div>" +
+    '<div class="cor-pn">' + p.nom + '</div><div class="cor-pl">' + p.lieu + "</div></div>").join("") +
+    '<div class="cor-p"><button class="cor-add" id="cor-add" aria-label="Inviter quelqu\'un">+</button>' +
+    '<div class="cor-pn">Inviter</div><div class="cor-pl">' + (8 - CORDEE.length) + " place(s)</div></div>";
+  $("#cor-add").onclick = () => {
+    $("#cor-add").textContent = "✓";
+    $("#cor-add").setAttribute("aria-label", "Invitation envoyée");
+  };
+
+  const toutes = [...T.enregistres.filter(t => t.partage), ...TRACES_PARTAGEES];
+  $("#cor-traces").innerHTML = toutes.map(t =>
+    '<div class="tp">' +
+      '<div class="tp-h">' +
+        '<div class="tp-av" style="background:' + (CORDEE.find(c => c.nom === t.auteur)?.couleur ?? "#1A1814") + '">' +
+          initiales(t.auteur) + "</div>" +
+        '<div><div class="tp-a">' + t.auteur + '</div><div class="tp-q">' + t.quand + "</div></div>" +
+      "</div>" +
+      '<div class="tp-card">' +
+        '<div class="tp-img" style="background:' + grad(t.art) + '"><div class="tp-dept">' + t.dept + "</div></div>" +
+        '<div class="tp-body">' +
+          '<div class="tp-n">' + t.nom + "</div>" +
+          '<div class="tp-meta">' + String(t.dist).replace(".", ",") + " km · D+ " + t.deni + " · " + t.duree +
+            " · " + t.pois + " point(s) d'intérêt</div>" +
+          '<div class="tp-mot">' + t.mot + "</div>" +
+          '<div class="tp-acts">' +
+            '<button class="tp-act" data-trace="' + t.id + '">Ouvrir dans Tracé</button>' +
+            '<button class="tp-act" data-merci="' + t.id + '">Merci</button>' +
+          "</div>" +
+        "</div>" +
+      "</div>" +
+    "</div>").join("");
+
+  $$("#cor-traces [data-merci]").forEach(b => b.onclick = () => { b.textContent = "Merci envoyé"; b.disabled = true; });
+  $$("#cor-traces [data-trace]").forEach(b => b.onclick = () => allerA("trace"));
+}
 
 /* ─ horloge ─ */
 setInterval(() => {
@@ -1325,6 +2054,8 @@ setInterval(() => {
 
 /* ─ démarrage ─ */
 try { initMap(); } catch(e){ console.warn("Carte indisponible :", e); }
+try { afficherPois(); } catch(e){ console.warn("Points d'intérêt :", e); }
+renderCommunaute();
 renderChips(); renderList(); renderTeasers(); renderCabinet(); note("sentiers");
 setTimeout(() => map && map.invalidateSize(), 300);
 </script>
