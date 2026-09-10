@@ -103,7 +103,7 @@ img{max-width:100%;display:block;}
 .rc-t{display:block;}
 .rc-1{display:block;font-size:14px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rc-2{display:block;font-size:12px;color:var(--encre-3);margin-top:2px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.rc-b{width:40px;height:40px;flex:none;border-radius:50%;border:1px solid var(--trait);
+.rc-b{position:relative;width:40px;height:40px;flex:none;border-radius:50%;border:1px solid var(--trait);
   display:flex;align-items:center;justify-content:center;}
 .ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
 .ico-l{width:22px;height:22px;}
@@ -345,6 +345,43 @@ img{max-width:100%;display:block;}
 .m-cl{font-size:12px;color:var(--encre-3);margin-top:5px;font-weight:600;}
 #m-ok{margin-top:34px;min-width:190px;}
 
+/* ═══ FILTRES ═══ */
+#filtres{position:absolute;inset:0;z-index:96;display:none;}
+#filtres.on{display:block;}
+#f-voile{position:absolute;inset:0;background:rgba(28,20,16,.42);
+  animation:voile var(--duree-sortie) both;}
+#f-feuille{position:absolute;left:0;right:0;bottom:0;background:var(--papier);
+  border-radius:22px 22px 0 0;padding:10px 0 24px;max-height:82%;display:flex;flex-direction:column;
+  animation:monte var(--duree-transition) var(--ressort);}
+#f-poignee{width:38px;height:4px;border-radius:2px;background:var(--papier-3);margin:0 auto 12px;}
+#f-titre{font-family:var(--fd);font-style:italic;font-size:23px;padding:0 20px 4px;}
+#f-corps{flex:1;overflow-y:auto;padding:8px 20px 4px;scrollbar-width:none;}
+#f-corps::-webkit-scrollbar{display:none;}
+.f-g{padding:14px 0;border-bottom:1px solid var(--trait-2);}
+.f-g:last-child{border-bottom:0;}
+.f-h{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--encre-3);margin-bottom:11px;}
+.f-ch{display:flex;flex-wrap:wrap;gap:8px;}
+.ch{min-height:var(--cible-minimum);padding:0 15px;display:flex;align-items:center;gap:7px;
+  border:1px solid var(--trait);border-radius:var(--r-p);font-size:14px;font-weight:600;
+  background:var(--blanc);
+  transition:background var(--duree-toucher),border-color var(--duree-toucher),color var(--duree-toucher);}
+.ch .n{font-family:var(--fm);font-size:11.5px;color:var(--encre-3);}
+.ch.on{background:var(--encre);border-color:var(--encre);color:var(--papier);}
+.ch.on .n{color:var(--pierre);}
+.ch:disabled{opacity:.38;}
+#f-bas{flex:none;display:flex;gap:10px;padding:14px 20px 0;border-top:1px solid var(--trait);}
+#f-bas #f-raz{flex:1;}
+/* « Voir les 11 résultats » ne tient pas dans la moitié d'un écran de
+   390 px : le bouton d'action prend la place qu'il lui faut. */
+#f-bas #f-ok{flex:1.7;white-space:nowrap;padding:0 14px;}
+/* La pilule de recherche montre les filtres actifs — sinon on oublie
+   qu'on filtre et la liste paraît vide sans raison. */
+#pastille-f{position:absolute;top:-3px;right:-3px;min-width:19px;height:19px;padding:0 5px;
+  border-radius:var(--r-p);background:var(--orange);color:var(--encre);
+  font-family:var(--fm);font-size:11px;font-weight:500;display:none;place-items:center;}
+#pastille-f.on{display:grid;}
+
 /* ═══ RÉCIT GUIDÉ ═══ */
 #recit{position:absolute;inset:0;z-index:97;display:none;flex-direction:column;
   background:var(--papier);}
@@ -386,6 +423,40 @@ img{max-width:100%;display:block;}
   font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:var(--r-p);}
 .rep-t{display:block;font-size:14.5px;font-weight:700;line-height:1.3;margin-top:9px;}
 .rep-d{display:block;font-family:var(--fm);font-size:11px;color:var(--encre-3);margin-top:3px;}
+
+/* ═══ TABLEAU DE BORD — repris du site : des arcs, pas des barres, et un
+   rail de badges où l'on voit le palier suivant avant de l'avoir. ═══ */
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:14px 18px 0;}
+.dg-c{background:var(--blanc);border:1px solid var(--trait);border-radius:var(--r-c);
+  padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;box-shadow:var(--o1);}
+.dg-s{width:96px;height:54px;display:block;}
+.dg-f{fill:none;stroke:var(--papier-3);stroke-width:7;stroke-linecap:round;}
+/* Trait fin sur fond clair : c'est le rôle du 700, pas celui du 500.
+   Quatre arcs orange plus un bouton orange, ce n'est plus un accent. */
+.dg-a{fill:none;stroke:var(--rouille);stroke-width:7;stroke-linecap:round;
+  transition:stroke-dashoffset var(--duree-transition) var(--sortie-douce, cubic-bezier(.2,0,0,1));}
+.dg-v{display:block;font-size:17px;font-weight:800;line-height:1;margin-top:-8px;
+  font-variant-numeric:tabular-nums;}
+.dg-l{display:block;font-family:var(--fm);font-size:9.5px;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--encre-3);text-align:center;margin-top:6px;line-height:1.35;}
+
+.rail{display:flex;gap:12px;overflow-x:auto;padding:12px 18px 4px;scrollbar-width:none;}
+.rail::-webkit-scrollbar{display:none;}
+/* Pas d'opacité sur le badge entier : elle éteint aussi le texte, qui
+   tombait à 4,18:1. Les trois états se distinguent par leurs couleurs
+   propres, toutes au-dessus du seuil. */
+.bg{flex:none;width:68px;display:flex;flex-direction:column;align-items:center;gap:7px;}
+.bg-r{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;
+  background:var(--papier-2);border:2px solid var(--papier-3);
+  font-family:var(--fd);font-style:italic;font-size:15px;color:var(--encre-2);
+  transition:background var(--duree-sortie),border-color var(--duree-sortie);}
+.bg.on .bg-r{background:var(--saumon-pale);border-color:var(--saumon);color:var(--rouille-f);}
+/* Acquis : saumon pâle. Palier courant : saumon plein. À venir : gris.
+   Trois états lisibles sans mobiliser l'orange, qui reste à l'action. */
+.bg.ici .bg-r{background:var(--saumon);border-color:var(--rouille);color:var(--rouille-f);}
+.bg-n{display:block;font-family:var(--fm);font-size:9px;letter-spacing:.02em;
+  text-transform:uppercase;color:var(--encre-2);text-align:center;line-height:1.35;}
+.bg.ici .bg-n{color:var(--rouille);font-weight:500;}
 
 /* ═══ TABLEAU DE BORD ═══ */
 .niv{margin:14px 18px 0;padding:16px;border-radius:var(--r-c);background:var(--saumon-pale);}
@@ -567,7 +638,7 @@ img{max-width:100%;display:block;}
         <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <span class="rc-t"><span class="rc-1" id="rc-1">Où voulez-vous marcher ?</span>
         <span class="rc-2" id="rc-2">Pyrénées-Orientales · toutes distances</span></span>
-        <span class="rc-b"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg></span>
+        <span class="rc-b"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span id="pastille-f">0</span></span>
       </button>
       <nav class="cats" id="cats"></nav>
     </header>
@@ -635,6 +706,21 @@ img{max-width:100%;display:block;}
         <div id="p-reste">—</div>
       </div>
       <div id="p-barre"><button id="p-fin">Terminer la sortie</button></div>
+    </div>
+
+    <!-- Filtres : une feuille qui monte, trois questions, un compte de
+         résultats qui change à chaque touche. Rien à valider pour voir. -->
+    <div id="filtres">
+      <div id="f-voile"></div>
+      <div id="f-feuille">
+        <div id="f-poignee"></div>
+        <div id="f-titre">Filtrer</div>
+        <div id="f-corps"></div>
+        <div id="f-bas">
+          <button class="btn creux" id="f-raz">Tout effacer</button>
+          <button class="btn" id="f-ok">Voir les résultats</button>
+        </div>
+      </div>
     </div>
 
     <!-- Récit guidé : le texte d'un lieu, découpé en passages qu'on
@@ -906,6 +992,7 @@ const S = {
   onglet: "explorer", cat: "poi-rando", carte: false,
   aimes: new Set(JSON.parse(localStorage.getItem(AIMES) || "[]")),
   selection: null, faits: new Set(), journal: [],
+  diff: "all", dist: "all",
   elanVisible: localStorage.getItem(ELAN_CLE) !== "0",
   objectif: 2   /* sorties par semaine, choisi par la personne, pas par nous */
 };
@@ -1080,9 +1167,66 @@ function terminerSortie(){
   }, apres);
 }
 
+/* ══════════════════════════════════════════════════════════
+   FILTRES
+   Trois questions, et le nombre de résultats change à chaque touche :
+   on voit l'effet avant de valider, donc on n'a rien à valider.
+   ══════════════════════════════════════════════════════════ */
+function comptePour(champ, val){
+  const sauve = S[champ];
+  S[champ] = val;
+  const n = items().length;
+  S[champ] = sauve;
+  return n;
+}
+
+function rendreFiltres(){
+  const groupe = (titre, champ, opts) =>
+    '<div class="f-g"><div class="f-h">' + titre + '</div><div class="f-ch">' +
+    opts.map(o => {
+      const n = comptePour(champ, o.id);
+      return '<button class="ch' + (S[champ] === o.id ? " on" : "") + '" data-f="' + champ +
+        '" data-v="' + o.id + '"' + (n ? "" : " disabled") + ">" + ech(o.l) +
+        '<span class="n">' + n + "</span></button>";
+    }).join("") + "</div></div>";
+
+  $("#f-corps").innerHTML =
+    groupe("Quoi", "cat", [{ id:"all", l:"Tout" }].concat(CATS.filter(c => c.id !== "all").map(c => ({ id:c.id, l:c.l })))) +
+    groupe("Difficulté", "diff", DIFF_DEFS.map(d => ({ id:d, l:d === "all" ? "Toutes" : d }))) +
+    groupe("Distance", "dist", DIST_DEFS.map(d => ({ id:d.id, l:d.l })));
+
+  $("#f-ok").textContent = items().length
+    ? "Voir les " + items().length + " résultats"
+    : "Aucun résultat";
+  $("#f-ok").disabled = !items().length;
+  $("#f-ok").style.opacity = items().length ? "1" : ".5";
+
+  majPastilleF();
+  $$("#f-corps [data-f]").forEach(b => b.onclick = () => {
+    S[b.dataset.f] = b.dataset.v;
+    rendreFiltres();
+  });
+}
+
+function ouvrirFiltres(){ $("#filtres").classList.add("on"); majCouverture(); rendreFiltres(); }
+function fermerFiltres(){
+  $("#filtres").classList.remove("on");
+  majCouverture();
+  rendreCats(); rendre(); majPastilleF();
+}
+function majPastilleF(){
+  const n = nbFiltres();
+  const el = $("#pastille-f");
+  el.textContent = n;
+  el.classList.toggle("on", n > 0);
+  $("#rc-2").textContent = (CATS.find(c => c.id === S.cat)?.l ?? "Tout") +
+    (S.diff !== "all" ? " · " + S.diff : "") +
+    (S.dist !== "all" ? " · " + distDef(S.dist).l.toLowerCase() : "");
+}
+
 /* Un seul endroit décide si quelque chose recouvre l'écran. */
 function majCouverture(){
-  const couvert = ["#detail", "#recit", "#plein", "#moment"]
+  const couvert = ["#detail", "#recit", "#plein", "#moment", "#filtres"]
     .some(sel => $(sel) && $(sel).classList.contains("on"));
   $("#tel").classList.toggle("couvert", couvert);
 }
@@ -1162,7 +1306,33 @@ const CATS = [
   { id:"poi-evenement", l:"Événements",        i:ICO.event },
   { id:"all",           l:"Tout",              i:ICO.tout }
 ];
-const items = () => S.cat === "all" ? PLACES : PLACES.filter(p => p.cat === S.cat);
+/* Les bornes de distance sont celles du site. */
+const DIST_DEFS = [
+  { id:"all",   l:"Toutes distances", ok:() => true },
+  { id:"-10",   l:"Moins de 10 km",   ok:p => p.km != null && p.km < 10 },
+  { id:"10-15", l:"10 à 15 km",       ok:p => p.km != null && p.km >= 10 && p.km <= 15 },
+  { id:"+15",   l:"Plus de 15 km",    ok:p => p.km != null && p.km > 15 },
+];
+const DIFF_DEFS = ["all", "Facile", "Intermédiaire", "Difficile"];
+const distDef = id => DIST_DEFS.find(d => d.id === id) ?? DIST_DEFS[0];
+
+/* Un seul endroit filtre. Les filtres de difficulté et de distance ne
+   valent que pour les randonnées : sur un monument ils n'ont pas de sens,
+   et les appliquer viderait la liste sans raison visible. */
+function filtrer(liste){
+  /* Demander « Difficile » ou « plus de 15 km », c'est demander des
+     randonnées : les monuments sortent de la liste plutôt que d'y rester
+     sans que le filtre les concerne. */
+  const randoSeul = S.diff !== "all" || S.dist !== "all";
+  return liste.filter(p => {
+    if (S.cat !== "all" && p.cat !== S.cat) return false;
+    if (p.cat !== "poi-rando") return !randoSeul;
+    if (S.diff !== "all" && p.diff !== S.diff) return false;
+    return distDef(S.dist).ok(p);
+  });
+}
+const items = () => filtrer(PLACES);
+const nbFiltres = () => (S.cat !== "all" ? 1 : 0) + (S.diff !== "all" ? 1 : 0) + (S.dist !== "all" ? 1 : 0);
 
 function rendreCats(){
   $("#cats").innerHTML = CATS.map(c =>
@@ -1331,6 +1501,23 @@ const gradPal = i => {
   return "linear-gradient(155deg," + q[2] + " 0%," + q[1] + " 55%," + q[0] + " 100%)";
 };
 
+/* Un demi-cercle plutôt qu'une barre : c'est la forme du tableau de bord
+   du site, et elle lit une proportion d'un coup d'œil.
+   Rayon 36 sur un viewBox de 96×54 ; la longueur de l'arc est π·r, calculée
+   ici plutôt que mesurée — pas de vector-effect, qui ferait basculer
+   stroke-dasharray en pixels écran. */
+const ARC_R = 36, ARC_L = Math.PI * ARC_R;
+const ARC_D = "M 12 48 A " + ARC_R + " " + ARC_R + " 0 0 1 84 48";
+function arcJauge(libelle, valeur, part, sous){
+  const q = Math.max(0, Math.min(1, part));
+  return '<div class="dg-c"><svg class="dg-s" viewBox="0 0 96 54" aria-hidden="true">' +
+    '<path class="dg-f" d="' + ARC_D + '"/>' +
+    '<path class="dg-a" d="' + ARC_D + '" style="stroke-dasharray:' + ARC_L.toFixed(1) +
+      ';stroke-dashoffset:' + (ARC_L * (1 - q)).toFixed(1) + '"/></svg>' +
+    '<span class="dg-v">' + ech(String(valeur)) + "</span>" +
+    '<span class="dg-l">' + ech(libelle) + "<br>" + ech(sous) + "</span></div>";
+}
+
 /* ══ COMPTE ══ */
 function ecranCompte(){
   const km = S.journal.reduce((n, e) => n + e.km, 0);
@@ -1343,11 +1530,12 @@ function ecranCompte(){
   const b = BADGES[idx], suivant = BADGES[idx + 1];
   const versSuivant = suivant ? Math.min(1, (km - b.seuil) / (suivant.seuil - b.seuil)) : 1;
 
+  const nRecits = PLACES.filter(p => RECIT_PAR_ID[p.id]).length;
   const jauges = [
-    ["Kilomètres parcourus", km.toFixed(1), " km", Math.min(1, km / 2000)],
-    ["Randonnées effectuées", S.journal.length, "", Math.min(1, S.journal.length / 50)],
-    ["Dénivelé cumulé", dp, " m", Math.min(1, dp / 30000)],
-    ["Lieux d'histoire visités", hist, "", Math.min(1, hist / PLACES.filter(p => RECIT_PAR_ID[p.id]).length)],
+    ["kilomètres", vgl(km.toFixed(1)), Math.min(1, km / 2000), "sur 2 000"],
+    ["randonnées", S.journal.length, Math.min(1, S.journal.length / 50), "sur 50"],
+    ["dénivelé cumulé", dp + " m", Math.min(1, dp / 30000), "sur 30 000 m"],
+    ["lieux d'histoire", hist + "/" + nRecits, nRecits ? hist / nRecits : 0, "visités"],
   ];
 
   return '<div class="titre"><div class="t-1">Votre compte</div><div class="t-2">Invité · aucune donnée envoyée</div></div>' +
@@ -1357,10 +1545,11 @@ function ecranCompte(){
       '<span class="niv-s">' + (suivant
         ? "Encore " + vgl((suivant.seuil - km).toFixed(1)) + " km avant « " + ech(suivant.nom) + " »"
         : "Dernier palier atteint.") + "</span></div>" +
-    '<div style="padding:4px 18px 0">' + jauges.map(j =>
-      '<div class="jg"><span class="jg-h"><span class="jg-l">' + j[0] + "</span>" +
-      '<span class="jg-v">' + vgl(String(j[1])) + j[2] + "</span></span>" +
-      '<span class="jauge"><i style="width:' + (j[3] * 100).toFixed(1) + '%"></i></span></div>').join("") + "</div>" +
+    '<div class="dg">' + jauges.map(j => arcJauge(j[0], j[1], j[2], j[3])).join("") + "</div>" +
+    '<div class="rail">' + BADGES.map((bd, i) =>
+      '<span class="bg' + (km >= bd.seuil ? " on" : "") + (i === idx ? " ici" : "") + '">' +
+        '<span class="bg-r">' + (km >= bd.seuil ? "✓" : vgl(String(bd.seuil))) + "</span>" +
+        '<span class="bg-n">' + ech(bd.nom) + "</span></span>").join("") + "</div>" +
     '<div class="puces"><button class="puce on">Français</button><button class="puce">Català</button></div>' +
     '<div style="padding:18px">' +
       '<button class="btn large">Créer un compte</button>' +
@@ -1383,7 +1572,7 @@ const ECRANS = { explorer: ecranExplorer, histoire: ecranHistoire, favoris: ecra
 function rendre(){
   $("#e-" + S.onglet).innerHTML = ECRANS[S.onglet]();
   brancher();
-  $("#rc-2").textContent = (CATS.find(c => c.id === S.cat)?.l ?? "Tout") + " · Pyrénées-Orientales";
+  majPastilleF();
   /* Le contenu ne se pose pas d'un coup : il arrive. */
   echelonner("#e-" + S.onglet + " .liste > *");
   echelonner("#e-" + S.onglet + " .stat-g > *");
@@ -1763,7 +1952,10 @@ $("#m-ok").onclick = fermerMoment;
 
 $("#bascule").onclick = () => S.carte ? quitterCarte() : entrerCarte();
 $("#carte-retour").onclick = quitterCarte;
-$("#btn-recherche").onclick = () => { S.cat = "all"; rendreCats(); rendre(); };
+$("#btn-recherche").onclick = ouvrirFiltres;
+$("#f-voile").onclick = fermerFiltres;
+$("#f-ok").onclick = fermerFiltres;
+$("#f-raz").onclick = () => { S.cat = "all"; S.diff = "all"; S.dist = "all"; rendreFiltres(); };
 $("#corps").addEventListener("scroll", () => $("#entete").classList.toggle("colle", $("#corps").scrollTop > 4));
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
