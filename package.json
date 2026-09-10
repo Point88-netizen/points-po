@@ -9,7 +9,8 @@
     "verif:tokens": "node design/verifier-tokens.mjs app",
     "verif:ecran": "node design/verifier-ecran.mjs http://127.0.0.1:8899/app/index.html 394 830 \"#btn-recherche,#f-ok,.og[data-o='histoire'],.rec,#r-suiv,#r-x,.og[data-o='compte'],.og[data-o='explorer'],.fiche,#d-go,#p-fin,#m-ok\"",
     "verif": "npm run verif:tokens && npm run verif:ecran",
-    "navigateur": "playwright install chromium"
+    "navigateur": "playwright install chromium",
+    "autonome": "node design/autonome.mjs"
   },
   "devDependencies": {
     "http-server": "^14.1.1",

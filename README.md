@@ -31,6 +31,24 @@ Pour modifier l'interface, il n'y a qu'un fichier : **`app/index.html`**.
 Structure, styles et code y tiennent ensemble, volontairement — le prototype
 doit rester lisible d'un bout à l'autre.
 
+## Un seul fichier, sans serveur ni réseau
+
+```bash
+npm run autonome
+```
+
+Produit **`points-po-app.html`** à la racine : l'application entière dans un
+fichier, qui s'ouvre par double-clic. Les tokens y sont recopiés, les liens
+vers les polices distantes retirés, et la construction échoue si la moindre
+référence réseau subsiste.
+
+Les polices reviennent alors à celles du système (Georgia, la sans-serif et la
+monospace du poste). Pour retrouver Fraunces, Manrope et DM Mono, il suffit de
+remettre le lien Google Fonts dans l'en-tête — mais le fichier cesse d'être
+autonome.
+
+Le fichier est versionné : il se télécharge depuis GitHub sans rien installer.
+
 ## Vérifier avant de committer
 
 Deux vérificateurs remplacent la relecture à l'œil. Ils ont trouvé des défauts

@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Points P.O — marcher en Pays Catalan</title>
+<meta name="description" content="Randonnées, sites historiques et événements des Pyrénées-Orientales. Interface épurée, données réelles, carte hors ligne.">
+<meta name="theme-color" content="#FBFBCC">
+<!-- Polices du système : les piles de repli (Georgia, système, monospace)
+     sont déclarées dans la feuille de style. Pour retrouver Fraunces,
+     Manrope et DM Mono, remettre ici le lien Google Fonts. -->
+<style>
+/* ── design/build/tokens.css, recopié : ce fichier doit tenir seul ── */
+/* Généré par design/construire.mjs — ne pas modifier à la main.
+   Source : design/tokens/*.json (format DTCG). */
+
+:root {
+  /* 2 sorties × 4 min de préparation. */
+  --budget-preparation: 480000ms;
+  /* 2 × 3 s. Le poste le plus cher : il est arraché à autre chose. */
+  --budget-notification: 6000ms;
+  /* Consentie à l'avance, à heure dite. */
+  --budget-veillee: 2400000ms;
+  /* Zéro. L'audio ne compte pas : il se superpose à la marche. */
+  --budget-ecran-sentier: 0ms;
+  /* ≈ 48 min. Toute fonctionnalité nouvelle déclare son poste et son coût. */
+  --budget-total-hebdo: 2886000ms;
+  /* Sécurité exceptée. Réglable à 0 par la personne. */
+  --quota-notifications-par-semaine: 2;
+  /* Un par Éclat, plafond haut d'une journée de marche. */
+  --quota-sons-par-sortie: 9;
+  /* Le point du direct. Aucun autre. */
+  --quota-clignotements-dans-l-app: 1;
+  /* Règle du seul accent. */
+  --quota-accents-par-ecran: 1;
+  --socle-papier-blanc: #FCFAF4;
+  --socle-papier-clair: #F4F0E6;
+  --socle-papier-moyen: #E9E3D2;
+  --socle-papier-sombre: #DCD4BE;
+  /* Brun quasi noir — corrigé depuis le bistre de la direction 01 pour tenir 7:1 sur papier clair. */
+  --socle-encre-forte: #241E16;
+  --socle-encre-moyenne: #554C3C;
+  /* Corrigé de #7E7461 (4,05:1) après échec du vérificateur — le token change, pas le seuil. */
+  --socle-encre-faible: #6E6553;
+  --socle-bistre: #8C4A22;
+  --socle-bistre-fonce: #6E3818;
+  --socle-vert: #2A5A22;
+  --socle-jaune: #E8C400;
+  --socle-alerte: #B8342B;
+  --socle-nuit-fond: #0E0D0B;
+  --socle-nuit-encre: #EDE7D8;
+  --socle-nuit-jaune: #F5D800;
+  --socle-nuit-ligne: #2A2620;
+  --role-fond-page: #F4F0E6;
+  --role-fond-carte: #FCFAF4;
+  --role-fond-creux: #E9E3D2;
+  --role-texte-principal: #241E16;
+  --role-texte-secondaire: #554C3C;
+  --role-texte-tertiaire: #6E6553;
+  --role-ligne: #DCD4BE;
+  /* UNE SEULE par écran. Le vérificateur échoue si un écran en déclare deux. */
+  --role-action-principale: #8C4A22;
+  --role-action-principale-appui: #6E3818;
+  /* Confirmation d'un état obtenu. Jamais un appel à l'action. */
+  --role-etat-acquis: #2A5A22;
+  /* L'instant de déverrouillage d'un Éclat, et rien d'autre. Interdit dans toute la navigation. */
+  --role-attention-deverrouillage: #E8C400;
+  /* Météo, danger, fermeture de station. Jamais commercial. */
+  --role-securite: #B8342B;
+  /* Réponse au toucher. Sous ce seuil, l'action est perçue comme instantanée. */
+  --duree-toucher: 90ms;
+  /* Disparition d'un objet. Plus court que l'entrée : un objet qui part n'a pas besoin d'être regardé. */
+  --duree-sortie: 180ms;
+  /* Changement d'état. Assez pour suivre du regard, pas assez pour attendre. */
+  --duree-transition: 320ms;
+  /* Temps sur place exigé pour déverrouiller un Éclat. */
+  --duree-presence: 45000ms;
+  /* Durée cible d'un Éclat. */
+  --duree-eclat: 90000ms;
+  /* 40 minutes. Plafond dur du direct hebdomadaire. */
+  --duree-veillee: 2400000ms;
+  /* L'unique clignotement de l'application : le point du direct (document 03, §4). Déclaré ici pour qu'il soit une exception nommée et non une valeur arbitraire. */
+  --duree-clignotement-direct: 1100ms;
+  --espace-1: 4px;
+  --espace-2: 8px;
+  --espace-3: 12px;
+  --espace-4: 16px;
+  --espace-5: 24px;
+  --espace-6: 32px;
+  --espace-7: 48px;
+  /* WCAG 2.2 SC 2.5.8 exige 24 px en AA ; on double pour l'usage en marche, gants et main qui tremble. */
+  --cible-minimum: 48px;
+  /* Épingles et annotations posées sur la carte. Exemption assumée de la règle des 48 px : ces cibles se touchent à l'arrêt, jamais en marchant, et les rapprocher casserait la lisibilité d'une carte dense. Le plancher reste le minimum AA de WCAG 2.5.8, soit 24 px. */
+  --cible-annotation: 30px;
+  /* Décélération : l'objet arrive et se pose. */
+  --courbe-entree: cubic-bezier(0.2, 0.8, 0.3, 1);
+  /* Linéaire : on ne regarde pas un objet partir. */
+  --courbe-sortie: cubic-bezier(0, 0, 1, 1);
+  /* Objet qui change de place sans entrer ni sortir. */
+  --courbe-deplacement: cubic-bezier(0.4, 0, 0.2, 1);
+  --famille-titre: 'Bodoni Moda', Georgia, serif;
+  --famille-courant: 'Barlow Condensed', system-ui, sans-serif;
+  --famille-donnee: 'DM Mono', ui-monospace, monospace;
+  --corps-legende: 12px;
+  --corps-annexe: 14px;
+  /* Plancher de lisibilité en marche. Rien en dessous pour un texte fonctionnel. */
+  --corps-courant: 16px;
+  --corps-intro: 19px;
+  --corps-titre: 23px;
+  --corps-grand: 30px;
+  /* Le kilomètre en mode Sentier, lisible à bout de bras. */
+  --corps-chiffre: 48px;
+}
+
+/* Déclinaison nuit — ne redéfinit que les rôles, jamais le socle. */
+:root[data-theme="nuit"] {
+  --role-fond-page: #0E0D0B;
+  --role-fond-carte: #16140F;
+  --role-texte-principal: #EDE7D8;
+  --role-texte-secondaire: #A79C88;
+  --role-ligne: #2A2620;
+  --role-attention-deverrouillage: #F5D800;
+}
+</style>
+<style>
+/* ═════════════════════════════════════════════════════════════
+   POINTS P.O — INTERFACE
+   Palette « Brasier & Corail » et polices reprises de l'app
+   existante. Grammaire d'interface : Airbnb — recherche en
+   pilule, rail de catégories, cartes à grande image, pastilles
+   de carte, barre d'action collante. Sobriété : une seule
+   couleur d'action, beaucoup de blanc, peu de traits.
+   ═════════════════════════════════════════════════════════════ */
+:root{
+  /* ═══ BRASIER — l'échelle du document de marque, rôle par rôle.
+     Le 500 est la couleur principale et le CTA ; le 700 n'est QUE du texte
+     sur fond clair. Les confondre, c'est perdre l'orange de la marque. ═══ */
+  --brasier-100:#FDE5DD;   /* fond léger, badges          */
+  --brasier-300:#F99F83;   /* saumon — accents doux       */
+  --brasier-500:#F4511E;   /* couleur principale, CTA     */
+  --brasier-700:#A63A18;   /* texte sur fond clair        */
+  --brasier-900:#692813;   /* texte foncé, mode sombre    */
+  --orange:var(--brasier-500);
+  --saumon:var(--brasier-300);
+  --saumon-pale:var(--brasier-100);
+  --rouille:var(--brasier-700); --rouille-f:var(--brasier-900);
+  /* Neutres : Papier et Encre du même document. Le fond jaune paille
+     précédent avalait l'orange ; sur un papier chaud, il ressort. */
+  --papier:#FAF7F2;  --papier-2:#F3EEE6; --papier-3:#E8E0D4; --pierre:#D8CDBC;
+  --blanc:#FFFFFF;
+  --encre:#1C1410; --encre-2:#5C5349; --encre-3:#7C7062;
+  --trait:rgba(28,20,16,.11); --trait-2:rgba(28,20,16,.06);
+  --vert:#2A5A1E; --ambre:#8B5920;
+  --fd:'Fraunces',Georgia,serif;
+  --fb:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --fm:'DM Mono',ui-monospace,monospace;
+  --r-c:14px; --r-b:12px; --r-p:999px;
+  --o1:0 1px 2px rgba(58,28,14,.06), 0 4px 12px rgba(58,28,14,.07);
+  --o2:0 2px 6px rgba(58,28,14,.08), 0 12px 30px rgba(58,28,14,.12);
+  --ressort:cubic-bezier(.22,1.1,.36,1);
+  /* Ce que le vérificateur compte comme « accent » : l'orange 500. */
+  --role-action-principale:#F4511E;
+}
+.nuit{
+  --papier:#141110; --papier-2:#1D1917; --papier-3:#2A2421; --pierre:#3B332D;
+  --blanc:#1D1917;
+  --encre:#F5F0E9; --encre-2:#B8AFA3; --encre-3:#8B8175;
+  --trait:rgba(245,240,233,.14); --trait-2:rgba(245,240,233,.07);
+  /* Sur fond sombre l'orange 500 reste le CTA ; le saumon 300 prend le
+     rôle du texte accentué, où le 700 serait illisible. */
+  --orange:var(--brasier-500); --saumon:var(--brasier-300);
+  --saumon-pale:rgba(249,159,131,.16);
+  --rouille:#F99F83; --rouille-f:#FDE5DD;
+  --vert:#8FCB7C; --ambre:#D9A850;
+  --o1:0 1px 2px rgba(0,0,0,.4), 0 4px 12px rgba(0,0,0,.35);
+  --o2:0 2px 6px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{font-family:var(--fb);background:#141008;color:var(--encre);
+  -webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;}
+button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer;}
+img{max-width:100%;display:block;}
+
+/* ── scène de présentation ── */
+#scene{display:flex;gap:46px;align-items:center;justify-content:center;width:100%;max-width:1240px;padding:26px;}
+#note{flex:1;max-width:358px;color:rgba(255,255,255,.82);}
+.n-t{font-family:var(--fd);font-size:29px;font-style:italic;color:#fff;line-height:1.15;margin-bottom:12px;}
+.n-p{font-size:14px;font-weight:300;line-height:1.72;color:rgba(255,255,255,.55);margin-bottom:20px;}
+.n-i{display:flex;gap:12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.1);font-size:12.5px;line-height:1.55;color:rgba(255,255,255,.52);}
+.n-i b{color:#fff;font-weight:700;display:block;font-size:12px;}
+.n-s{font-family:var(--fm);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--saumon);flex:none;width:64px;padding-top:2px;}
+.n-l{margin-top:18px;display:flex;gap:7px;flex-wrap:wrap;}
+.n-l a{font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);
+  text-decoration:none;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:var(--r-p);}
+.n-l a:hover{color:#fff;border-color:rgba(255,255,255,.5);}
+
+/* ── coque ── */
+#tel{flex:none;width:394px;height:830px;border-radius:46px;position:relative;overflow:hidden;
+  background:var(--papier);box-shadow:0 0 0 11px #0A0806,0 0 0 13px #2E2417,0 44px 100px rgba(0,0,0,.66);
+  display:flex;flex-direction:column;}
+#encoche{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:104px;height:29px;
+  background:#0A0806;border-radius:999px;z-index:90;pointer-events:none;}
+#statut{flex:none;height:50px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 6px;font-family:var(--fm);font-size:11px;color:var(--encre);z-index:60;}
+
+/* ═══ EN-TÊTE : recherche en pilule (Airbnb) ═══ */
+#entete{flex:none;padding:2px 18px 0;background:var(--papier);z-index:50;transition:box-shadow var(--duree-toucher);}
+#entete.colle{box-shadow:0 1px 0 var(--trait);}
+.recherche{width:100%;min-height:56px;display:flex;align-items:center;gap:12px;padding:0 8px 0 18px;
+  background:var(--blanc);border-radius:var(--r-p);box-shadow:var(--o1);text-align:left;
+  transition:transform var(--duree-toucher) var(--ressort);}
+.recherche:active{transform:scale(.985);}
+.rc-t{flex:1;min-width:0;}
+.rc-t{display:block;}
+.rc-1{display:block;font-size:14px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rc-2{display:block;font-size:12px;color:var(--encre-3);margin-top:2px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rc-b{position:relative;width:40px;height:40px;flex:none;border-radius:50%;border:1px solid var(--trait);
+  display:flex;align-items:center;justify-content:center;}
+.ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.ico-l{width:22px;height:22px;}
+
+/* rail de catégories */
+.cats{display:flex;gap:26px;overflow-x:auto;padding:14px 18px 0;scrollbar-width:none;}
+.cats::-webkit-scrollbar{display:none;}
+.cat{flex:none;min-width:var(--cible-minimum);display:flex;flex-direction:column;align-items:center;gap:6px;padding-bottom:10px;
+  border-bottom:2px solid transparent;color:var(--encre-3);opacity:.72;
+  transition:opacity var(--duree-toucher),color var(--duree-toucher),border-color var(--duree-toucher);}
+.cat svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.cat-l{font-size:11px;font-weight:600;white-space:nowrap;}
+.cat.on{opacity:1;color:var(--encre);border-bottom-color:var(--encre);}
+
+/* ═══ CORPS ═══ */
+#corps{flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;}
+#corps::-webkit-scrollbar{display:none;}
+.ecran{display:none;}
+.ecran.on{display:block;}
+.bas{height:112px;}
+
+/* ═══ CARTE DE SÉJOUR (Airbnb) ═══ */
+.liste{padding:16px 18px 0;display:flex;flex-direction:column;gap:26px;}
+.fiche{text-align:left;width:100%;}
+.f-img{position:relative;aspect-ratio:20/19;border-radius:var(--r-c);overflow:hidden;}
+.f-img i{position:absolute;inset:0;display:block;}
+.f-coeur{position:absolute;top:11px;right:11px;width:var(--cible-minimum);height:var(--cible-minimum);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform var(--duree-toucher) var(--ressort);}
+.f-coeur:active{transform:scale(.86);}
+.f-coeur svg{width:25px;height:25px;fill:rgba(20,12,6,.44);stroke:#fff;stroke-width:1.9;
+  transition:fill var(--duree-toucher);}
+.f-coeur.aime svg{fill:var(--orange);stroke:var(--orange);}
+.f-tag{position:absolute;top:12px;left:12px;background:var(--blanc);color:var(--encre);
+  font-size:11.5px;font-weight:800;padding:5px 11px;border-radius:var(--r-p);box-shadow:var(--o1);}
+.f-t{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-top:11px;}
+.f-n{font-size:15px;font-weight:700;line-height:1.3;}
+.f-d{font-size:14px;font-weight:600;color:var(--encre-2);white-space:nowrap;}
+.f-s{font-size:14.5px;color:var(--encre-3);margin-top:2px;}
+.f-m{font-size:14.5px;color:var(--encre-3);margin-top:2px;}
+.f-m b{color:var(--encre);font-weight:700;}
+.diff{display:inline-flex;align-items:center;gap:5px;font-weight:700;}
+.diff::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;}
+.d-f{color:var(--vert);} .d-m{color:var(--ambre);} .d-d{color:var(--rouille);}
+
+/* ═══ CARTE PLEIN ÉCRAN ═══ */
+#vuecarte{position:absolute;inset:0;z-index:70;display:none;background:var(--papier-2);}
+#vuecarte.on{display:block;}
+/* un canvas est un élément remplacé : inset:0 seul le laisse à sa taille
+   intrinsèque (300×150). Il faut lui donner width/height explicites. */
+#toile{position:absolute;inset:0;width:100%;height:100%;touch-action:none;}
+#calque{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.pastille{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;
+  background:var(--blanc);color:var(--encre);font-size:12.5px;font-weight:700;
+  padding:7px 12px;border-radius:var(--r-p);box-shadow:var(--o2);white-space:nowrap;
+  border:1px solid var(--trait);transition:transform var(--duree-toucher) var(--ressort);}
+.pastille:active{transform:translate(-50%,-50%) scale(.92);}
+.pastille.on{background:var(--encre);color:var(--papier);border-color:var(--encre);}
+.pastille.pt{padding:8px;border-radius:50%;line-height:0;}
+/* point simple : marque le lieu quand l'étiquette ne tient pas */
+.point{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;
+  width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  transition:transform var(--duree-toucher) var(--ressort);}
+.point::before{content:'';width:13px;height:13px;border-radius:50%;
+  background:var(--blanc);border:3.5px solid var(--rouille);box-shadow:var(--o1);}
+.point.on::before{background:var(--encre);border-color:var(--encre);}
+.point:active{transform:translate(-50%,-50%) scale(.85);}
+.pastille.pt svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;}
+#carte-haut{position:absolute;top:56px;left:18px;right:18px;z-index:75;display:flex;gap:9px;}
+/* Le carrousel passe au-dessus du bouton Carte/Liste : les deux étaient
+   dans la même bande et la pilule bloquait la carte centrée. */
+#carte-bas{position:absolute;left:0;right:0;bottom:158px;z-index:75;display:flex;gap:12px;
+  overflow-x:auto;padding:0 18px;scrollbar-width:none;scroll-snap-type:x mandatory;}
+#carte-bas::-webkit-scrollbar{display:none;}
+.mini{flex:none;width:258px;scroll-snap-align:center;background:var(--blanc);border-radius:var(--r-c);
+  box-shadow:var(--o2);overflow:hidden;display:flex;gap:0;text-align:left;}
+.mini-i{width:96px;flex:none;align-self:stretch;}
+.mini-c{padding:11px 12px;flex:1;min-width:0;}
+.mini-n{display:block;font-size:13.5px;font-weight:700;line-height:1.25;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.mini-s{display:block;font-size:12px;color:var(--encre-3);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mini-m{display:block;font-family:var(--fm);font-size:11px;color:var(--encre-2);margin-top:6px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* bouton bascule liste/carte, flottant (Airbnb) */
+#bascule{position:absolute;left:50%;transform:translateX(-50%);bottom:96px;z-index:80;
+  min-height:var(--cible-minimum);padding:0 20px;display:flex;align-items:center;gap:8px;
+  background:var(--orange);color:var(--encre);border-radius:var(--r-p);
+  font-size:14px;font-weight:800;box-shadow:var(--o2);
+  transition:transform var(--duree-toucher) var(--ressort);}
+#bascule:active{transform:translateX(-50%) scale(.94);background:#E04512;}
+#bascule svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* ═══ BARRE D'ONGLETS ═══ */
+#onglets{flex:none;height:78px;display:flex;padding-bottom:14px;background:var(--papier);
+  border-top:1px solid var(--trait);z-index:60;}
+.og{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  color:var(--encre-3);transition:color var(--duree-toucher);}
+.og svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.og-l{font-size:10px;font-weight:600;}
+.og.on{color:var(--rouille);}
+.og.on svg{stroke-width:2.1;}
+
+/* ═══ FICHE DÉTAILLÉE ═══ */
+#detail{position:absolute;inset:0;z-index:95;background:var(--papier);display:none;flex-direction:column;}
+#detail.on{display:flex;animation:monte var(--duree-transition) var(--ressort);}
+@keyframes monte{from{transform:translateY(100%)}to{transform:none}}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MOUVEMENT — la grammaire d'Uber et de Bolt
+   Leur élan ne vient pas de boucles. Il vient de deux choses : un
+   mouvement bref CHAQUE FOIS qu'un état change, et une seule chose
+   vivante à l'écran — le direct. Tout ce qui suit est déclenché et fini ;
+   une seule animation boucle dans l'application entière, le point du
+   direct, ce que le quota déclaré autorise (clignotements-dans-l-app = 1).
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{ --echelon:calc(var(--duree-toucher) / 2); }   /* 45 ms entre deux arrivées */
+
+@keyframes surgit{from{opacity:0;transform:translateY(15px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes glisse{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes eclot{0%{transform:scale(.5);opacity:0}62%{transform:scale(1.09);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes trace{to{stroke-dashoffset:0}}
+@keyframes voile{from{opacity:0}to{opacity:1}}
+/* la seule boucle de l'application */
+@keyframes pouls{0%{transform:scale(1);opacity:.85}70%{transform:scale(2.4);opacity:0}100%{transform:scale(2.4);opacity:0}}
+
+/* Entrée échelonnée : chaque carte arrive juste après la précédente.
+   Six au maximum — au-delà, l'attente se voit au lieu de se sentir. */
+.surgit{animation:surgit var(--duree-transition) var(--ressort) both;}
+.surgit:nth-child(2){animation-delay:calc(var(--echelon) * 1)}
+.surgit:nth-child(3){animation-delay:calc(var(--echelon) * 2)}
+.surgit:nth-child(4){animation-delay:calc(var(--echelon) * 3)}
+.surgit:nth-child(5){animation-delay:calc(var(--echelon) * 4)}
+.surgit:nth-child(n+6){animation-delay:calc(var(--echelon) * 5)}
+
+/* Le tracé se dessine au lieu d'apparaître : chez Uber c'est l'itinéraire,
+   ici c'est la montée qui vous attend. */
+.d-trace{stroke-dasharray:var(--long);stroke-dashoffset:var(--long);
+  animation:trace var(--duree-transition) var(--ressort) var(--duree-toucher) forwards;}
+
+/* ═══ LE DIRECT — pastille de sortie en cours ═══ */
+.direct{display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);
+  font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;}
+.direct .pt-d{position:relative;width:7px;height:7px;flex:none;border-radius:50%;background:var(--saumon);}
+.direct .pt-d::after{content:'';position:absolute;inset:0;border-radius:50%;background:var(--saumon);
+  animation:pouls var(--duree-clignotement-direct) var(--sortie-douce, cubic-bezier(.2,0,0,1)) infinite;}
+
+/* ═══ BARRE DE SORTIE EN COURS — le trajet en cours d'Uber ═══
+   Elle ne quitte plus l'écran tant que la sortie n'est pas terminée. */
+#course{position:absolute;left:0;right:0;bottom:78px;z-index:85;padding:0 12px 10px;
+  /* Sa hauteur plus la barre d'onglets : un pourcentage seul laissait
+     dépasser une quarantaine de pixels sous les onglets. */
+  transform:translateY(calc(100% + 78px));pointer-events:none;
+  transition:transform var(--duree-transition) var(--ressort);}
+#course.on{transform:none;pointer-events:auto;}
+/* Un écran par-dessus couvre le bouton flottant : le laisser là, c'est une
+   cible qui reste atteignable sur les bords et un second accent à l'écran. */
+#tel.couvert #bascule{display:none;}
+/* Quand une sortie est en cours, le bouton flottant lui laisse la place. */
+#tel.en-course #bascule{bottom:186px;}
+#tel.en-course #carte-bas{bottom:248px;}
+#c-carte{width:100%;text-align:left;background:var(--encre);color:var(--papier);
+  border-radius:var(--r-c);box-shadow:var(--o2);padding:12px 15px 13px;
+  transition:transform var(--duree-toucher) var(--ressort);}
+#c-carte:active{transform:scale(.985);}
+#c-haut{display:flex;align-items:center;gap:10px;}
+#c-nom{flex:1;min-width:0;font-size:14px;font-weight:700;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#c-chrono{font-family:var(--fm);font-size:14px;font-weight:500;font-variant-numeric:tabular-nums;}
+#c-jauge{height:4px;border-radius:2px;background:rgba(251,251,204,.22);overflow:hidden;margin-top:10px;}
+#c-jauge i{display:block;height:100%;width:0;background:var(--saumon);border-radius:2px;
+  transition:width var(--duree-transition) var(--sortie-douce, cubic-bezier(.2,0,0,1));}
+#c-bas{display:flex;justify-content:space-between;margin-top:7px;
+  font-family:var(--fm);font-size:11px;color:var(--papier-3);}
+.direct.clair .pt-d, .direct.clair .pt-d::after{background:var(--saumon);}
+
+/* ═══ SORTIE EN GRAND ═══ */
+#plein{position:absolute;inset:0;z-index:95;display:none;flex-direction:column;
+  background:var(--encre);color:var(--papier);}
+#plein.on{display:flex;animation:monte var(--duree-transition) var(--ressort);}
+#p-haut{flex:none;padding:24px 22px 0;display:flex;align-items:center;justify-content:space-between;}
+#p-reduire{width:var(--cible-minimum);height:var(--cible-minimum);display:grid;place-items:center;
+  border-radius:50%;background:rgba(251,251,204,.11);color:var(--papier);}
+#p-reduire svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;}
+#p-corps{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 22px;}
+/* Le profil du sentier, et le point qui y avance : l'équivalent de
+   l'itinéraire d'Uber, sauf qu'ici la ligne est le relief à monter. */
+#p-profil{height:132px;margin-bottom:26px;}
+#p-profil svg{width:100%;height:110px;display:block;overflow:visible;}
+/* Pas de vector-effect ici : avec non-scaling-stroke, stroke-dasharray se
+   résout en pixels écran alors que la longueur est calculée en unités du
+   viewBox. Le motif se répétait et la part parcourue s'affichait à
+   l'autre bout du tracé. */
+#p-profil .fond{fill:none;stroke:rgba(251,251,204,.22);stroke-width:2;stroke-linejoin:round;}
+#p-profil .fait{fill:none;stroke:var(--saumon);stroke-width:2.6;stroke-linecap:round;
+  stroke-linejoin:round;transition:stroke-dashoffset var(--duree-transition) linear;}
+#p-profil .ici{fill:var(--saumon);stroke:var(--encre);stroke-width:2.5;
+  transition:cx var(--duree-transition) linear,cy var(--duree-transition) linear;}
+#p-profil .ech{display:flex;justify-content:space-between;font-family:var(--fm);
+  font-size:10.5px;color:var(--pierre);margin-top:6px;}
+#p-nom{font-family:var(--fd);font-style:italic;font-size:28px;line-height:1.1;}
+#p-lieu{font-size:14.5px;color:var(--pierre);margin-top:7px;}
+#p-chrono{font-family:var(--fm);font-size:52px;font-weight:500;line-height:1;margin-top:22px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;}
+#p-chiffres{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:22px;}
+.p-ch{border:1px solid rgba(251,251,204,.15);border-radius:var(--r-c);padding:12px 13px;}
+.p-cv{font-size:20px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+.p-cl{font-size:11.5px;color:var(--pierre);margin-top:5px;font-weight:600;}
+#p-jauge{height:6px;border-radius:3px;background:rgba(251,251,204,.18);overflow:hidden;margin-top:26px;}
+#p-jauge i{display:block;height:100%;width:0;background:var(--saumon);border-radius:3px;
+  transition:width var(--duree-transition) var(--sortie-douce, cubic-bezier(.2,0,0,1));}
+#p-reste{font-family:var(--fm);font-size:11.5px;color:var(--pierre);margin-top:9px;}
+#p-barre{flex:none;padding:14px 22px 30px;}
+#p-fin{width:100%;min-height:56px;border-radius:var(--r-b);background:var(--orange);color:var(--encre);
+  font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  transition:transform var(--duree-toucher) var(--ressort);}
+#p-fin:active{transform:scale(.97);}
+
+/* ═══ LE MOMENT — la confirmation d'Uber, transposée à l'arrivée ═══ */
+#moment{position:absolute;inset:0;z-index:99;display:none;flex-direction:column;
+  align-items:center;justify-content:center;padding:40px 34px;text-align:center;
+  background:var(--papier);}
+#moment.on{display:flex;animation:voile var(--duree-sortie) both;}
+#m-rond{width:104px;height:104px;border-radius:50%;background:var(--orange);
+  display:grid;place-items:center;animation:eclot var(--duree-transition) var(--ressort) both;}
+#m-rond svg{width:52px;height:52px;stroke:var(--encre);fill:none;stroke-width:2.6;
+  stroke-linecap:round;stroke-linejoin:round;}
+#m-rond path{stroke-dasharray:34;stroke-dashoffset:34;
+  animation:trace var(--duree-sortie) var(--ressort) var(--duree-transition) forwards;}
+#m-t{font-family:var(--fd);font-style:italic;font-size:29px;line-height:1.15;margin-top:26px;
+  animation:glisse var(--duree-transition) var(--ressort) var(--duree-toucher) both;}
+#m-s{font-size:15px;color:var(--encre-2);line-height:1.6;margin-top:10px;
+  animation:glisse var(--duree-transition) var(--ressort) var(--duree-sortie) both;}
+#m-ch{display:flex;gap:26px;margin-top:26px;
+  animation:glisse var(--duree-transition) var(--ressort) var(--duree-transition) both;}
+.m-c{text-align:center;}
+.m-cv{font-size:26px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+.m-cl{font-size:12px;color:var(--encre-3);margin-top:5px;font-weight:600;}
+#m-ok{margin-top:34px;min-width:190px;}
+
+/* ═══ FILTRES ═══ */
+#filtres{position:absolute;inset:0;z-index:96;display:none;}
+#filtres.on{display:block;}
+#f-voile{position:absolute;inset:0;background:rgba(28,20,16,.42);
+  animation:voile var(--duree-sortie) both;}
+#f-feuille{position:absolute;left:0;right:0;bottom:0;background:var(--papier);
+  border-radius:22px 22px 0 0;padding:10px 0 24px;max-height:82%;display:flex;flex-direction:column;
+  animation:monte var(--duree-transition) var(--ressort);}
+#f-poignee{width:38px;height:4px;border-radius:2px;background:var(--papier-3);margin:0 auto 12px;}
+#f-titre{font-family:var(--fd);font-style:italic;font-size:23px;padding:0 20px 4px;}
+#f-corps{flex:1;overflow-y:auto;padding:8px 20px 4px;scrollbar-width:none;}
+#f-corps::-webkit-scrollbar{display:none;}
+.f-g{padding:14px 0;border-bottom:1px solid var(--trait-2);}
+.f-g:last-child{border-bottom:0;}
+.f-h{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--encre-3);margin-bottom:11px;}
+.f-ch{display:flex;flex-wrap:wrap;gap:8px;}
+.ch{min-height:var(--cible-minimum);padding:0 15px;display:flex;align-items:center;gap:7px;
+  border:1px solid var(--trait);border-radius:var(--r-p);font-size:14px;font-weight:600;
+  background:var(--blanc);
+  transition:background var(--duree-toucher),border-color var(--duree-toucher),color var(--duree-toucher);}
+.ch .n{font-family:var(--fm);font-size:11.5px;color:var(--encre-3);}
+.ch.on{background:var(--encre);border-color:var(--encre);color:var(--papier);}
+.ch.on .n{color:var(--pierre);}
+.ch:disabled{opacity:.38;}
+#f-bas{flex:none;display:flex;gap:10px;padding:14px 20px 0;border-top:1px solid var(--trait);}
+#f-bas #f-raz{flex:1;}
+/* « Voir les 11 résultats » ne tient pas dans la moitié d'un écran de
+   390 px : le bouton d'action prend la place qu'il lui faut. */
+#f-bas #f-ok{flex:1.7;white-space:nowrap;padding:0 14px;}
+/* La pilule de recherche montre les filtres actifs — sinon on oublie
+   qu'on filtre et la liste paraît vide sans raison. */
+#pastille-f{position:absolute;top:-3px;right:-3px;min-width:19px;height:19px;padding:0 5px;
+  border-radius:var(--r-p);background:var(--orange);color:var(--encre);
+  font-family:var(--fm);font-size:11px;font-weight:500;display:none;place-items:center;}
+#pastille-f.on{display:grid;}
+
+/* ═══ RÉCIT GUIDÉ ═══ */
+#recit{position:absolute;inset:0;z-index:97;display:none;flex-direction:column;
+  background:var(--papier);}
+#recit.on{display:flex;animation:monte var(--duree-transition) var(--ressort);}
+#r-haut{flex:none;padding:22px 18px 0;display:flex;align-items:center;gap:14px;}
+#r-x{width:var(--cible-minimum);height:var(--cible-minimum);flex:none;display:grid;place-items:center;
+  border-radius:50%;background:var(--papier-2);}
+#r-x svg{width:19px;height:19px;stroke:var(--encre);fill:none;stroke-width:2;stroke-linecap:round;}
+#r-seg{flex:1;display:flex;gap:5px;}
+#r-seg i{flex:1;height:3px;border-radius:2px;background:var(--papier-3);}
+#r-seg i.vu{background:var(--rouille);}
+/* Centré verticalement et large : on lit ce texte en marchant, pas assis. */
+#r-corps{flex:1;overflow-y:auto;padding:24px 24px 10px;scrollbar-width:none;
+  display:flex;flex-direction:column;justify-content:center;}
+#r-corps::-webkit-scrollbar{display:none;}
+#r-nom{flex:none;font-family:var(--fd);font-style:italic;font-size:26px;line-height:1.15;}
+#r-txt{flex:none;font-size:20px;line-height:1.65;color:var(--encre);margin-top:22px;
+  max-width:34ch;}
+#r-bas{flex:none;padding:12px 18px 26px;border-top:1px solid var(--trait);}
+#r-src{font-family:var(--fm);font-size:11px;color:var(--encre-3);line-height:1.5;}
+#r-nav{display:flex;gap:10px;margin-top:12px;}
+#r-nav .btn{flex:1;}
+
+/* ═══ HISTOIRE ═══ */
+.rec{display:flex;gap:14px;width:100%;text-align:left;padding:14px 18px;
+  border-bottom:1px solid var(--trait-2);}
+.rec:active{background:var(--papier-2);}
+.rec-i{width:64px;height:64px;flex:none;border-radius:var(--r-b);}
+.rec-c{flex:1;min-width:0;}
+.rec-n{display:block;font-size:15px;font-weight:800;line-height:1.25;}
+.rec-x{display:block;font-size:13px;color:var(--encre-3);line-height:1.45;margin-top:3px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.rec-m{display:block;font-family:var(--fm);font-size:11px;color:var(--rouille);margin-top:5px;}
+.rep{display:flex;gap:12px;overflow-x:auto;padding:4px 18px 6px;scrollbar-width:none;}
+.rep::-webkit-scrollbar{display:none;}
+.rep-c{flex:none;width:210px;}
+.rep-i{display:block;height:132px;border-radius:var(--r-c);position:relative;}
+.rep-cat{position:absolute;top:10px;left:10px;background:var(--saumon-pale);color:var(--rouille);
+  font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:var(--r-p);}
+.rep-t{display:block;font-size:14.5px;font-weight:700;line-height:1.3;margin-top:9px;}
+.rep-d{display:block;font-family:var(--fm);font-size:11px;color:var(--encre-3);margin-top:3px;}
+
+/* ═══ TABLEAU DE BORD — repris du site : des arcs, pas des barres, et un
+   rail de badges où l'on voit le palier suivant avant de l'avoir. ═══ */
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:14px 18px 0;}
+.dg-c{background:var(--blanc);border:1px solid var(--trait);border-radius:var(--r-c);
+  padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;box-shadow:var(--o1);}
+.dg-s{width:96px;height:54px;display:block;}
+.dg-f{fill:none;stroke:var(--papier-3);stroke-width:7;stroke-linecap:round;}
+/* Trait fin sur fond clair : c'est le rôle du 700, pas celui du 500.
+   Quatre arcs orange plus un bouton orange, ce n'est plus un accent. */
+.dg-a{fill:none;stroke:var(--rouille);stroke-width:7;stroke-linecap:round;
+  transition:stroke-dashoffset var(--duree-transition) var(--sortie-douce, cubic-bezier(.2,0,0,1));}
+.dg-v{display:block;font-size:17px;font-weight:800;line-height:1;margin-top:-8px;
+  font-variant-numeric:tabular-nums;}
+.dg-l{display:block;font-family:var(--fm);font-size:9.5px;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--encre-3);text-align:center;margin-top:6px;line-height:1.35;}
+
+.rail{display:flex;gap:12px;overflow-x:auto;padding:12px 18px 4px;scrollbar-width:none;}
+.rail::-webkit-scrollbar{display:none;}
+/* Pas d'opacité sur le badge entier : elle éteint aussi le texte, qui
+   tombait à 4,18:1. Les trois états se distinguent par leurs couleurs
+   propres, toutes au-dessus du seuil. */
+.bg{flex:none;width:68px;display:flex;flex-direction:column;align-items:center;gap:7px;}
+.bg-r{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;
+  background:var(--papier-2);border:2px solid var(--papier-3);
+  font-family:var(--fd);font-style:italic;font-size:15px;color:var(--encre-2);
+  transition:background var(--duree-sortie),border-color var(--duree-sortie);}
+.bg.on .bg-r{background:var(--saumon-pale);border-color:var(--saumon);color:var(--rouille-f);}
+/* Acquis : saumon pâle. Palier courant : saumon plein. À venir : gris.
+   Trois états lisibles sans mobiliser l'orange, qui reste à l'action. */
+.bg.ici .bg-r{background:var(--saumon);border-color:var(--rouille);color:var(--rouille-f);}
+.bg-n{display:block;font-family:var(--fm);font-size:9px;letter-spacing:.02em;
+  text-transform:uppercase;color:var(--encre-2);text-align:center;line-height:1.35;}
+.bg.ici .bg-n{color:var(--rouille);font-weight:500;}
+
+/* ═══ TABLEAU DE BORD ═══ */
+.niv{margin:14px 18px 0;padding:16px;border-radius:var(--r-c);background:var(--saumon-pale);}
+.niv-b{display:block;font-family:var(--fd);font-style:italic;font-size:22px;color:var(--rouille-f);}
+.niv-k{display:block;font-family:var(--fm);font-size:12px;color:var(--rouille);margin-top:4px;}
+.niv .jauge{background:rgba(105,40,19,.16);margin-top:12px;}
+.niv .jauge i{background:var(--rouille);}
+.niv-s{display:block;font-size:12.5px;color:var(--rouille-f);margin-top:8px;}
+.jg{padding:12px 0;border-bottom:1px solid var(--trait-2);}
+.jg-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
+.jg-l{font-size:13.5px;font-weight:600;}
+.jg-v{font-family:var(--fm);font-size:12.5px;color:var(--encre-2);}
+
+/* ═══ ÉLAN — la progression, sans punition ═══ */
+.elan{display:flex;align-items:center;gap:16px;margin:16px 18px 0;padding:16px;
+  border:1px solid var(--trait);border-radius:var(--r-c);}
+.elan-r{position:relative;width:62px;height:62px;flex:none;}
+.elan-r svg{width:62px;height:62px;transform:rotate(-90deg);}
+.elan-r circle{fill:none;stroke-width:6;stroke-linecap:round;}
+.elan-r .fond{stroke:var(--papier-3);}
+.elan-r .arc{stroke:var(--orange);stroke-dasharray:var(--tour);stroke-dashoffset:var(--tour);
+  transition:stroke-dashoffset var(--duree-transition) var(--sortie-douce, cubic-bezier(.2,0,0,1));}
+.elan-n{position:absolute;inset:0;display:grid;place-items:center;
+  font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;}
+.elan-c{flex:1;min-width:0;}
+.elan-t{display:block;font-size:15px;font-weight:800;}
+.elan-p{display:block;font-size:13px;color:var(--encre-3);line-height:1.5;margin-top:3px;}
+
+/* ═══ APPEL — l'incitation, mais qui dit vrai ═══ */
+.appel{display:flex;align-items:center;gap:13px;margin:16px 18px 0;padding:14px 16px;
+  border-radius:var(--r-c);background:var(--saumon-pale);width:calc(100% - 36px);text-align:left;
+  transition:transform var(--duree-toucher) var(--ressort);}
+.appel:active{transform:scale(.985);}
+.appel-i{width:42px;height:42px;flex:none;border-radius:var(--r-b);background:var(--saumon-pale);
+  display:grid;place-items:center;}
+.appel-i svg{width:20px;height:20px;stroke:var(--rouille);fill:none;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round;}
+.appel-c{flex:1;min-width:0;}
+.appel-t{display:block;font-size:14.5px;font-weight:800;}
+.appel-s{display:block;font-size:13px;color:var(--encre-2);margin-top:2px;line-height:1.45;}
+.appel-f{flex:none;color:var(--encre-3);}
+.appel-f svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;}
+
+/* ═══ BASCULE — réglage on/off ═══ */
+.reglage{display:flex;align-items:center;gap:14px;min-height:var(--cible-minimum);width:100%;text-align:left;}
+.reglage-c{flex:1;min-width:0;}
+.reglage-t{display:block;font-size:14.5px;font-weight:700;}
+.reglage-s{display:block;font-size:13px;color:var(--encre-3);margin-top:2px;line-height:1.45;}
+.inter{flex:none;width:50px;height:30px;border-radius:var(--r-p);background:var(--papier-3);
+  position:relative;transition:background var(--duree-sortie);}
+.inter::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+  background:var(--blanc);box-shadow:var(--o1);
+  transition:transform var(--duree-sortie) var(--ressort);}
+.reglage[aria-pressed="true"] .inter{background:var(--rouille);}
+.reglage[aria-pressed="true"] .inter::after{transform:translateX(20px);}
+#d-corps{flex:1;overflow-y:auto;scrollbar-width:none;}
+#d-corps::-webkit-scrollbar{display:none;}
+.d-hero{height:290px;position:relative;}
+.d-retour{position:absolute;top:54px;left:16px;width:var(--cible-minimum);height:var(--cible-minimum);
+  border-radius:50%;background:var(--blanc);box-shadow:var(--o1);display:flex;align-items:center;justify-content:center;}
+.d-coeur{position:absolute;top:54px;right:16px;width:var(--cible-minimum);height:var(--cible-minimum);
+  border-radius:50%;background:var(--blanc);box-shadow:var(--o1);display:flex;align-items:center;justify-content:center;}
+.d-coeur svg{width:21px;height:21px;fill:none;stroke:var(--encre);stroke-width:1.9;}
+.d-coeur.aime svg{fill:var(--orange);stroke:var(--orange);}
+.d-b{padding:20px 20px 0;}
+.d-n{font-family:var(--fd);font-size:27px;font-style:italic;line-height:1.14;letter-spacing:-.01em;}
+.d-s{font-size:15px;color:var(--encre-3);margin-top:6px;}
+.d-chiffres{display:flex;gap:0;margin:18px 0;border:1px solid var(--trait);border-radius:var(--r-c);overflow:hidden;}
+.d-ch{flex:1;padding:13px 6px;text-align:center;border-right:1px solid var(--trait);}
+.d-ch:last-child{border-right:none;}
+.d-cv{font-size:17px;font-weight:800;}
+.d-cl{font-size:11px;color:var(--encre-3);margin-top:2px;font-weight:600;}
+.d-sep{height:1px;background:var(--trait);margin:20px 0;}
+.d-h{font-size:17px;font-weight:800;margin-bottom:9px;}
+.d-p{font-size:15px;line-height:1.65;color:var(--encre-2);}
+.d-src{font-family:var(--fm);font-size:11px;color:var(--encre-3);line-height:1.7;margin-top:10px;}
+.profil{border:1px solid var(--trait);border-radius:var(--r-c);padding:12px;background:var(--blanc);}
+.profil svg{width:100%;height:96px;display:block;overflow:visible;}
+.profil-l{display:flex;justify-content:space-between;font-family:var(--fm);font-size:10.5px;
+  color:var(--encre-3);margin-top:8px;}
+.pi{display:flex;gap:13px;align-items:center;width:100%;text-align:left;padding:12px 0;border-top:1px solid var(--trait-2);}
+.pi-i{width:44px;height:44px;flex:none;border-radius:var(--r-b);background:var(--papier-2);
+  display:flex;align-items:center;justify-content:center;color:var(--rouille);}
+.pi-i svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.pi-c{min-width:0;}
+.pi-n{display:block;font-size:14.5px;font-weight:700;}
+.pi-s{display:block;font-size:13px;color:var(--encre-3);margin-top:1px;}
+.pi-f{margin-left:auto;color:var(--encre-3);}
+
+/* barre d'action collante (Airbnb) */
+#d-barre{flex:none;padding:12px 20px 24px;background:var(--blanc);border-top:1px solid var(--trait);
+  display:flex;flex-direction:column;gap:10px;}
+.d-prix{min-width:0;}
+.d-p1{font-size:15px;font-weight:800;}
+.d-p2{font-size:12.5px;color:var(--encre-3);margin-top:1px;}
+.btn{min-height:var(--cible-minimum);padding:0 22px;border-radius:var(--r-b);background:var(--orange);
+  color:var(--encre);font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform var(--duree-toucher) var(--ressort),background var(--duree-toucher);}
+.btn:active{transform:scale(.96);background:#E04512;}
+.btn.large{width:100%;}
+.btn.creux{background:var(--papier-2);color:var(--encre);}
+/* Une seule action porte l'orange 500 par écran — c'est la règle du
+   document de marque, pas une préférence. Tout le reste vit en 300/100. */
+.btn.sombre{min-height:54px;font-size:16px;}
+
+/* ═══ ÉTATS VIDES / LISTES SIMPLES ═══ */
+.titre{padding:20px 18px 4px;}
+.t-1{font-family:var(--fd);font-size:25px;font-style:italic;line-height:1.15;}
+.t-2{font-size:14.5px;color:var(--encre-3);margin-top:5px;}
+.vide{padding:44px 30px;text-align:center;}
+.vide svg{width:38px;height:38px;stroke:var(--encre-3);fill:none;stroke-width:1.5;margin:0 auto 14px;}
+.vide-t{font-size:16px;font-weight:700;}
+.vide-p{font-size:14px;color:var(--encre-3);line-height:1.6;margin-top:6px;}
+.rangee{display:flex;gap:14px;align-items:center;width:100%;text-align:left;padding:14px 18px;
+  border-bottom:1px solid var(--trait-2);}
+.rangee:active{background:var(--papier-2);}
+.r-i{width:56px;height:56px;flex:none;border-radius:var(--r-b);}
+.r-c{flex:1;min-width:0;}
+.r-n{display:block;font-size:14.5px;font-weight:700;line-height:1.25;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.r-s{display:block;font-size:13px;color:var(--encre-3);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.r-m{display:block;font-family:var(--fm);font-size:11px;color:var(--encre-2);margin-top:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.jauge{display:block;height:5px;border-radius:3px;background:var(--papier-3);overflow:hidden;margin-top:8px;}
+.jauge i{display:block;height:100%;background:var(--saumon);border-radius:3px;}
+.stat-g{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:0 18px;}
+.st{border:1px solid var(--trait);border-radius:var(--r-c);padding:14px;}
+.st-v{font-size:22px;font-weight:800;line-height:1;}
+.st-l{font-size:12.5px;color:var(--encre-3);margin-top:5px;font-weight:600;}
+.puces{display:flex;gap:8px;flex-wrap:wrap;padding:12px 18px 0;}
+.puce{min-height:var(--cible-minimum);padding:0 16px;display:flex;align-items:center;
+  border:1px solid var(--trait);border-radius:var(--r-p);font-size:13.5px;font-weight:600;
+  transition:background var(--duree-toucher),border-color var(--duree-toucher);}
+.puce.on{background:var(--encre);color:var(--papier);border-color:var(--encre);}
+.fin{text-align:center;font-size:12.5px;color:var(--encre-3);padding:26px 18px 6px;font-weight:500;}
+
+@media (max-width:1080px){
+  body{align-items:stretch;background:var(--papier);}
+  #scene{flex-direction:column;gap:0;padding:0;}
+  #note{display:none;}
+  #tel{width:100%;max-width:520px;height:100dvh;border-radius:0;box-shadow:none;margin:0 auto;}
+  #encoche{display:none;} #statut{height:34px;}
+  #carte-haut{top:40px;}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:1ms!important;transition-duration:1ms!important;}}
+</style>
+</head>
+<body>
+<div id="scene">
+
+  <aside id="note">
+    <div class="n-t">Points P.O</div>
+    <p class="n-p">Interface reprise au langage d'Airbnb pour parcourir et à celui d'Uber/Bolt pour agir. Palette Brasier appliquée par rôle : le 500 <b>#F4511E</b> pour l'action, le 300 <b>#F99F83</b> pour les accents doux, le 700 pour le texte. Données réelles de l'application existante.</p>
+    <div class="n-i"><span class="n-s">Couleur</span><span><b>Le 500 est la marque, pas le 700</b>L'orange Brasier #F4511E porte l'action principale, avec du texte foncé — 5,6:1, quand du blanc tomberait à 2,9:1. Le saumon #F99F83 et le #FDE5DD portent tout le reste. Une seule action orange par écran.</span></div>
+    <div class="n-i"><span class="n-s">Histoire</span><span><b>Un onglet, pas une note de bas de fiche</b>Récits de lieu sourcés et reportages publiés. Chaque récit s'ouvre en lecture guidée : un passage par phrase, qu'on avance soi-même.</span></div>
+    <div class="n-i"><span class="n-s">Compte</span><span><b>Un tableau de bord calculé</b>Palier, kilomètres, dénivelé, lieux d'histoire — tous déduits du journal des sorties, aucun chiffre posé en dur.</span></div>
+    <div class="n-i"><span class="n-s">Recherche</span><span><b>Une pilule, pas un formulaire</b>Deux lignes : ce qu'on cherche, et le filtre en cours. Les filtres sont derrière un seul bouton rond.</span></div>
+    <div class="n-i"><span class="n-s">Catégories</span><span><b>Un rail, pas des onglets</b>Icône et libellé, soulignement sur l'actif. Change le contenu sans changer d'écran.</span></div>
+    <div class="n-i"><span class="n-s">Cartes</span><span><b>L'image d'abord</b>Grand format, coin arrondi, cœur en haut à droite. Le texte tient en trois lignes hiérarchisées.</span></div>
+    <div class="n-i"><span class="n-s">Carte</span><span><b>Des pastilles, pas des épingles</b>Chaque point porte sa distance. Un carrousel de mini-cartes en bas suit la sélection.</span></div>
+    <div class="n-i"><span class="n-s">Fiche</span><span><b>Une seule action, pleine largeur</b>Le résumé au-dessus, l'engagement en dessous — la forme d'Uber et de Bolt. Le profil altimétrique vient des traces GPX réelles et se dessine à l'ouverture.</span></div>
+    <div class="n-i"><span class="n-s">Sortie</span><span><b>Le trajet en cours</b>Une fois lancée, la sortie ne quitte plus l'écran : barre réduite au-dessus des onglets, plein écran au toucher. Le point avance sur le profil du sentier.</span></div>
+    <div class="n-i"><span class="n-s">Arrivée</span><span><b>Le moment</b>Coche qui se trace, puis les chiffres qui montent. La récompense arrive en second, jamais avant l'effort.</span></div>
+    <div class="n-i"><span class="n-s">Élan</span><span><b>Une progression sans punition</b>L'anneau monte quand vous marchez et ne redescend jamais. Désactivable dans Compte. Une seule chose boucle dans toute l'application : le point du direct.</span></div>
+  </aside>
+
+  <div id="tel">
+    <div id="encoche"></div>
+    <div id="statut"><span id="heure">08:12</span><span>GPS · 78 % ▮</span></div>
+
+    <header id="entete">
+      <button class="recherche" id="btn-recherche">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span class="rc-t"><span class="rc-1" id="rc-1">Où voulez-vous marcher ?</span>
+        <span class="rc-2" id="rc-2">Pyrénées-Orientales · toutes distances</span></span>
+        <span class="rc-b"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span id="pastille-f">0</span></span>
+      </button>
+      <nav class="cats" id="cats"></nav>
+    </header>
+
+    <main id="corps">
+      <section class="ecran on" id="e-explorer"></section>
+      <section class="ecran" id="e-histoire"></section>
+      <section class="ecran" id="e-favoris"></section>
+      <section class="ecran" id="e-sorties"></section>
+      <section class="ecran" id="e-compte"></section>
+    </main>
+
+    <button id="bascule">
+      <svg viewBox="0 0 24 24"><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4v13"/></svg>
+      <span id="bascule-l">Carte</span>
+    </button>
+
+    <div id="vuecarte">
+      <canvas id="toile"></canvas>
+      <div id="calque"></div>
+      <div id="carte-haut">
+        <button class="recherche" id="carte-retour" style="min-height:var(--cible-minimum);padding:0 16px">
+          <svg class="ico" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg>
+          <span class="rc-t"><span class="rc-1" id="carte-titre">Randonnées</span></span>
+        </button>
+      </div>
+      <div id="carte-bas"></div>
+    </div>
+
+    <!-- Sortie en cours : le trajet en cours d'Uber. Elle ne quitte plus
+         l'écran tant qu'on n'a pas terminé. -->
+    <div id="course">
+      <button id="c-carte">
+        <span id="c-haut">
+          <span id="c-nom">—</span>
+          <span id="c-chrono">0:00</span>
+        </span>
+        <span id="c-jauge"><i></i></span>
+        <span id="c-bas">
+          <span class="direct clair"><span class="pt-d"></span>en cours</span>
+          <span id="c-km">0,0 km</span>
+        </span>
+      </button>
+    </div>
+
+    <div id="plein">
+      <div id="p-haut">
+        <button id="p-reduire" aria-label="Réduire">
+          <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <span class="direct clair"><span class="pt-d"></span>sortie en cours</span>
+        <span style="width:48px"></span>
+      </div>
+      <div id="p-corps">
+        <div id="p-profil"></div>
+        <div id="p-nom">—</div>
+        <div id="p-lieu">—</div>
+        <div id="p-chrono">0:00</div>
+        <div id="p-chiffres">
+          <div class="p-ch"><div class="p-cv" id="p-km">0,0</div><div class="p-cl">kilomètres</div></div>
+          <div class="p-ch"><div class="p-cv" id="p-dp">0</div><div class="p-cl">D+ mètres</div></div>
+          <div class="p-ch"><div class="p-cv" id="p-alt">0</div><div class="p-cl">altitude</div></div>
+        </div>
+        <div id="p-jauge"><i></i></div>
+        <div id="p-reste">—</div>
+      </div>
+      <div id="p-barre"><button id="p-fin">Terminer la sortie</button></div>
+    </div>
+
+    <!-- Filtres : une feuille qui monte, trois questions, un compte de
+         résultats qui change à chaque touche. Rien à valider pour voir. -->
+    <div id="filtres">
+      <div id="f-voile"></div>
+      <div id="f-feuille">
+        <div id="f-poignee"></div>
+        <div id="f-titre">Filtrer</div>
+        <div id="f-corps"></div>
+        <div id="f-bas">
+          <button class="btn creux" id="f-raz">Tout effacer</button>
+          <button class="btn" id="f-ok">Voir les résultats</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Récit guidé : le texte d'un lieu, découpé en passages qu'on
+         avance soi-même. Pas de lecture automatique — on marche. -->
+    <div id="recit">
+      <div id="r-haut">
+        <button id="r-x" aria-label="Fermer le récit">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <div id="r-seg"></div>
+      </div>
+      <div id="r-corps">
+        <div id="r-nom">—</div>
+        <div id="r-txt">—</div>
+      </div>
+      <div id="r-bas">
+        <div id="r-src">—</div>
+        <div id="r-nav">
+          <button class="btn creux" id="r-prec">Précédent</button>
+          <button class="btn" id="r-suiv">Suivant</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Le moment : la confirmation d'Uber, transposée à l'arrivée. -->
+    <div id="moment">
+      <div id="m-rond"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+      <div id="m-t">—</div>
+      <div id="m-s">—</div>
+      <div id="m-ch">
+        <div class="m-c"><div class="m-cv" id="m-km">0</div><div class="m-cl">kilomètres</div></div>
+        <div class="m-c"><div class="m-cv" id="m-dp">0</div><div class="m-cl">D+ mètres</div></div>
+        <div class="m-c"><div class="m-cv" id="m-t2">0</div><div class="m-cl">minutes</div></div>
+      </div>
+      <button class="btn creux" id="m-ok">Voir mes sorties</button>
+    </div>
+
+    <nav id="onglets">
+      <button class="og on" data-o="explorer" aria-current="page">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="og-l">Explorer</span></button>
+      <button class="og" data-o="histoire">
+        <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22Z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22Z"/></svg><span class="og-l">Histoire</span></button>
+      <button class="og" data-o="favoris">
+        <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.6-7-9.3A4.2 4.2 0 0 1 12 8a4.2 4.2 0 0 1 7 2.7C19 15.4 12 20 12 20Z"/></svg><span class="og-l">Favoris</span></button>
+      <button class="og" data-o="sorties">
+        <svg viewBox="0 0 24 24"><path d="M5 20 9 9l3.5 4.5L15 8l4 12Z"/><circle cx="17" cy="5" r="2"/></svg><span class="og-l">Sorties</span></button>
+      <button class="og" data-o="compte">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.7"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span class="og-l">Compte</span></button>
+    </nav>
+
+    <div id="detail" role="dialog" aria-modal="true" aria-label="Fiche">
+      <div id="d-corps"></div>
+      <div id="d-barre"></div>
+    </div>
+  </div>
+</div>
+<script>
+/* ══ DONNÉES RÉELLES — reprises de l'application Points P.O existante
+   (artefact « Points P.O — App »). Coordonnées GPS et profils
+   altimétriques issus des traces réelles. ══ */
+const TRAILS = [
+  { id:"canigou", nom:"Pic du Canigou", commune:"Massif du Canigou · 66", km:22, denivele:1850, duree:"2 jours", diff:"Difficile", dept:"66",
+    quote:"Le sommet emblématique des Catalans — deux jours, un refuge, un guide qui connaît chaque pierre du massif.", x:46, y:40, coord:[2.456,42.519], profil:null },
+  { id:"cortalets-boucle", nom:"Boucle des Cortalets", commune:"Valmanya · 66", km:14.8, denivele:1245, duree:"7h30", diff:"Difficile", dept:"66",
+    quote:"Véritable vigie maritime, le Canigó domine la plaine du Roussillon et la mer Méditerranée.", x:41, y:35, coord:[2.46983,42.53103],
+    profil:[[0,1036],[1.13,1268],[2.27,1613],[3.4,1749],[4.54,1830],[5.67,1929],[6.81,2034],[7.94,2167],[9.08,2166],[10.21,2046],[11.35,1768],[12.48,1613],[13.62,1268],[14.75,1036]] },
+  { id:"vallee-eyne", nom:"Réserve naturelle de la Vallée d'Eyne", commune:"Eyne · 66", km:17.2, denivele:1088, duree:"7h30", diff:"Difficile", dept:"66",
+    quote:"Découvrez la vallée d'Eyne, un site unique au monde !", x:71, y:34, coord:[2.15,42.42098],
+    profil:[[0,1603],[1.32,1734],[2.64,1854],[3.96,1998],[5.27,2139],[6.59,2294],[7.91,2501],[9.23,2501],[10.55,2294],[11.87,2139],[13.19,1998],[14.5,1854],[15.82,1734],[17.14,1603]] },
+  { id:"carolane", nom:"La Carolane", commune:"Porta · 66", km:31, denivele:330, duree:"9h30", diff:"Difficile", dept:"66",
+    quote:"La Carolane, chemin de la liberté.", x:80, y:29, coord:[1.82325,42.51421],
+    profil:[[0,2085],[2.38,2172],[4.76,2113],[7.13,2014],[9.51,1838],[11.89,1560],[14.27,1502],[16.65,1432],[19.02,1360],[21.4,1274],[23.78,1250],[26.16,1247],[28.53,1192],[30.91,1191]] },
+  { id:"saute-montagne", nom:"À saute montagne", commune:"Banyuls-sur-Mer · 66", km:12.7, denivele:806, duree:"8h", diff:"Intermédiaire", dept:"66",
+    quote:"Entre le vignoble et les crêtes de Banyuls-sur-Mer, sur les chemins de l'exil.", x:83, y:74, coord:[3.11647,42.43609],
+    profil:[[0,24],[0.98,59],[1.95,118],[2.93,226],[3.9,349],[4.88,430],[5.85,533],[6.83,637],[7.81,485],[8.78,418],[9.76,408],[10.73,240],[11.71,119],[12.68,24]] },
+  { id:"cervides", nom:"À la rencontre des cervidés (PR15)", commune:"Sansa · 66", km:11.5, denivele:602, duree:"5h", diff:"Intermédiaire", dept:"66",
+    quote:"Une sortie originale pour aller écouter le brame du cerf !", x:61, y:26, coord:[2.17464,42.57523],
+    profil:[[0,1452],[0.88,1333],[1.77,1391],[2.65,1348],[3.54,1395],[4.42,1497],[5.3,1621],[6.19,1566],[7.07,1548],[7.96,1566],[8.84,1574],[9.72,1502],[10.61,1440],[11.49,1451]] },
+  { id:"cucurucull", nom:"Autour du Cucurucull", commune:"Fontpédrouse · 66", km:8.6, denivele:740, duree:"4h30", diff:"Intermédiaire", dept:"66",
+    quote:"Le « Cami Ramader », chemin de transhumance vers l'ermitage de Nuria — vestiges de cortals et vues sur la Riberola.", x:36, y:46, coord:[2.19114,42.47675],
+    profil:[[0,1313],[0.66,1400],[1.32,1510],[1.97,1601],[2.63,1627],[3.29,1695],[3.95,1889],[4.61,1993],[5.27,1952],[5.92,1833],[6.58,1688],[7.24,1521],[7.9,1376],[8.56,1313]] },
+  { id:"boucheville", nom:"Aux portes de Boucheville", commune:"Vira · 66", km:5.2, denivele:270, duree:"2h", diff:"Facile", dept:"66",
+    quote:"Ressourcez-vous entre la faune et la flore du Fenouillèdes.", x:19, y:29, coord:[2.41556,42.75935],
+    profil:[[0,609],[0.4,635],[0.79,672],[1.19,710],[1.58,772],[1.98,809],[2.37,835],[2.77,824],[3.16,791],[3.56,743],[3.95,701],[4.35,663],[4.74,655],[5.14,607]] },
+  { id:"rural-bastide", nom:"Au fil du chemin rural", commune:"La Bastide · 66", km:10.1, denivele:606, duree:"4h15", diff:"Facile", dept:"66",
+    quote:"Le chemin rural reliant La Bastide à Saint-Marsal, jadis unique liaison entre les deux villages.", x:29, y:53, coord:[2.62202,42.53782],
+    profil:[[0,785],[0.77,723],[1.55,641],[2.32,685],[3.09,723],[3.86,853],[4.64,769],[5.41,769],[6.18,853],[6.96,723],[7.73,685],[8.5,641],[9.27,723],[10.05,785]] },
+  { id:"archeo-eyne", nom:"Balade archéologique (PR16)", commune:"Eyne · 66", km:5.3, denivele:169, duree:"2h", diff:"Facile", dept:"66",
+    quote:"Une balade archéologique au patrimoine remarquable.", x:67, y:31, coord:[2.06953,42.48177],
+    profil:[[0,1555],[0.41,1552],[0.81,1552],[1.22,1551],[1.62,1563],[2.03,1540],[2.44,1511],[2.84,1491],[3.25,1542],[3.65,1558],[4.06,1576],[4.47,1604],[4.87,1615],[5.28,1555]] },
+  { id:"cathares", nom:"Tour Châteaux Cathares", commune:"Corbières · Aude/P.-O.", km:16, denivele:620, duree:"6h", diff:"Intermédiaire", dept:"66",
+    quote:"De forteresse en forteresse, le dernier refuge de la résistance cathare, entre garrigue et à-pic.", x:9, y:35, coord:[2.6029,42.8752], recit:true, profil:null },
+].map(t => ({ ...t, cat:'poi-rando', cle:`rando:${t.id}` }));
+
+/* ══ SITES HISTORIQUES — les 4 points réels du récit guidé, exposés aussi
+   comme leurs propres pins filtrables "Sites historiques" sur la carte
+   principale (catégorie poi-monument, comme sur points-po-carte.html). ══ */
+const MONUMENTS = [
+  { id:'peyrepertuse', nom:'Château de Peyrepertuse', commune:'Duilhac-sous-Peyrepertuse · 11', type:'Château médiéval', dept:'11',
+    x:6, y:32, coord:[2.555624,42.8708062] },
+  { id:'table-des-morts', nom:'Dolmen Table des Morts', commune:'Massac · 11', type:'Dolmen néolithique', dept:'11',
+    x:11, y:29, coord:[2.5789861,42.9257741] },
+  { id:'padern', nom:'Château de Padern', commune:'Padern · 11', type:'Château médiéval', dept:'11',
+    x:14, y:33, coord:[2.6553321,42.8674749] },
+  { id:'queribus', nom:'Château de Quéribus', commune:'Cucugnan · 11', type:'Château médiéval', dept:'11',
+    x:9, y:38, coord:[2.6214843,42.8367999] },
+].map(m => ({ ...m, cat:'poi-monument', cle:`monument:${m.id}` }));
+
+const EVENTS = [
+  { id:"evt-01", nom:"Fête de la Transhumance", ecat:"Fête traditionnelle", debut:"2026-08-09", fin:"2026-08-09", lieu:"Formiguères · Capcir", desc:"Descente des troupeaux dans les rues du village, marché de producteurs et animations catalanes.", x:57, y:22, coord:[2.0629,42.6227] },
+  { id:"evt-02", nom:"Festival de Guitare", ecat:"Festival", debut:"2026-08-10", fin:"2026-08-11", lieu:"Collioure", desc:"Concerts en plein air sur le port, musique et patrimoine catalan.", x:83, y:66, coord:[3.083,42.524] },
+  { id:"evt-03", nom:"Marché de producteurs", ecat:"Marché", debut:"2026-08-15", fin:"2026-08-15", lieu:"Céret", desc:"Marché hebdomadaire de producteurs locaux, terroir catalan.", x:68, y:62, coord:[2.749,42.489] },
+  { id:"evt-04", nom:"Foire aux vins", ecat:"Foire", debut:"2026-08-13", fin:"2026-08-13", lieu:"Rivesaltes", desc:"Foire aux vins avec les vignerons locaux du Rivesaltais.", x:74, y:20, coord:[2.856,42.766] },
+  { id:"evt-05", nom:"Nuit sur le Canigou", ecat:"Randonnée nocturne", debut:"2026-08-20", fin:"2026-08-20", lieu:"Massif du Canigou", desc:"Randonnée nocturne guidée à la pleine lune, massif du Canigou.", x:48, y:37, coord:[2.456,42.519] },
+  { id:"evt-06", nom:"Villefranche au Moyen Âge", ecat:"Marché médiéval", debut:"2026-09-14", fin:"2026-09-14", lieu:"Villefranche-de-Conflent", desc:"Marché médiéval dans la cité fortifiée, animations et reconstitutions.", x:33, y:34, coord:[2.364,42.603] },
+].map(e => ({ ...e, dept:"66", cat:'poi-evenement', cle:`evt:${e.id}` }));
+
+/* Index unique — sert au favoris, à la recherche d'accueil et au calcul
+   "à proximité" (haversine sur coordonnées réelles). */
+const PLACES = [...TRAILS, ...MONUMENTS, ...EVENTS];
+const parPlaceCle = cle => PLACES.find(p => p.cle === cle);
+
+/* Reportages publiés — repris de l'application existante. */
+const REPORTAGES = [
+  { titre:"Les châteaux cathares vus du ciel", cat:"Drone", date:"Janvier 2025", pal:0 },
+  { titre:"Catalan du Nord, une langue qui résiste", cat:"Documentaire", date:"Mars 2025", pal:5 },
+  { titre:"Collioure : entre peinture et pêche", cat:"Photo", date:"Décembre 2024", pal:2 },
+];
+
+/* Échelle de badges de l'application existante. Le seuil est en kilomètres
+   cumulés — calculés sur le journal réel, jamais posés en dur. */
+const BADGES = [
+  { seuil:0,    nom:"Premiers pas" },
+  { seuil:200,  nom:"Débutant" },
+  { seuil:700,  nom:"Randonneur" },
+  { seuil:1200, nom:"Explorateur" },
+  { seuil:1700, nom:"Aventurier" },
+  { seuil:2200, nom:"Marcheur Roussillon" },
+  { seuil:2700, nom:"Gardien du Canigou" },
+  { seuil:3200, nom:"Maître des sentiers" },
+];
+
+const RECIT = {
+  poi: [
+    { id:'peyrepertuse', nom:'Château de Peyrepertuse', x:22, y:76,
+      texte:"Cité dès 1020, la forteresse rejoint la couronne de France en 1242 sous Saint Louis. Perchée sur son éperon rocheux, elle est classée monument historique depuis 1908.",
+      source:"Base Mérimée PA00102673 · Wikipédia" },
+    { id:'table-des-morts', nom:'Dolmen Table des Morts', x:52, y:14,
+      texte:"Sépulture collective néolithique fouillée en 1896 par l'ingénieur Barnier. Considérée comme le plus beau dolmen du département, sa chambre de 3,30 × 1,12 m est classée depuis 1925.",
+      source:"Base Mérimée PA00102767 · Wikipédia" },
+    { id:'padern', nom:'Château de Padern', x:82, y:50,
+      texte:"Possession de l'abbaye de Lagrasse dès 889, il accueille la fuite de Chabert de Barbaira et Guillaume de Peyrepertuse. Sa silhouette actuelle, du XVIIe siècle, est due au seigneur Pierre de Vic.",
+      source:"Base Mérimée PA00103403" },
+    { id:'queribus', nom:'Château de Quéribus', x:58, y:79,
+      texte:"Dernier bastion de la résistance cathare : Chabert de Barbaira s'y rend en mai 1255 après trois semaines de siège, marquant la fin de la croisade des Albigeois.",
+      source:"cathares.org · Wikidata Q667763" },
+  ]
+};
+</script>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const ech = t => String(t ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+/* ══ VISUELS — dégradés déterministes, chauds, dérivés de l'identifiant.
+   En production ce sont les photographies du fonds Points P.O. ══ */
+/* Toutes tirées de « Brasier & Corail » : le rouille, le corail, la paille,
+   la pierre, l'encre. Deux tons plus froids pour les massifs lointains —
+   au-delà, l'application cesserait de se ressembler. */
+/* Toutes construites sur l'échelle Brasier et les neutres du document :
+   le 900 pour le premier plan, le 500/700 au milieu, le 300/100 pour le
+   ciel. Une seule sort de la famille — la garrigue est verte sur le
+   terrain, la nier serait plus faux que de varier. */
+const PALETTES = [
+  ["#692813","#F4511E","#FDE5DD"], /* brasier plein    */
+  ["#5A2A14","#A63A18","#F99F83"], /* rouille et saumon*/
+  ["#3B1F12","#C25A2E","#F6D2AC"], /* couchant         */
+  ["#4A2415","#9E6A3A","#EBC98F"], /* soir doré        */
+  ["#2E1B10","#8B5A2B","#D8CDBC"], /* pierre chaude    */
+  ["#33241A","#6B4630","#F3EEE6"], /* ombre et papier  */
+  ["#3A2A22","#8A6A5C","#E8DCD2"], /* brume du matin   */
+  ["#2A2A1E","#63684B","#C3C494"]  /* garrigue         */
+];
+let empreinte = 0;
+const empreinteDe = id => { let h = 0; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+const grad = id => {
+  const p = PALETTES[empreinteDe(id) % PALETTES.length];
+  return "linear-gradient(155deg," + p[0] + " 0%," + p[1] + " 52%," + p[2] + " 100%)";
+};
+
+/* ══ COUVERTURES — un paysage dessiné par lieu.
+   Chez Airbnb la photographie EST l'interface : un aplat ne tient pas ce
+   rôle. Faute de fonds photographique, on dessine une ligne de crête — et
+   pour une randonnée c'est SA crête, tracée depuis son profil GPX réel.
+   SVG plutôt que canvas : quelques centaines d'octets, net à toute taille,
+   et aucune dépendance réseau. ══ */
+const covers = new Map();
+
+function crete(h, base, amp, dents){
+  /* Somme de sinus déphasés : une silhouette lisse et déterministe. */
+  const a = 0.37 + (h % 100) / 260, b = 1.7 + ((h >> 7) % 100) / 90;
+  const c = 3.1 + ((h >> 13) % 100) / 55, d = ((h >> 19) % 628) / 100;
+  const pts = [];
+  for (let x = 0; x <= 100; x += 2.5){
+    const t = x / 100 * Math.PI * 2;
+    const v = Math.sin(t * a + d) * 0.55 + Math.sin(t * b + d * 2) * 0.3
+            + Math.sin(t * c + d * 3) * 0.15 * dents;
+    pts.push(x.toFixed(1) + "," + (base - amp * (v + 1) / 2).toFixed(1));
+  }
+  return pts.join(" ");
+}
+
+function creteProfil(profil, base, amp){
+  const alts = profil.map(q => q[1]), kms = profil.map(q => q[0]);
+  const mn = Math.min(...alts), mx = Math.max(...alts), km = kms[kms.length - 1] || 1;
+  const et = mx - mn || 1;
+  return profil.map(q =>
+    (q[0] / km * 100).toFixed(1) + "," + (base - amp * (0.18 + 0.82 * (q[1] - mn) / et)).toFixed(1)
+  ).join(" ");
+}
+
+function visuel(p){
+  if (covers.has(p.id)) return covers.get(p.id);
+  const h = empreinteDe(p.id), pal = PALETTES[h % PALETTES.length];
+  const [sombre, moyen, clair] = pal;
+  const g = "g" + h.toString(36);
+  /* Trois plans : le lointain pâlit, le premier plan est presque noir. */
+  const loin = crete(h, 62, 20, 0.5);
+  const milieu = crete(h ^ 0x9e3779b9, 76, 24, 0.9);
+  const pres = p.profil && p.profil.length > 2
+    ? creteProfil(p.profil, 95, 30)
+    : crete(h ^ 0x51ed270b, 95, 26, 1.2);
+  const soleil = 18 + (h % 64);
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 95" preserveAspectRatio="xMidYMid slice">' +
+    /* Le ciel reste clair jusqu'en bas : c'est le contraste avec les crêtes
+       qui fait lire les trois plans, pas un dégradé qui les avale. */
+    '<defs><linearGradient id="c' + g + '" x1="0" y1="0" x2="0.3" y2="1">' +
+      '<stop offset="0" stop-color="' + clair + '"/>' +
+      '<stop offset="0.55" stop-color="' + clair + '" stop-opacity="0.86"/>' +
+      '<stop offset="1" stop-color="' + moyen + '"/></linearGradient>' +
+    '<linearGradient id="b' + g + '" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" stop-color="' + moyen + '"/>' +
+      '<stop offset="1" stop-color="' + sombre + '"/></linearGradient></defs>' +
+    '<rect width="100" height="95" fill="' + moyen + '"/>' +
+    '<rect width="100" height="95" fill="url(#c' + g + ')"/>' +
+    '<circle cx="' + soleil + '" cy="19" r="6" fill="#FBFBCC" opacity="0.34"/>' +
+    '<polygon points="0,95 ' + loin + ' 100,95" fill="' + moyen + '" opacity="0.5"/>' +
+    '<polygon points="0,95 ' + milieu + ' 100,95" fill="url(#b' + g + ')"/>' +
+    '<polygon points="0,95 ' + pres + ' 100,95" fill="' + sombre + '"/>' +
+    "</svg>";
+  /* Guillemets simples : la valeur part dans un attribut style="…",
+     des guillemets doubles le refermeraient. */
+  const css = "url('data:image/svg+xml," +
+    encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22") + "')";
+  covers.set(p.id, css);
+  return css;
+}
+/* Le dégradé reste sous l'image : si le SVG ne rend pas, la carte a un fond. */
+const fondDeCarte = p => visuel(p) + " center/cover no-repeat," + grad(p.id);
+const DIFF_CL = { "Facile":"d-f", "Intermédiaire":"d-m", "Difficile":"d-d" };
+
+/* ══ ÉTAT ══ */
+const AIMES = "ppo_aimes";
+const ELAN_CLE = "ppo_elan";
+const S = {
+  onglet: "explorer", cat: "poi-rando", carte: false,
+  aimes: new Set(JSON.parse(localStorage.getItem(AIMES) || "[]")),
+  selection: null, faits: new Set(), journal: [],
+  diff: "all", dist: "all",
+  elanVisible: localStorage.getItem(ELAN_CLE) !== "0",
+  objectif: 2   /* sorties par semaine, choisi par la personne, pas par nous */
+};
+
+/* ══════════════════════════════════════════════════════════
+   MOUVEMENT — outils
+   ══════════════════════════════════════════════════════════ */
+const SOBRE = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Le chiffre qui monte. Chez Bolt c'est le prix, ici c'est le kilomètre
+   gagné : la même mécanique, une récompense qui n'est pas achetée. */
+function rouler(el, de, vers, ms, fmt){
+  if (!el) return;
+  const f = fmt || (v => Math.round(v));
+  if (SOBRE()) { el.textContent = f(vers); return; }
+  const t0 = performance.now();
+  const pas = t => {
+    const k = Math.min(1, (t - t0) / ms);
+    const e = 1 - Math.pow(1 - k, 4);        /* sortie douce, jamais de rebond sur un chiffre */
+    el.textContent = f(de + (vers - de) * e);
+    if (k < 1) requestAnimationFrame(pas);
+  };
+  requestAnimationFrame(pas);
+}
+
+/* Entrée échelonnée : on repose la classe pour que l'animation rejoue
+   à chaque rendu, sinon le navigateur la considère déjà consommée. */
+function echelonner(sel){
+  if (SOBRE()) return;
+  $$(sel).forEach(el => { el.classList.remove("surgit"); void el.offsetWidth; el.classList.add("surgit"); });
+}
+
+const deuxChiffres = n => (n < 10 ? "0" : "") + n;
+const chrono = sec => Math.floor(sec / 3600) > 0
+  ? Math.floor(sec / 3600) + ":" + deuxChiffres(Math.floor(sec / 60) % 60) + ":" + deuxChiffres(sec % 60)
+  : Math.floor(sec / 60) + ":" + deuxChiffres(sec % 60);
+const vgl = n => String(n).replace(".", ",");
+
+/* ══════════════════════════════════════════════════════════
+   SORTIE EN COURS — le trajet en cours d'Uber
+   Un seul état vivant dans l'application, et il dit la vérité :
+   tant qu'il est là, quelque chose est réellement en train de se faire.
+   ══════════════════════════════════════════════════════════ */
+const ACCEL = 60;   /* démonstration : une seconde réelle vaut une minute */
+const C = { cle: null, t0: 0, minutes: 0, timer: null };
+
+function altitudeA(p, part){
+  if (!p.profil || p.profil.length < 2) return null;
+  const km = p.profil[p.profil.length - 1][0] * part;
+  for (let i = 1; i < p.profil.length; i++){
+    if (p.profil[i][0] >= km){
+      const [k0, a0] = p.profil[i - 1], [k1, a1] = p.profil[i];
+      const u = k1 === k0 ? 0 : (km - k0) / (k1 - k0);
+      return Math.round(a0 + (a1 - a0) * u);
+    }
+  }
+  return p.profil[p.profil.length - 1][1];
+}
+
+/* Le profil vivant : la ligne complète en sourdine, la part parcourue en
+   corail, et le point où l'on se trouve. */
+function profilVivant(p){
+  if (!p.profil || p.profil.length < 2) return "";
+  const alts = p.profil.map(q => q[1]), kms = p.profil.map(q => q[0]);
+  const mn = Math.min(...alts), mx = Math.max(...alts), kmax = kms[kms.length - 1];
+  const amp = Math.max(1, mx - mn);
+  const xy = p.profil.map(q =>
+    [(q[0] / kmax) * 300, 96 - ((q[1] - mn) / amp) * 84]);
+  const pts = xy.map(c => c[0].toFixed(1) + "," + c[1].toFixed(1)).join(" ");
+  /* Longueur calculée, pas mesurée : getTotalLength() lève une exception
+     tant que l'élément n'est pas rendu, et l'écran est encore caché ici.
+     Pour une polyligne la somme des segments est exacte, en unités du
+     viewBox — ce qu'attend stroke-dasharray. */
+  C.long = xy.reduce((n, c, i) =>
+    i ? n + Math.hypot(c[0] - xy[i-1][0], c[1] - xy[i-1][1]) : 0, 0);
+  /* Échelle uniforme : avec preserveAspectRatio="none" le point deviendrait
+     une ellipse écrasée. */
+  return '<svg viewBox="0 0 300 100" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Progression sur le profil">' +
+    '<polyline class="fond" points="' + pts + '"/>' +
+    '<polyline class="fait" points="' + pts + '"/>' +
+    '<circle class="ici" r="5" cx="0" cy="96"/></svg>' +
+    '<div class="ech"><span>' + mn + " m</span><span>" + vgl(kmax.toFixed(1)) + " km</span><span>" + mx + " m</span></div>";
+}
+
+function lancerSortie(cle){
+  const p = parCle(cle); if (!p || p.cat !== "poi-rando") return;
+  C.cle = cle; C.t0 = performance.now(); C.minutes = 0;
+  $("#c-nom").textContent = p.nom;
+  $("#p-nom").textContent = p.nom;
+  $("#p-lieu").textContent = sousTitre(p);
+  C.long = 0;
+  $("#p-profil").innerHTML = profilVivant(p);
+  const f = $("#p-profil .fait");
+  if (f && C.long) { f.style.strokeDasharray = C.long.toFixed(1); f.style.strokeDashoffset = C.long.toFixed(1); }
+  $("#tel").classList.add("en-course");
+  clearInterval(C.timer);
+  C.timer = setInterval(battre, 1000);
+  battre();
+  montrerPlein(true);
+}
+
+/* Réduit et plein écran sont deux états d'un même objet, jamais les deux à
+   la fois : sans ça deux points du direct pulsent ensemble et le quota
+   déclaré (un seul clignotement dans l'application) saute. */
+function montrerPlein(v){
+  $("#plein").classList.toggle("on", v);
+  $("#course").classList.toggle("on", !v && !!C.cle);
+  majCouverture();
+}
+
+function battre(){
+  const p = parCle(C.cle); if (!p) return;
+  C.minutes = (performance.now() - C.t0) / 1000 * ACCEL / 60;
+  const heures = C.minutes / 60;
+  const km = Math.min(p.km, heures * 4);              /* 4 km/h, l'allure de Naismith */
+  const part = p.km ? km / p.km : 0;
+  const dp = Math.round((p.denivele || 0) * part);
+  const sec = Math.round(C.minutes * 60);
+
+  $("#c-chrono").textContent = chrono(sec);
+  $("#c-km").textContent = vgl(km.toFixed(1)) + " km";
+  $("#c-jauge i").style.width = (part * 100).toFixed(1) + "%";
+  $("#p-chrono").textContent = chrono(sec);
+  $("#p-km").textContent = vgl(km.toFixed(1));
+  $("#p-dp").textContent = dp;
+  const alt = altitudeA(p, part);
+  $("#p-alt").textContent = alt === null ? "—" : alt + " m";
+  $("#p-jauge i").style.width = (part * 100).toFixed(1) + "%";
+  const f = $("#p-profil .fait");
+  if (f && C.long) f.style.strokeDashoffset = (C.long * (1 - part)).toFixed(1);
+  const ici = $("#p-profil .ici");
+  if (ici && p.profil){
+    const alts = p.profil.map(q => q[1]);
+    const mn = Math.min(...alts), amp = Math.max(1, Math.max(...alts) - mn);
+    ici.setAttribute("cx", (part * 300).toFixed(1));
+    ici.setAttribute("cy", (96 - (((alt ?? mn) - mn) / amp) * 84).toFixed(1));
+  }
+  const reste = Math.max(0, p.km - km);
+  $("#p-reste").textContent = reste < 0.05
+    ? "Vous êtes arrivé — terminez quand vous voulez."
+    : vgl(reste.toFixed(1)) + " km restants · " + Math.round(part * 100) + " %";
+  if (km >= p.km) { clearInterval(C.timer); C.timer = null; }
+}
+
+function terminerSortie(){
+  const p = parCle(C.cle); if (!p) return;
+  clearInterval(C.timer); C.timer = null;
+  const heures = C.minutes / 60;
+  const km = Math.min(p.km, heures * 4);
+  const part = p.km ? km / p.km : 0;
+  const dp = Math.round((p.denivele || 0) * part);
+  const complet = part > 0.97;
+
+  if (complet) S.faits.add(p.cle);
+  S.journal.push({ cle: p.cle, t: Date.now(), km: +km.toFixed(1), dp, min: Math.round(C.minutes) });
+  C.cle = null;
+  montrerPlein(false);
+  $("#tel").classList.remove("en-course");
+
+  $("#m-t").textContent = complet ? "Sentier bouclé" : "Sortie enregistrée";
+  $("#m-s").textContent = complet
+    ? p.nom + " est dans vos sorties. Le récit du lieu reste lisible hors ligne."
+    : "Vous vous êtes arrêté avant la fin — c'est compté quand même, sans pénalité.";
+  $("#moment").classList.add("on");
+  majCouverture();
+  /* Les chiffres montent après la coche : la récompense arrive en deuxième. */
+  const apres = SOBRE() ? 0 : 420;
+  setTimeout(() => {
+    rouler($("#m-km"), 0, km, 900, v => vgl(v.toFixed(1)));
+    rouler($("#m-dp"), 0, dp, 900);
+    rouler($("#m-t2"), 0, Math.round(C.minutes), 900);
+  }, apres);
+}
+
+/* ══════════════════════════════════════════════════════════
+   FILTRES
+   Trois questions, et le nombre de résultats change à chaque touche :
+   on voit l'effet avant de valider, donc on n'a rien à valider.
+   ══════════════════════════════════════════════════════════ */
+function comptePour(champ, val){
+  const sauve = S[champ];
+  S[champ] = val;
+  const n = items().length;
+  S[champ] = sauve;
+  return n;
+}
+
+function rendreFiltres(){
+  const groupe = (titre, champ, opts) =>
+    '<div class="f-g"><div class="f-h">' + titre + '</div><div class="f-ch">' +
+    opts.map(o => {
+      const n = comptePour(champ, o.id);
+      return '<button class="ch' + (S[champ] === o.id ? " on" : "") + '" data-f="' + champ +
+        '" data-v="' + o.id + '"' + (n ? "" : " disabled") + ">" + ech(o.l) +
+        '<span class="n">' + n + "</span></button>";
+    }).join("") + "</div></div>";
+
+  $("#f-corps").innerHTML =
+    groupe("Quoi", "cat", [{ id:"all", l:"Tout" }].concat(CATS.filter(c => c.id !== "all").map(c => ({ id:c.id, l:c.l })))) +
+    groupe("Difficulté", "diff", DIFF_DEFS.map(d => ({ id:d, l:d === "all" ? "Toutes" : d }))) +
+    groupe("Distance", "dist", DIST_DEFS.map(d => ({ id:d.id, l:d.l })));
+
+  $("#f-ok").textContent = items().length
+    ? "Voir les " + items().length + " résultats"
+    : "Aucun résultat";
+  $("#f-ok").disabled = !items().length;
+  $("#f-ok").style.opacity = items().length ? "1" : ".5";
+
+  majPastilleF();
+  $$("#f-corps [data-f]").forEach(b => b.onclick = () => {
+    S[b.dataset.f] = b.dataset.v;
+    rendreFiltres();
+  });
+}
+
+function ouvrirFiltres(){ $("#filtres").classList.add("on"); majCouverture(); rendreFiltres(); }
+function fermerFiltres(){
+  $("#filtres").classList.remove("on");
+  majCouverture();
+  rendreCats(); rendre(); majPastilleF();
+}
+function majPastilleF(){
+  const n = nbFiltres();
+  const el = $("#pastille-f");
+  el.textContent = n;
+  el.classList.toggle("on", n > 0);
+  $("#rc-2").textContent = (CATS.find(c => c.id === S.cat)?.l ?? "Tout") +
+    (S.diff !== "all" ? " · " + S.diff : "") +
+    (S.dist !== "all" ? " · " + distDef(S.dist).l.toLowerCase() : "");
+}
+
+/* Un seul endroit décide si quelque chose recouvre l'écran. */
+function majCouverture(){
+  const couvert = ["#detail", "#recit", "#plein", "#moment", "#filtres"]
+    .some(sel => $(sel) && $(sel).classList.contains("on"));
+  $("#tel").classList.toggle("couvert", couvert);
+}
+
+/* ══════════════════════════════════════════════════════════
+   RÉCIT GUIDÉ
+   Le texte d'un lieu, coupé en passages qu'on avance soi-même.
+   Rien ne défile tout seul : on lit en marchant, pas en regardant.
+   ══════════════════════════════════════════════════════════ */
+const R = { cle: null, pass: [], i: 0, src: "" };
+
+/* Un passage par phrase. Les récits font deux ou trois phrases : les
+   regrouper par blocs de 150 signes n'en produisait qu'un seul, et
+   l'écran perdait sa raison d'être. Une phrase très courte se rattache à
+   la précédente plutôt que de faire un passage à elle seule. */
+function passages(texte){
+  const phrases = texte.match(/[^.!?]+[.!?]+\s*/g) || [texte];
+  const out = [];
+  for (const ph of phrases){
+    const t = ph.trim();
+    if (!t) continue;
+    if (out.length && t.length < 60) out[out.length - 1] += " " + t;
+    else out.push(t);
+  }
+  return out.length ? out : [texte.trim()];
+}
+
+function ouvrirRecit(cle){
+  const p = parCle(cle); if (!p) return;
+  const r = RECIT_PAR_ID[p.id]; if (!r) return;
+  R.cle = cle; R.pass = passages(r.texte); R.i = 0; R.src = r.source;
+  $("#r-nom").textContent = p.nom;
+  $("#recit").classList.add("on");
+  majCouverture();
+  majRecit();
+}
+
+function majRecit(){
+  $("#r-seg").innerHTML = R.pass.map((_, i) =>
+    '<i class="' + (i <= R.i ? "vu" : "") + '"></i>').join("");
+  $("#r-txt").textContent = R.pass[R.i];
+  $("#r-src").textContent = "Sources · " + R.src;
+  $("#r-prec").disabled = R.i === 0;
+  $("#r-prec").style.opacity = R.i === 0 ? ".4" : "1";
+  $("#r-suiv").textContent = R.i === R.pass.length - 1 ? "Terminer" : "Suivant";
+  $("#r-corps").scrollTop = 0;
+}
+
+function suivantRecit(){
+  if (R.i < R.pass.length - 1) { R.i++; majRecit(); return; }
+  fermerRecit();
+}
+function fermerRecit(){ $("#recit").classList.remove("on"); majCouverture(); }
+
+function fermerMoment(){
+  $("#moment").classList.remove("on");
+  majCouverture();
+  allerA("sorties");
+}
+const enregistrerAimes = () => {
+  try { localStorage.setItem(AIMES, JSON.stringify([...S.aimes])); } catch(e) {}
+};
+const aime = cle => S.aimes.has(cle);
+const basculerAime = cle => { S.aimes.has(cle) ? S.aimes.delete(cle) : S.aimes.add(cle); enregistrerAimes(); };
+
+/* ══ CATÉGORIES ══ */
+const ICO = {
+  rando: '<path d="M4 19l5.5-10 3.5 5 3-6.5L21 19Z"/>',
+  monument: '<path d="M4 21h16M6 21V10l6-5 6 5v11M9.5 21v-6h5v6"/>',
+  event: '<rect x="4" y="6" width="16" height="14" rx="2.5"/><path d="M4 11h16M8 4v4M16 4v4"/>',
+  tout: '<circle cx="12" cy="12" r="8"/><path d="M8.5 12.5 11 15l4.5-5.5"/>',
+  refuge: '<path d="M4 20h16M6 20v-7l6-5 6 5v7"/><path d="M10 20v-4h4v4"/>'
+};
+const CATS = [
+  { id:"poi-rando",     l:"Randonnées",        i:ICO.rando },
+  { id:"poi-monument",  l:"Sites historiques", i:ICO.monument },
+  { id:"poi-evenement", l:"Événements",        i:ICO.event },
+  { id:"all",           l:"Tout",              i:ICO.tout }
+];
+/* Les bornes de distance sont celles du site. */
+const DIST_DEFS = [
+  { id:"all",   l:"Toutes distances", ok:() => true },
+  { id:"-10",   l:"Moins de 10 km",   ok:p => p.km != null && p.km < 10 },
+  { id:"10-15", l:"10 à 15 km",       ok:p => p.km != null && p.km >= 10 && p.km <= 15 },
+  { id:"+15",   l:"Plus de 15 km",    ok:p => p.km != null && p.km > 15 },
+];
+const DIFF_DEFS = ["all", "Facile", "Intermédiaire", "Difficile"];
+const distDef = id => DIST_DEFS.find(d => d.id === id) ?? DIST_DEFS[0];
+
+/* Un seul endroit filtre. Les filtres de difficulté et de distance ne
+   valent que pour les randonnées : sur un monument ils n'ont pas de sens,
+   et les appliquer viderait la liste sans raison visible. */
+function filtrer(liste){
+  /* Demander « Difficile » ou « plus de 15 km », c'est demander des
+     randonnées : les monuments sortent de la liste plutôt que d'y rester
+     sans que le filtre les concerne. */
+  const randoSeul = S.diff !== "all" || S.dist !== "all";
+  return liste.filter(p => {
+    if (S.cat !== "all" && p.cat !== S.cat) return false;
+    if (p.cat !== "poi-rando") return !randoSeul;
+    if (S.diff !== "all" && p.diff !== S.diff) return false;
+    return distDef(S.dist).ok(p);
+  });
+}
+const items = () => filtrer(PLACES);
+const nbFiltres = () => (S.cat !== "all" ? 1 : 0) + (S.diff !== "all" ? 1 : 0) + (S.dist !== "all" ? 1 : 0);
+
+function rendreCats(){
+  $("#cats").innerHTML = CATS.map(c =>
+    '<button class="cat' + (S.cat === c.id ? " on" : "") + '" data-cat="' + c.id + '">' +
+    '<svg viewBox="0 0 24 24">' + c.i + '</svg><span class="cat-l">' + c.l + "</span></button>").join("");
+  $$("#cats .cat").forEach(b => b.onclick = () => { S.cat = b.dataset.cat; rendreCats(); rendre(); majCarte(); });
+}
+
+/* ══ SOUS-TITRES ET MESURES ══ */
+const sousTitre = p => p.cat === "poi-rando" ? p.commune
+  : p.cat === "poi-monument" ? p.type + " · " + p.commune
+  : p.ecat + " · " + p.lieu;
+const mesure = p => p.cat === "poi-rando"
+  ? '<span class="diff ' + DIFF_CL[p.diff] + '">' + p.diff + "</span> · " + String(p.km).replace(".", ",") + " km · D+ " + p.denivele + " m"
+  : p.cat === "poi-evenement" ? dateFr(p.debut) + (p.fin !== p.debut ? " au " + dateFr(p.fin) : "")
+  : "Visite libre · accès à pied";
+const dateFr = d => {
+  const [a, m, j] = d.split("-").map(Number);
+  return j + " " + ["janv.","févr.","mars","avril","mai","juin","juil.","août","sept.","oct.","nov.","déc."][m-1];
+};
+const etiquette = p => p.cat === "poi-rando" ? String(p.km).replace(".", ",") + " km" : null;
+
+/* ══ ÉCRAN EXPLORER ══ */
+function ecranExplorer(){
+  const l = items();
+  /* Le chiffre est compté sur les données, jamais gonflé pour la promesse.
+     On cherche dans tout le fonds, pas dans la catégorie affichée : les
+     récits sont attachés aux lieux d'histoire, pas aux sentiers. */
+  const lus = new Set(S.journal.map(e => e.cle));
+  const aLire = PLACES.filter(p => RECIT_PAR_ID[p.id] && !lus.has(p.cle));
+  const tete = aLire.length
+    ? appel(aLire[0], aLire.length + " récit" + (aLire.length > 1 ? "s" : "") + " vous attend" + (aLire.length > 1 ? "ent" : ""),
+            "À commencer par " + aLire[0].nom + " · lisible hors ligne")
+    : "";
+  return tete + '<div class="liste">' + l.map(carte).join("") + "</div>" +
+    '<div class="fin">' + l.length + " lieu" + (l.length > 1 ? "x" : "") + " · c'est tout</div><div class=\"bas\"></div>";
+}
+function carte(p){
+  const t = etiquette(p);
+  return '<article class="fiche" data-cle="' + p.cle + '">' +
+    '<div class="f-img"><i style="background:' + fondDeCarte(p) + '"></i>' +
+      (t ? '<span class="f-tag">' + t + "</span>" : "") +
+      '<button class="f-coeur' + (aime(p.cle) ? " aime" : "") + '" data-aime="' + p.cle + '" aria-label="Ajouter aux favoris">' +
+      '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.9-7.5-10A4.5 4.5 0 0 1 12 7.6a4.5 4.5 0 0 1 7.5 2.9c0 5.1-7.5 10-7.5 10Z"/></svg></button></div>' +
+    '<div class="f-t"><span class="f-n">' + ech(p.nom) + "</span>" +
+      (p.cat === "poi-rando" ? '<span class="f-d">' + p.duree + "</span>" : "") + "</div>" +
+    '<div class="f-s">' + ech(sousTitre(p)) + "</div>" +
+    '<div class="f-m">' + mesure(p) + "</div></article>";
+}
+
+/* ══ FAVORIS ══ */
+function ecranFavoris(){
+  const l = PLACES.filter(p => aime(p.cle));
+  if (!l.length) return '<div class="titre"><div class="t-1">Favoris</div></div>' +
+    '<div class="vide"><svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.9-7.5-10A4.5 4.5 0 0 1 12 7.6a4.5 4.5 0 0 1 7.5 2.9c0 5.1-7.5 10-7.5 10Z"/></svg>' +
+    '<div class="vide-t">Rien pour l\'instant</div><div class="vide-p">Touchez le cœur sur un lieu pour le retrouver ici, même hors ligne.</div></div><div class="bas"></div>';
+  return '<div class="titre"><div class="t-1">Favoris</div><div class="t-2">' + l.length + " lieu" + (l.length>1?"x":"") + " enregistré" + (l.length>1?"s":"") + "</div></div>" +
+    '<div class="liste">' + l.map(carte).join("") + "</div><div class=\"bas\"></div>";
+}
+
+/* ══ SORTIES ══ */
+const SEMAINE = 7 * 24 * 3600 * 1000;
+const cetteSemaine = () => S.journal.filter(e => Date.now() - e.t < SEMAINE);
+
+/* L'élan, pas la série. La différence tient en une règle : il monte quand
+   vous marchez, il ne descend jamais pour vous punir de ne pas l'avoir fait.
+   C'est l'endroit exact où Uber et Bolt basculent — et où on s'arrête. */
+function blocElan(){
+  if (!S.elanVisible) return "";
+  const n = cetteSemaine().length, but = S.objectif;
+  const part = Math.min(1, but ? n / but : 0), tour = 2 * Math.PI * 26;
+  return '<div class="elan">' +
+    '<div class="elan-r"><svg viewBox="0 0 62 62" aria-hidden="true">' +
+      '<circle class="fond" cx="31" cy="31" r="26"/>' +
+      '<circle class="arc" cx="31" cy="31" r="26" style="--tour:' + tour.toFixed(1) +
+        ';stroke-dashoffset:' + (tour * (1 - part)).toFixed(1) + '"/></svg>' +
+      '<span class="elan-n">' + n + "/" + but + "</span></div>" +
+    '<span class="elan-c"><span class="elan-t">' +
+      (n >= but ? "Objectif tenu" : n ? "En route" : "La semaine commence") + "</span>" +
+      '<span class="elan-p">' +
+      (n >= but ? "Vous avez marché " + n + " fois cette semaine. Rien à tenir, rien à perdre."
+                : "Objectif : " + but + " sorties par semaine. Il ne redescend pas si vous sautez une semaine.") +
+      "</span></span></div>";
+}
+
+function ecranSorties(){
+  /* L'historique et les chiffres lisent la même source : sinon l'écran
+     affiche « 1 sortie » au-dessus de « aucune sortie enregistrée ». */
+  const faites = S.journal.slice().reverse();
+  const km = S.journal.reduce((n, e) => n + e.km, 0);
+  const dp = S.journal.reduce((n, e) => n + e.dp, 0);
+  const suite = TRAILS.find(t => !S.faits.has(t.cle));
+  return '<div class="titre"><div class="t-1">Vos sorties</div><div class="t-2">Ce que vous avez marché cette saison</div></div>' +
+    blocElan() +
+    '<div class="stat-g" style="margin-top:14px">' +
+      '<div class="st"><div class="st-v" data-roule="' + S.journal.length + '">0</div><div class="st-l">sorties</div></div>' +
+      '<div class="st"><div class="st-v" data-roule="' + km.toFixed(1) + '" data-dec="1">0</div><div class="st-l">kilomètres</div></div>' +
+      '<div class="st"><div class="st-v" data-roule="' + dp + '">0</div><div class="st-l">mètres de D+</div></div>' +
+      '<div class="st"><div class="st-v" data-roule="' + S.aimes.size + '">0</div><div class="st-l">favoris</div></div></div>' +
+    (suite ? appel(suite, "Et après ?", "Continuez sur " + suite.nom + " · " + vgl(suite.km) + " km") : "") +
+    (faites.length
+      ? '<div class="titre"><div class="t-1" style="font-size:20px">Historique</div></div>' +
+        faites.map(e => {
+          const t = parCle(e.cle);
+          return t ? rangee(t, S.faits.has(e.cle) ? "Bouclée" : "Partielle", e) : "";
+        }).join("")
+      : '<div class="vide"><svg viewBox="0 0 24 24"><path d="M5 20 9 9l3.5 4.5L15 8l4 12Z"/><circle cx="17" cy="5" r="2"/></svg>' +
+        '<div class="vide-t">Aucune sortie enregistrée</div><div class="vide-p">Ouvrez une randonnée et lancez-la : elle apparaîtra ici avec sa distance et son dénivelé.</div></div>') +
+    '<div class="bas"></div>';
+}
+
+/* L'incitation — mais elle ne promet que ce qui existe vraiment. */
+function appel(p, titre, sous){
+  return '<button class="appel" data-cle="' + p.cle + '">' +
+    '<span class="appel-i"><svg viewBox="0 0 24 24">' +
+      (p.cat === "poi-monument" ? ICO.monument : p.cat === "poi-evenement" ? ICO.event : ICO.rando) +
+      "</svg></span>" +
+    '<span class="appel-c"><span class="appel-t">' + ech(titre) + "</span>" +
+    '<span class="appel-s">' + ech(sous) + "</span></span>" +
+    '<span class="appel-f"><svg viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:2"><path d="m9 5 7 7-7 7"/></svg></span></button>';
+}
+function rangee(p, note, e){
+  /* Quand la sortie est au journal, on affiche ce qui a été marché,
+     pas la longueur théorique du sentier. */
+  const km = e ? e.km : p.km;
+  return '<button class="rangee" data-cle="' + p.cle + '">' +
+    '<span class="r-i" style="background:' + fondDeCarte(p) + '"></span>' +
+    '<span class="r-c"><span class="r-n">' + ech(p.nom) + '</span>' +
+    '<span class="r-s">' + ech(sousTitre(p)) + '</span>' +
+    '<span class="r-m">' + (note ? note + " · " : "") + vgl(String(km ?? "")) + (km ? " km" : "") +
+      (e ? " · " + e.dp + " m D+" : "") + "</span></span>" +
+    '<span class="pi-f"><svg class="ico" viewBox="0 0 24 24" style="stroke:currentColor;fill:none;stroke-width:1.9"><path d="m9 5 7 7-7 7"/></svg></span></button>';
+}
+
+/* ══ HISTOIRE ══
+   L'écran que l'application existante appelle « Histoire » : les récits
+   attachés aux lieux, et les reportages publiés. C'est ce qui distingue
+   Points P.O d'une application de randonnée — il lui fallait sa place,
+   pas une ligne au fond d'une fiche. */
+function ecranHistoire(){
+  const lieux = PLACES.filter(p => RECIT_PAR_ID[p.id]);
+  const lus = new Set(S.journal.map(e => e.cle));
+  return '<div class="titre"><div class="t-1">Histoire</div>' +
+      '<div class="t-2">' + lieux.length + " récits de lieu · " + REPORTAGES.length + " reportages</div></div>" +
+    '<div class="titre"><div class="t-1" style="font-size:20px">Récits de lieu</div>' +
+      '<div class="t-2">Sourcés, lisibles hors ligne, écoutables en marchant.</div></div>' +
+    lieux.map(p => {
+      const r = RECIT_PAR_ID[p.id];
+      return '<button class="rec" data-recit="' + p.cle + '">' +
+        '<span class="rec-i" style="background:' + fondDeCarte(p) + '"></span>' +
+        '<span class="rec-c"><span class="rec-n">' + ech(p.nom) + "</span>" +
+        '<span class="rec-x">' + ech(r.texte) + "</span>" +
+        '<span class="rec-m">' + (lus.has(p.cle) ? "Déjà lu · " : "") +
+          Math.max(1, Math.round(r.texte.split(/\s+/).length / 160)) + " min de lecture</span></span></button>";
+    }).join("") +
+    '<div class="titre"><div class="t-1" style="font-size:20px">Reportages</div></div>' +
+    '<div class="rep">' + REPORTAGES.map((r, i) =>
+      '<article class="rep-c"><span class="rep-i" style="background:' + gradPal(r.pal) + '">' +
+        '<span class="rep-cat">' + ech(r.cat) + "</span></span>" +
+        '<span class="rep-t">' + ech(r.titre) + "</span>" +
+        '<span class="rep-d">' + ech(r.date) + "</span></article>").join("") + "</div>" +
+    '<div class="bas"></div>';
+}
+const gradPal = i => {
+  const q = PALETTES[i % PALETTES.length];
+  return "linear-gradient(155deg," + q[2] + " 0%," + q[1] + " 55%," + q[0] + " 100%)";
+};
+
+/* Un demi-cercle plutôt qu'une barre : c'est la forme du tableau de bord
+   du site, et elle lit une proportion d'un coup d'œil.
+   Rayon 36 sur un viewBox de 96×54 ; la longueur de l'arc est π·r, calculée
+   ici plutôt que mesurée — pas de vector-effect, qui ferait basculer
+   stroke-dasharray en pixels écran. */
+const ARC_R = 36, ARC_L = Math.PI * ARC_R;
+const ARC_D = "M 12 48 A " + ARC_R + " " + ARC_R + " 0 0 1 84 48";
+function arcJauge(libelle, valeur, part, sous){
+  const q = Math.max(0, Math.min(1, part));
+  return '<div class="dg-c"><svg class="dg-s" viewBox="0 0 96 54" aria-hidden="true">' +
+    '<path class="dg-f" d="' + ARC_D + '"/>' +
+    '<path class="dg-a" d="' + ARC_D + '" style="stroke-dasharray:' + ARC_L.toFixed(1) +
+      ';stroke-dashoffset:' + (ARC_L * (1 - q)).toFixed(1) + '"/></svg>' +
+    '<span class="dg-v">' + ech(String(valeur)) + "</span>" +
+    '<span class="dg-l">' + ech(libelle) + "<br>" + ech(sous) + "</span></div>";
+}
+
+/* ══ COMPTE ══ */
+function ecranCompte(){
+  const km = S.journal.reduce((n, e) => n + e.km, 0);
+  const dp = S.journal.reduce((n, e) => n + e.dp, 0);
+  const vus = new Set(S.journal.map(e => e.cle));
+  const hist = PLACES.filter(p => RECIT_PAR_ID[p.id] && vus.has(p.cle)).length;
+  /* Le badge courant se déduit des kilomètres réellement marchés. */
+  let idx = 0;
+  BADGES.forEach((b, i) => { if (km >= b.seuil) idx = i; });
+  const b = BADGES[idx], suivant = BADGES[idx + 1];
+  const versSuivant = suivant ? Math.min(1, (km - b.seuil) / (suivant.seuil - b.seuil)) : 1;
+
+  const nRecits = PLACES.filter(p => RECIT_PAR_ID[p.id]).length;
+  const jauges = [
+    ["kilomètres", vgl(km.toFixed(1)), Math.min(1, km / 2000), "sur 2 000"],
+    ["randonnées", S.journal.length, Math.min(1, S.journal.length / 50), "sur 50"],
+    ["dénivelé cumulé", dp + " m", Math.min(1, dp / 30000), "sur 30 000 m"],
+    ["lieux d'histoire", hist + "/" + nRecits, nRecits ? hist / nRecits : 0, "visités"],
+  ];
+
+  return '<div class="titre"><div class="t-1">Votre compte</div><div class="t-2">Invité · aucune donnée envoyée</div></div>' +
+    '<div class="niv"><span class="niv-b">' + ech(b.nom) + "</span>" +
+      '<span class="niv-k">' + vgl(km.toFixed(1)) + " km parcourus</span>" +
+      '<span class="jauge"><i style="width:' + (versSuivant * 100).toFixed(1) + '%"></i></span>' +
+      '<span class="niv-s">' + (suivant
+        ? "Encore " + vgl((suivant.seuil - km).toFixed(1)) + " km avant « " + ech(suivant.nom) + " »"
+        : "Dernier palier atteint.") + "</span></div>" +
+    '<div class="dg">' + jauges.map(j => arcJauge(j[0], j[1], j[2], j[3])).join("") + "</div>" +
+    '<div class="rail">' + BADGES.map((bd, i) =>
+      '<span class="bg' + (km >= bd.seuil ? " on" : "") + (i === idx ? " ici" : "") + '">' +
+        '<span class="bg-r">' + (km >= bd.seuil ? "✓" : vgl(String(bd.seuil))) + "</span>" +
+        '<span class="bg-n">' + ech(bd.nom) + "</span></span>").join("") + "</div>" +
+    '<div class="puces"><button class="puce on">Français</button><button class="puce">Català</button></div>' +
+    '<div style="padding:18px">' +
+      '<button class="btn large">Créer un compte</button>' +
+      '<div style="height:10px"></div><button class="btn large creux">Se connecter</button>' +
+      '<div class="d-sep"></div>' +
+      '<div class="d-h">Élan</div>' +
+      '<button class="reglage" id="r-elan" aria-pressed="' + (S.elanVisible ? "true" : "false") + '">' +
+        '<span class="reglage-c"><span class="reglage-t">Afficher l\'élan de la semaine</span>' +
+        '<span class="reglage-s">Un objectif que vous choisissez. Il monte quand vous marchez et ne redescend jamais : sauter une semaine ne coûte rien.</span></span>' +
+        '<span class="inter"></span></button>' +
+      '<div class="d-sep"></div>' +
+      '<div class="d-h">Ce que l\'application ne fait pas</div>' +
+      '<div class="d-p">Pas de série quotidienne à ne pas briser, pas de classement, pas de compteur public. Une seule chose clignote dans toute l\'application : le point d\'une sortie réellement en cours. Deux notifications par semaine au maximum, réglables à zéro. Vos traces restent privées. Aucune publicité, aucune revente de données.</div>' +
+    "</div><div class=\"bas\"></div>";
+}
+
+/* ══ RENDU ══ */
+const ECRANS = { explorer: ecranExplorer, histoire: ecranHistoire, favoris: ecranFavoris,
+                sorties: ecranSorties, compte: ecranCompte };
+function rendre(){
+  $("#e-" + S.onglet).innerHTML = ECRANS[S.onglet]();
+  brancher();
+  majPastilleF();
+  /* Le contenu ne se pose pas d'un coup : il arrive. */
+  echelonner("#e-" + S.onglet + " .liste > *");
+  echelonner("#e-" + S.onglet + " .stat-g > *");
+  /* Les compteurs montent depuis zéro à chaque fois qu'on revient : c'est
+     la seconde où l'on voit ce qu'on a gagné. */
+  $$("#e-" + S.onglet + " [data-roule]").forEach(el => {
+    const v = +el.dataset.roule, dec = el.dataset.dec === "1";
+    rouler(el, 0, v, 900, x => dec ? vgl(x.toFixed(1)) : String(Math.round(x)));
+  });
+  /* L'arc de l'élan part de zéro puis se remplit. */
+  const arc = $("#e-" + S.onglet + " .elan-r .arc");
+  if (arc && !SOBRE()){
+    const cible = arc.style.strokeDashoffset;
+    arc.style.strokeDashoffset = arc.style.getPropertyValue("--tour");
+    requestAnimationFrame(() => requestAnimationFrame(() => { arc.style.strokeDashoffset = cible; }));
+  }
+}
+function brancher(){
+  $$("[data-recit]").forEach(b => b.onclick = () => ouvrirRecit(b.dataset.recit));
+  const re = $("#r-elan");
+  if (re) re.onclick = () => {
+    S.elanVisible = !S.elanVisible;
+    localStorage.setItem(ELAN_CLE, S.elanVisible ? "1" : "0");
+    re.setAttribute("aria-pressed", S.elanVisible ? "true" : "false");
+  };
+  $$("[data-cle]").forEach(el => el.onclick = e => {
+    if (e.target.closest("[data-aime]")) return;
+    ouvrir(el.dataset.cle);
+  });
+  $$("[data-aime]").forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    basculerAime(b.dataset.aime);
+    b.classList.toggle("aime");
+    if (S.onglet === "favoris") rendre();
+  });
+}
+</script>
+
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════
+   FICHE DÉTAILLÉE
+   ══════════════════════════════════════════════════════════ */
+const parCle = c => PLACES.find(p => p.cle === c);
+const RECIT_PAR_ID = Object.fromEntries((RECIT.poi || []).map(p => [p.id, p]));
+
+function profilSvg(profil){
+  if (!profil || profil.length < 2) return "";
+  const alts = profil.map(p => p[1]), kms = profil.map(p => p[0]);
+  const mn = Math.min(...alts), mx = Math.max(...alts), kmax = kms[kms.length - 1];
+  const amp = Math.max(1, mx - mn);
+  const X = k => (k / kmax) * 300;
+  const Y = a => 86 - ((a - mn) / amp) * 78;
+  const pts = profil.map(p => X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1));
+  return '<div class="profil"><svg viewBox="0 0 300 96" preserveAspectRatio="none" role="img" ' +
+      'aria-label="Profil altimétrique de ' + mn + ' à ' + mx + ' mètres sur ' + kmax + ' kilomètres">' +
+      '<polygon points="0,96 ' + pts.join(" ") + ' 300,96" fill="rgba(249,159,131,.30)"></polygon>' +
+      '<polyline class="d-trace" points="' + pts.join(" ") + '" fill="none" stroke="var(--rouille)" stroke-width="2.2" ' +
+      'stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline></svg>' +
+      '<div class="profil-l"><span>' + mn + ' m</span><span>' + kmax.toFixed(1).replace(".", ",") + ' km</span><span>' + mx + " m</span></div></div>";
+}
+
+function ouvrir(cle){
+  const p = parCle(cle); if (!p) return;
+  S.selection = cle;
+  const r = RECIT_PAR_ID[p.id];
+  const chiffres = p.cat === "poi-rando"
+    ? [[String(p.km).replace(".", ","), "kilomètres"], [p.denivele, "D+ mètres"], [p.duree, "durée"], [p.diff, "difficulté"]]
+    : p.cat === "poi-evenement"
+      ? [[dateFr(p.debut), "début"], [p.ecat, "type"], [p.dept, "département"]]
+      : [[p.type, "nature"], [p.dept, "département"], ["libre", "accès"]];
+
+  $("#d-corps").innerHTML =
+    '<div class="d-hero" style="background:' + fondDeCarte(p) + '">' +
+      '<button class="d-retour" id="d-x" aria-label="Retour"><svg class="ico ico-l" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></svg></button>' +
+      '<button class="d-coeur' + (aime(p.cle) ? " aime" : "") + '" data-aime="' + p.cle + '" aria-label="Favori">' +
+      '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.9-7.5-10A4.5 4.5 0 0 1 12 7.6a4.5 4.5 0 0 1 7.5 2.9c0 5.1-7.5 10-7.5 10Z"/></svg></button></div>' +
+    '<div class="d-b"><div class="d-n">' + ech(p.nom) + '</div><div class="d-s">' + ech(sousTitre(p)) + "</div>" +
+      '<div class="d-chiffres">' + chiffres.map(c =>
+        '<div class="d-ch"><div class="d-cv">' + ech(c[0]) + '</div><div class="d-cl">' + c[1] + "</div></div>").join("") + "</div>" +
+      (p.quote ? '<div class="d-p">' + ech(p.quote) + "</div>" : "") +
+      (p.desc ? '<div class="d-p">' + ech(p.desc) + "</div>" : "") +
+      (r ? '<div class="d-sep"></div><div class="d-h">L\'histoire</div><div class="d-p">' + ech(r.texte) + "</div>" +
+           '<div class="d-src">Sources · ' + ech(r.source) + "</div>" +
+           '<div style="height:12px"></div><button class="btn large creux" data-recit="' + p.cle + '">Lire le récit guidé</button>' : "") +
+      (p.profil ? '<div class="d-sep"></div><div class="d-h">Profil du parcours</div>' + profilSvg(p.profil) +
+        '<div class="d-src">Relevé issu de la trace GPX du parcours.</div>' : "") +
+      '<div class="d-sep"></div><div class="d-h">Sur place</div>' +
+      pratique(p) +
+      '<div style="height:26px"></div></div>';
+
+  /* Barre d'action : le résumé sur une ligne, puis UNE action pleine
+     largeur — la forme d'Uber et de Bolt. Un seul geste possible, en bas,
+     là où le pouce est déjà. */
+  const action = p.cat === "poi-rando" ? "C'est parti" : p.cat === "poi-evenement" ? "Y aller" : "S'y rendre";
+  $("#d-barre").innerHTML =
+    '<div class="d-prix"><div class="d-p1">' + (p.cat === "poi-rando" ? p.duree + " · " + p.diff : ech(p.commune ?? p.lieu)) + "</div>" +
+    '<div class="d-p2">' + (p.cat === "poi-rando" ? "Départ à " + ech(p.commune) : "Accès libre") + "</div></div>" +
+    '<button class="btn large sombre" id="d-go">' + action + "</button>";
+
+  $("#detail").classList.add("on");
+  majCouverture();
+  $("#d-x").onclick = fermer;
+  $("#d-go").onclick = () => {
+    fermer();
+    if (p.cat !== "poi-rando") { allerA("explorer"); entrerCarte(); selectionner(p.cle); return; }
+    lancerSortie(p.cle);
+  };
+  $$("#detail [data-aime]").forEach(b => b.onclick = () => {
+    basculerAime(b.dataset.aime); b.classList.toggle("aime");
+  });
+  $("#d-corps").scrollTop = 0;
+  /* Le tracé se dessine : chez Uber c'est l'itinéraire qui apparaît, ici
+     c'est la montée. Il faut la longueur réelle du trait, que seul le
+     navigateur connaît une fois l'élément posé. */
+  const tr = $("#d-corps .d-trace");
+  if (tr && !SOBRE()){
+    const L = tr.getTotalLength();
+    tr.style.setProperty("--long", L.toFixed(1));
+  }
+}
+function pratique(p){
+  const lignes = p.cat === "poi-rando"
+    ? [[ICO.rando, "Balisage sur le terrain", "Suivez le balisage officiel ; la trace est téléchargeable avant de partir."],
+       [ICO.refuge, "Eau et abri", "Vérifiez les points d'eau à la saison : plusieurs sont taris en fin d'été."]]
+    : p.cat === "poi-monument"
+      ? [[ICO.monument, "Monument protégé", "Site classé. Ne rien déplacer, rester sur les cheminements balisés."],
+         [ICO.rando, "Accès à pied", "Le stationnement est en contrebas ; comptez la montée dans votre horaire."]]
+      : [[ICO.event, "Gratuit et en plein air", "Aucune réservation nécessaire. Horaires précisés par la commune."],
+         [ICO.refuge, "Stationnement", "Prévoyez large : les villages saturent les jours de fête."]];
+  return lignes.map(l => '<div class="pi"><span class="pi-i"><svg viewBox="0 0 24 24">' + l[0] + "</svg></span>" +
+    '<span class="pi-c"><span class="pi-n">' + l[1] + '</span><span class="pi-s">' + l[2] + "</span></span></div>").join("");
+}
+function fermer(){ $("#detail").classList.remove("on"); majCouverture(); }
+
+/* ══════════════════════════════════════════════════════════
+   CARTE — rendu maison, sans tuile ni bibliothèque
+   ══════════════════════════════════════════════════════════ */
+const V = { lat: 42.60, lon: 2.45, ech: 300 };
+const cv = $("#toile"), ctx = cv.getContext("2d", { alpha: false });
+let L_ = 0, H_ = 0, dpr = 1;
+
+const hache = (x, y) => { const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return n - Math.floor(n); };
+const doux = t => t * t * (3 - 2 * t);
+function bruit(x, y){
+  const xi = Math.floor(x), yi = Math.floor(y), u = doux(x - xi), v = doux(y - yi);
+  const a = hache(xi, yi), b = hache(xi+1, yi), c = hache(xi, yi+1), d = hache(xi+1, yi+1);
+  const h1 = a + (b - a) * u, h2 = c + (d - c) * u;
+  return h1 + (h2 - h1) * v;
+}
+function fbm(x, y, oct){
+  let s = 0, p = 0, a = 1, f = 1;
+  for (let i = 0; i < oct; i++){ s += bruit(x*f, y*f) * a; p += a; a *= .5; f *= 2.07; }
+  return s / p;
+}
+const NECH = 0.55;
+function octaves(mult){
+  const pp = NECH * mult / V.ech;
+  let n = 1, f = 1;
+  while (n < 8 && f * 2.07 * pp <= 0.25){ f *= 2.07; n++; }
+  return n;
+}
+function altD(lat, lon, oS, oC){
+  const x = (lon + 2.4) * NECH, y = (lat - 41.8) * NECH;
+  const socle = fbm(x, y, oS);
+  const crete = 1 - Math.abs(fbm(x*1.73 + 11.3, y*1.73 + 7.1, oC) * 2 - 1);
+  return Math.max(0, Math.round(-260 + socle * 1580 + crete * crete * 1180));
+}
+const versX = lon => (lon - V.lon) * V.ech + L_ / 2;
+const versY = lat => (V.lat - lat) * V.ech * 1.38 + H_ / 2;
+const versLon = x => (x - L_/2) / V.ech + V.lon;
+const versLat = y => V.lat - (y - H_/2) / (V.ech * 1.38);
+
+const hx = h => { const m = (h||"").trim().replace("#","").match(/\w\w/g); return m ? m.map(v => parseInt(v,16)) : [200,190,150]; };
+const off = document.createElement("canvas"), offc = off.getContext("2d", { alpha: false });
+const PAS = 2;
+function bandes(){
+  const nuit = document.body.classList.contains("nuit");
+  return nuit
+    ? [[36,52,58],[38,44,30],[44,38,24],[58,50,32],[74,64,44],[92,82,62],[118,108,86]]
+    : [[168,192,196],[196,204,150],[236,230,178],[226,206,146],[214,182,124],[206,178,150],[244,240,222]];
+}
+function peindre(){
+  const l = Math.ceil(L_/PAS), h = Math.ceil(H_/PAS);
+  if (!l || !h) return;
+  off.width = l; off.height = h;
+  const img = offc.createImageData(l, h), d = img.data;
+  const pal = bandes();
+  const nuit = document.body.classList.contains("nuit");
+  const trait = nuit ? [214,166,120] : [150,96,54];
+  const oS = octaves(1), oC = Math.min(5, octaves(1.73));
+  const eq = V.ech > 420 ? 50 : V.ech > 150 ? 100 : 200;
+  const mpp = 111320 / V.ech * PAS, ampli = Math.max(12, mpp * .9);
+  const G = new Float32Array((l+1) * (h+1));
+  for (let j = 0; j <= h; j++){
+    const la = versLat(j * PAS);
+    for (let i = 0; i <= l; i++) G[j*(l+1)+i] = altD(la, versLon(i*PAS), oS, oC);
+  }
+  const seuils = [0, 320, 700, 1150, 1650, 2200];
+  for (let j = 0; j < h; j++){
+    for (let i = 0; i < l; i++){
+      const a = G[j*(l+1)+i], aE = G[j*(l+1)+i+1], aS = G[(j+1)*(l+1)+i];
+      let b = 0; if (a > 0){ b = 6; for (let k = 1; k < seuils.length; k++) if (a < seuils[k]){ b = k; break; } }
+      const c = pal[b];
+      let f = 1 + ((aE - a) - (aS - a)) / ampli;
+      f = Math.max(.74, Math.min(1.26, f));
+      const bd = Math.floor(a / eq);
+      const courbe = a > 0 && (Math.floor(aE/eq) !== bd || Math.floor(aS/eq) !== bd);
+      const k = (j*l + i) * 4;
+      if (courbe){ d[k] = trait[0]*.34 + c[0]*.66; d[k+1] = trait[1]*.34 + c[1]*.66; d[k+2] = trait[2]*.34 + c[2]*.66; }
+      else { d[k] = Math.min(255, c[0]*f); d[k+1] = Math.min(255, c[1]*f); d[k+2] = Math.min(255, c[2]*f); }
+      d[k+3] = 255;
+    }
+  }
+  offc.putImageData(img, 0, 0);
+}
+function dessiner(){ ctx.drawImage(off, 0, 0, L_, H_); placer(); }
+let tmr = null;
+function rafraichir(now){
+  clearTimeout(tmr);
+  const f = () => { peindre(); dessiner(); };
+  if (now) f(); else tmr = setTimeout(f, 60);
+}
+/* Comme Airbnb : la carte se cadre sur ce que la liste contient. */
+function cadrer(){
+  const pts = items();
+  if (!pts.length || !L_ || !H_) return;
+  const lons = pts.map(p => p.coord[0]), lats = pts.map(p => p.coord[1]);
+  const lo1 = Math.min(...lons), lo2 = Math.max(...lons);
+  const la1 = Math.min(...lats), la2 = Math.max(...lats);
+  V.lon = (lo1 + lo2) / 2; V.lat = (la1 + la2) / 2;
+  /* Le cadre utile exclut les bandes réservées en haut et en bas. */
+  const utileL = L_ - 56, utileH = H_ - MARGE_HAUT - MARGE_BAS;
+  const eL = (lo2 - lo1) > 1e-6 ? utileL / (lo2 - lo1) : 900;
+  const eH = (la2 - la1) > 1e-6 ? utileH / ((la2 - la1) * 1.38) : 900;
+  V.ech = Math.max(60, Math.min(2600, Math.min(eL, eH)));
+  /* Recentrage vertical dans la bande utile, pas dans le cadre entier. */
+  V.lat += ((MARGE_HAUT - MARGE_BAS) / 2) / (V.ech * 1.38);
+}
+
+function dimensionner(){
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const r = cv.getBoundingClientRect();
+  L_ = r.width; H_ = r.height;
+  if (!L_ || !H_) return;
+  cv.width = L_ * dpr; cv.height = H_ * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  rafraichir(true);
+}
+
+/* pastilles (Airbnb : l'étiquette porte l'information, pas une épingle) */
+/* Bande sûre : les pastilles ne passent ni sous la pilule de retour (haut)
+   ni sous le carrousel + le bouton Carte/Liste (bas). */
+const MARGE_HAUT = 122, MARGE_BAS = 296;
+
+function placer(){
+  const c = $("#calque");
+  c.innerHTML = "";
+  /* Le point sélectionné se place en premier : il ne disparaît jamais. */
+  const liste = items().slice().sort((a, b) =>
+    (b.cle === S.selection) - (a.cle === S.selection));
+  const poses = [];
+
+  liste.forEach(p => {
+    const x = versX(p.coord[0]), y = versY(p.coord[1]);
+    if (y < MARGE_HAUT || y > H_ - MARGE_BAS) return;
+
+    const t = etiquette(p);
+    /* Largeur estimée avant insertion : ~6,9 px par caractère + le rembourrage. */
+    const boite = (l, h) => ({ x1: x - l/2, x2: x + l/2, y1: y - h/2, y2: y + h/2 });
+    /* Une place est libre si l'élément entier tient dans le cadre et ne
+       touche aucun marqueur déjà posé — étiquette comme point. */
+    const libre = b => b.x1 >= 8 && b.x2 <= L_ - 8 &&
+      !poses.some(o => b.x1 < o.x2 + 6 && b.x2 + 6 > o.x1 && b.y1 < o.y2 + 5 && b.y2 + 5 > o.y1);
+
+    const bEtiq = boite(t ? Math.min(190, 24 + t.length * 6.9) : 31, t ? 30 : 31);
+    const bPoint = boite(31, 31);
+
+    const b = document.createElement("button");
+    b.dataset.cible = "annotation";
+    b.style.left = x + "px"; b.style.top = y + "px";
+    b.onclick = () => selectionner(p.cle);
+    b.setAttribute("aria-label", t ? p.nom + ", " + t : p.nom);
+
+    /* Comme Airbnb ou Plans : rien ne se superpose. L'étiquette d'abord ;
+       si elle ne tient pas, un simple point ; si le point ne tient pas non
+       plus, le lieu attend un zoom — il reste dans le carrousel. */
+    if (libre(bEtiq)) {
+      poses.push(bEtiq);
+      b.className = "pastille" + (t ? "" : " pt") + (S.selection === p.cle ? " on" : "");
+      b.innerHTML = t ? ech(t) : '<svg viewBox="0 0 24 24">' + (p.cat === "poi-monument" ? ICO.monument : ICO.event) + "</svg>";
+    } else if (libre(bPoint)) {
+      poses.push(bPoint);
+      b.className = "point" + (S.selection === p.cle ? " on" : "");
+    } else return;
+    c.appendChild(b);
+  });
+}
+function selectionner(cle, garderCadre){
+  S.selection = cle;
+  placer();
+  const p = parCle(cle);
+  $("#carte-bas").innerHTML = items().map(q =>
+    '<button class="mini" data-mini="' + q.cle + '">' +
+      '<span class="mini-i" style="background:' + fondDeCarte(q) + '"></span>' +
+      '<span class="mini-c"><span class="mini-n">' + ech(q.nom) + "</span>" +
+      '<span class="mini-s">' + ech(sousTitre(q)) + '</span><span class="mini-m">' + mesure(q).replace(/<[^>]+>/g, "") + "</span></span></button>").join("");
+  $$("#carte-bas [data-mini]").forEach(b => b.onclick = () => ouvrir(b.dataset.mini));
+  const el = $('#carte-bas [data-mini="' + cle + '"]');
+  if (el) el.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  if (p && !garderCadre) { V.lat = p.coord[1]; V.lon = p.coord[0]; rafraichir(true); }
+}
+function majCarte(){ $("#carte-titre").textContent = CATS.find(c => c.id === S.cat)?.l ?? "Tout"; placer(); }
+
+let gliss = null;
+cv.addEventListener("pointerdown", e => { gliss = { x:e.clientX, y:e.clientY, lat:V.lat, lon:V.lon }; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove", e => {
+  if (!gliss) return;
+  V.lon = gliss.lon - (e.clientX - gliss.x) / V.ech;
+  V.lat = gliss.lat + (e.clientY - gliss.y) / (V.ech * 1.38);
+  dessiner(); rafraichir();
+});
+cv.addEventListener("pointerup", () => { gliss = null; rafraichir(true); });
+cv.addEventListener("wheel", e => {
+  e.preventDefault();
+  V.ech = Math.max(60, Math.min(2600, V.ech * (e.deltaY < 0 ? 1.15 : .87)));
+  rafraichir(true);
+}, { passive:false });
+
+/* ══════════════════════════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════════════════════════ */
+function allerA(o){
+  S.onglet = o;
+  $$(".og").forEach(b => {
+    const actif = b.dataset.o === o;
+    b.classList.toggle("on", actif);
+    b.setAttribute("aria-current", actif ? "page" : "false");
+  });
+  $$(".ecran").forEach(e => e.classList.toggle("on", e.id === "e-" + o));
+  $("#corps").scrollTop = 0;
+  fermer();
+  quitterCarte();
+  $("#entete").style.display = o === "explorer" ? "" : "none";
+  $("#bascule").style.display = o === "explorer" ? "" : "none";
+  rendre();
+}
+$$(".og").forEach(b => b.onclick = () => allerA(b.dataset.o));
+
+function entrerCarte(){
+  S.carte = true;
+  $("#vuecarte").classList.add("on");
+  $("#bascule-l").textContent = "Liste";
+  $("#bascule").querySelector("svg").innerHTML = '<path d="M4 6h16M4 12h16M4 18h16"/>';
+  requestAnimationFrame(() => {
+    dimensionner(); cadrer(); rafraichir(true);
+    majCarte(); selectionner(items()[0].cle, true);
+  });
+}
+function quitterCarte(){
+  if (!S.carte) return;
+  S.carte = false;
+  $("#vuecarte").classList.remove("on");
+  $("#bascule-l").textContent = "Carte";
+  $("#bascule").querySelector("svg").innerHTML = '<path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4v13"/>';
+}
+/* ── récit guidé ── */
+$("#r-x").onclick = fermerRecit;
+$("#r-suiv").onclick = suivantRecit;
+$("#r-prec").onclick = () => { if (R.i > 0) { R.i--; majRecit(); } };
+
+/* ── sortie en cours ── */
+$("#c-carte").onclick = () => montrerPlein(true);
+$("#p-reduire").onclick = () => montrerPlein(false);
+$("#p-fin").onclick = terminerSortie;
+$("#m-ok").onclick = fermerMoment;
+
+$("#bascule").onclick = () => S.carte ? quitterCarte() : entrerCarte();
+$("#carte-retour").onclick = quitterCarte;
+$("#btn-recherche").onclick = ouvrirFiltres;
+$("#f-voile").onclick = fermerFiltres;
+$("#f-ok").onclick = fermerFiltres;
+$("#f-raz").onclick = () => { S.cat = "all"; S.diff = "all"; S.dist = "all"; rendreFiltres(); };
+$("#corps").addEventListener("scroll", () => $("#entete").classList.toggle("colle", $("#corps").scrollTop > 4));
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if ($("#detail").classList.contains("on")) return fermer();
+  if (S.carte) quitterCarte();
+});
+setInterval(() => {
+  const d = new Date();
+  $("#heure").textContent = String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+}, 1000);
+
+if (matchMedia("(prefers-color-scheme: dark)").matches) document.body.classList.add("nuit");
+rendreCats();
+rendre();
+new ResizeObserver(() => { if (S.carte) dimensionner(); }).observe($("#tel"));
+</script>
+</body>
+</html>

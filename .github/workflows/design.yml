@@ -28,6 +28,15 @@ jobs:
         run: git diff --exit-code design/build/
           || (echo "::error::design/build/ n'est pas à jour — lancez npm run tokens et committez." && exit 1)
 
+      # Le fichier autonome est versionné pour être téléchargeable tel quel.
+      # S'il n'est pas régénéré, il livre une version périmée en silence.
+      - name: Régénérer le fichier autonome
+        run: npm run autonome
+
+      - name: Vérifier que le fichier autonome est à jour
+        run: git diff --exit-code points-po-app.html
+          || (echo "::error::points-po-app.html n'est pas à jour — lancez npm run autonome et committez." && exit 1)
+
       - name: Installer Chromium
         run: npx playwright install --with-deps chromium
 
