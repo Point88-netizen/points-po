@@ -1,0 +1,18 @@
+{
+  "name": "points-po",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Points P.O — prototype d'application et système de design.",
+  "scripts": {
+    "dev": "http-server -p 8899 -s .",
+    "tokens": "node design/construire.mjs",
+    "verif:tokens": "node design/verifier-tokens.mjs app",
+    "verif:ecran": "node design/verifier-ecran.mjs http://127.0.0.1:8899/app/index.html 394 830 \"#btn-recherche,#f-ok,.og[data-o='histoire'],.rec,#r-suiv,#r-x,.og[data-o='compte'],.og[data-o='explorer'],.fiche,#d-go,#p-fin,#m-ok\"",
+    "verif": "npm run verif:tokens && npm run verif:ecran",
+    "navigateur": "playwright install chromium"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "playwright": "^1.48.0"
+  }
+}

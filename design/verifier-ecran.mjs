@@ -23,7 +23,15 @@ const ici = dirname(fileURLToPath(import.meta.url));
 const require_ = createRequire(import.meta.url);
 let chromium;
 try { ({ chromium } = require_("playwright")); }
-catch { ({ chromium } = require_("/opt/node22/lib/node_modules/playwright")); }
+catch {
+  /* Chemin de secours des conteneurs CI ; en local, mieux vaut un message
+     clair qu'une pile d'appels sur un module introuvable. */
+  try { ({ chromium } = require_("/opt/node22/lib/node_modules/playwright")); }
+  catch {
+    console.error("Playwright est introuvable.\n  npm install\n  npm run navigateur");
+    process.exit(2);
+  }
+}
 
 const url = process.argv[2];
 if (!url) { console.error("Usage : node design/verifier-ecran.mjs <url>"); process.exit(2); }

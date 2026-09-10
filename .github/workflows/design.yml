@@ -2,7 +2,7 @@ name: Design
 
 on:
   pull_request:
-    paths: ["design/**", "app/**", ".github/workflows/design.yml"]
+    paths: ["design/**", "app/**", "package.json", ".github/workflows/design.yml"]
   push:
     branches: [main]
 
@@ -15,21 +15,24 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
 
+      # La CI lance exactement les commandes du README. Si elles divergent,
+      # ce qui passe ici cesse de dire quoi que ce soit sur ce qui passe
+      # chez la personne qui développe.
+      - name: Installer
+        run: npm install
+
       - name: Régénérer les tokens
-        run: node design/construire.mjs
+        run: npm run tokens
 
       - name: Vérifier que build/ est à jour
         run: git diff --exit-code design/build/
-          || (echo "::error::design/build/ n'est pas à jour — lancez node design/construire.mjs et committez." && exit 1)
+          || (echo "::error::design/build/ n'est pas à jour — lancez npm run tokens et committez." && exit 1)
 
-      - name: Contrôles statiques (contraste, durées, zone du jaune)
-        run: node design/verifier-tokens.mjs app
-
-      - name: Installer Playwright
-        run: npm i -D playwright && npx playwright install --with-deps chromium
+      - name: Installer Chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Servir le prototype
-        run: npx http-server -p 8899 -s . & sleep 3
+        run: npm run dev & sleep 3
 
-      - name: Contrôles sur écran rendu
-        run: node design/verifier-ecran.mjs http://127.0.0.1:8899/app/index.html 390 844
+      - name: Vérifications
+        run: npm run verif
